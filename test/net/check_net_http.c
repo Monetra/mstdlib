@@ -13,6 +13,7 @@ struct {
 	M_dns_t           *dns;
 	M_tls_clientctx_t *ctx;
 	M_json_node_t     *json;
+	M_tls_serverctx_t *sctx;
 } g;
 
 typedef struct {
@@ -23,6 +24,7 @@ typedef struct {
 
 static void cleanup_int(void)
 {
+	M_tls_serverctx_destroy(g.sctx);
 	M_tls_clientctx_destroy(g.ctx);
 	M_dns_destroy(g.dns);
 	M_event_destroy(g.el);
@@ -45,6 +47,7 @@ static void trigger_softevent(M_io_t *io, M_event_type_t etype)
 
 typedef struct {
 	const char *json_key;
+	M_bool      is_tls;
 } test_server_args_t;
 
 struct test_server_t;
@@ -249,6 +252,9 @@ static test_server_t *test_server_create(test_server_args_t *args)
 	srv->name              = M_strdup(args->json_key);
 	srv->port              = M_io_net_get_port(srv->io_listen);
 	srv->json              = M_json_object_value(g.json, args->json_key);
+	if (args->is_tls) {
+		M_io_tls_server_add(srv->io_listen, g.sctx, NULL);
+	}
 	M_event_add(g.el, srv->io_listen, test_server_listen_cb, srv);
 	return srv;
 }
@@ -312,7 +318,8 @@ static M_bool iocreate_cb_fail(M_io_t *io, char *error, size_t errlen, void *thu
 
 START_TEST(check_tls)
 {
-	test_server_args_t   srv_args  = { "basic" };
+	test_args_t          args      = { 0 };
+	test_server_args_t   srv_args  = { "basic", M_TRUE };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
 	char                 url[]     = "https://localhost:99999/";
@@ -323,7 +330,12 @@ START_TEST(check_tls)
 	/* Double set to check memory leak */
 	M_net_http_simple_set_tlsctx(hs, g.ctx);
 
-	M_net_http_simple_cancel(hs);
+	M_tls_clientctx_set_verify_level(g.ctx, M_TLS_VERIFY_FULL);
+
+	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
+	M_event_loop(g.el, M_TIMEOUT_INF);
+	ck_assert_msg(args.net_error == M_NET_ERROR_TLS_BAD_CERTIFICATE, "Should fail with bad certificate");
+
 	test_server_destroy(srv);
 	cleanup();
 }
@@ -331,7 +343,7 @@ END_TEST
 
 START_TEST(check_disconnect)
 {
-	test_server_args_t   srv_args  = { "basic" };
+	test_server_args_t   srv_args  = { "basic", M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -350,7 +362,7 @@ END_TEST
 
 START_TEST(check_badproto)
 {
-	test_server_args_t   srv_args  = { "basic" };
+	test_server_args_t   srv_args  = { "basic", M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -369,7 +381,7 @@ END_TEST
 
 START_TEST(check_recvmax)
 {
-	test_server_args_t   srv_args  = { "basic" };
+	test_server_args_t   srv_args  = { "basic", M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -389,7 +401,7 @@ END_TEST
 
 START_TEST(check_post)
 {
-	test_server_args_t   srv_args  = { "basic" };
+	test_server_args_t   srv_args  = { "basic", M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -417,7 +429,7 @@ END_TEST
 
 START_TEST(check_iocreate_cb)
 {
-	test_server_args_t   srv_args  = { "basic" };
+	test_server_args_t   srv_args  = { "basic", M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -436,7 +448,7 @@ END_TEST
 
 START_TEST(check_badurl)
 {
-	test_server_args_t   srv_args  = { "basic" };
+	test_server_args_t   srv_args  = { "basic", M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -485,7 +497,7 @@ END_TEST
 
 START_TEST(check_timeout)
 {
-	test_server_args_t   srv_args  = { "timeout" };
+	test_server_args_t   srv_args  = { "timeout", M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -513,7 +525,7 @@ END_TEST
 
 START_TEST(check_redirect)
 {
-	test_server_args_t   srv_args  = { "basic" };
+	test_server_args_t   srv_args  = { "basic", M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -559,7 +571,7 @@ END_TEST
 
 START_TEST(check_basic)
 {
-	test_server_args_t   srv_args  = { "basic" };
+	test_server_args_t   srv_args  = { "basic", M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -616,6 +628,49 @@ static Suite *net_http_suite(void)
 	return suite;
 }
 
+static M_tls_serverctx_t *self_signed_serverctx(void)
+{
+	char               *realcert;
+	char               *realkey;
+	M_tls_x509_t       *x509;
+	M_tls_serverctx_t  *serverctx;
+	/* Generate real cert */
+	realkey = M_tls_rsa_generate_key(2048);
+	if (realkey == NULL) {
+		return NULL;
+	}
+	x509 = M_tls_x509_new(realkey);
+	if (x509 == NULL) {
+		return NULL;
+	}
+	if (!M_tls_x509_txt_add(x509, M_TLS_X509_TXT_COMMONNAME, "localhost", M_FALSE)) {
+		return NULL;
+	}
+	if (!M_tls_x509_txt_SAN_add(x509, M_TLS_X509_SAN_TYPE_DNS, "localhost", M_TRUE)) {
+		return NULL;
+	}
+	if (!M_tls_x509_txt_SAN_add(x509, M_TLS_X509_SAN_TYPE_DNS, "localhost.localdomain", M_TRUE)) {
+		return NULL;
+	}
+	if (!M_tls_x509_txt_SAN_add(x509, M_TLS_X509_SAN_TYPE_IP, "127.0.0.1", M_TRUE)) {
+		return NULL;
+	}
+	if (!M_tls_x509_txt_SAN_add(x509, M_TLS_X509_SAN_TYPE_IP, "::1", M_TRUE)) {
+		return NULL;
+	}
+
+	realcert = M_tls_x509_selfsign(x509, 365 * 24 * 60 * 60 /* 1 year */);
+	if (realcert == NULL) {
+		return NULL;
+	}
+	M_tls_x509_destroy(x509);
+//M_printf("PrivateKey: %s\n", key);
+	serverctx = M_tls_serverctx_create((const M_uint8 *)realkey, M_str_len(realkey), (const M_uint8 *)realcert, M_str_len(realcert), NULL, 0);
+	M_free(realkey);
+	M_free(realcert);
+	return serverctx;
+}
+
 int main(int argc, char **argv)
 {
 	int         nf;
@@ -631,6 +686,8 @@ int main(int argc, char **argv)
 	g.dns  = M_dns_create(g.el);
 	g.ctx  = M_tls_clientctx_create();
 	g.json = M_json_read(json_str, M_str_len(json_str), M_JSON_READER_NONE, NULL, NULL, NULL, NULL);
+
+	g.sctx = self_signed_serverctx();
 
 	M_tls_clientctx_set_default_trust(g.ctx);
 
