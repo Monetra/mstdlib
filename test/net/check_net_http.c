@@ -380,6 +380,8 @@ START_TEST(check_redirect)
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
 	char                 url[]     = "http://localhost:99999/redirect";
+	char                 url2[]    = "http://localhost:99999/redirect_bad";
+	char                 url3[]    = "http://localhost:99999/redirect3";
 
 	sprintf(url, "http://localhost:%hu/redirect", srv->port);
 	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
@@ -388,6 +390,23 @@ START_TEST(check_redirect)
 	M_event_loop(g.el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.is_success == M_TRUE, "Should have received 'It works!' HTML");
+
+	hs = M_net_http_simple_create(g.el, g.dns, done_cb);
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
+	sprintf(url2, "http://localhost:%hu/redirect_bad", srv->port);
+	ck_assert_msg(M_net_http_simple_send(hs, url2, &args), "Should send message");
+	M_event_loop(g.el, M_TIMEOUT_INF);
+	ck_assert_msg(args.net_error == M_NET_ERROR_REDIRECT, "Should have failed redirect");
+
+	hs = M_net_http_simple_create(g.el, g.dns, done_cb);
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
+	M_net_http_simple_set_max_redirects(hs, 2);
+	sprintf(url3, "http://localhost:%hu/redirect3", srv->port);
+	ck_assert_msg(M_net_http_simple_send(hs, url3, &args), "Should send message");
+	M_event_loop(g.el, M_TIMEOUT_INF);
+	ck_assert_msg(args.net_error == M_NET_ERROR_REDIRECT_LIMIT, "Should have failed redirect limit");
+
+
 
 	test_server_destroy(srv);
 	cleanup();

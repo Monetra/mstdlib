@@ -24,6 +24,39 @@ const char * json_str = \
 					"} " \
 				"], " \
 				"\"value\": \"HTTP/1.1 301 Moved Permanently\\r\\nLocation: http://localhost:%hu/\\r\\n\\r\\n\" " \
+			"}, { " \
+				"\"keys\": [ " \
+					"{ " \
+						"\"key\": \":method\", " \
+						"\"value\": \"GET\" " \
+					"}, { " \
+						"\"key\": \":path\", " \
+						"\"value\": \"/redirect_bad\" " \
+					"} " \
+				"], " \
+				"\"value\": \"HTTP/1.1 301 Moved Permanently\\r\\nLocation:\\r\\n\\r\\n\" " \
+			"}, { " \
+				"\"keys\": [ " \
+					"{ " \
+						"\"key\": \":method\", " \
+						"\"value\": \"GET\" " \
+					"}, { " \
+						"\"key\": \":path\", " \
+						"\"value\": \"/redirect2\" " \
+					"} " \
+				"], " \
+				"\"value\": \"HTTP/1.1 301 Moved Permanently\\r\\nLocation: http://localhost:%hu/redirect\\r\\n\\r\\n\" " \
+			"}, { " \
+				"\"keys\": [ " \
+					"{ " \
+						"\"key\": \":method\", " \
+						"\"value\": \"GET\" " \
+					"}, { " \
+						"\"key\": \":path\", " \
+						"\"value\": \"/redirect3\" " \
+					"} " \
+				"], " \
+				"\"value\": \"HTTP/1.1 301 Moved Permanently\\r\\nLocation: http://localhost:%hu/redirect2\\r\\n\\r\\n\" " \
 			"} " \
 		"], " \
 		"\"notfound_response\": \"404\" " \
