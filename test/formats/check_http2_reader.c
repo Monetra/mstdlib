@@ -478,6 +478,17 @@ static const M_uint8 test_dat13[] = {
 0x62, 0x6f, 0x64, 0x79, 0x3e, 0x3c, 0x2f, 0x68, 0x74, 0x6d, 0x6c, 0x3e,
 };
 
+/*
+HTTP/1.1 301 Moved Permanently
+Location: http://localhost/
+*/
+
+static const M_uint8 test_redirect[] = {
+0x00, 0x00, 0x1f, 0x01, 0x00, 0x00, 0x00, 0x00, 0x01, /* HEADER frame */
+0x00, 0x85, 0xb8, 0x84, 0x8d, 0x36, 0xa3, 0x82, 0x64, 0x01, 0x00, 0x86, 0xce, 0x72, 0x0d, 0x26,
+0x3d, 0x5f, 0x8c, 0x9d, 0x29, 0xae, 0xe3, 0x0c, 0x50, 0x72, 0x0e, 0x89, 0xce, 0x84, 0xb1,
+};
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static httpr_test_t *httpr_test_create(void)
@@ -1348,6 +1359,33 @@ START_TEST(check_httpr13)
 }
 END_TEST
 
+START_TEST(check_redirect)
+{
+	M_http_reader_t *hr;
+	httpr_test_t    *ht;
+	M_http_error_t   res;
+	size_t           len_read;
+	const char      *location;
+
+	ht  = httpr_test_create();
+	hr  = gen_reader(ht);
+	res = M_http_reader_read(hr, (const unsigned char *)test_redirect, sizeof(test_redirect), &len_read);
+
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed: %d", res);
+	ck_assert_msg(len_read == sizeof(test_redirect), "Did not read full message: got '%zu', expected '%zu'", len_read, sizeof(test_redirect));
+
+	/* Start. */
+	ck_assert_msg(ht->type == M_HTTP_MESSAGE_TYPE_RESPONSE, "Wrong type: got '%d', expected '%d'", ht->type, M_HTTP_MESSAGE_TYPE_RESPONSE);
+	ck_assert_msg(ht->code == 301, "Wrong status code: %u != 301\n", ht->code);
+	location = M_hash_dict_get_direct(ht->headers_full, "Location");
+	ck_assert_msg(M_str_eq(location, "http://localhost/"), "Wrong location '%s' != 'http://localhost/'", location);
+	ck_assert_msg(ht->version == M_HTTP_VERSION_2, "Wrong version: got '%d', expected '%d'", ht->version, M_HTTP_VERSION_1_1);
+
+	httpr_test_destroy(ht);
+	M_http_reader_destroy(hr);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 int main(void)
@@ -1371,6 +1409,7 @@ int main(void)
 	add_test(suite, check_httpr11);
 	add_test(suite, check_httpr12);
 	add_test(suite, check_httpr13);
+	add_test(suite, check_redirect);
 
 	sr = srunner_create(suite);
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_http_reader.log");
