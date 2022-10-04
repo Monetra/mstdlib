@@ -22,6 +22,7 @@
  */
 
 #include "m_net_int.h"
+#include <mstdlib/io/m_io_layer.h> /* M_io_layer_softevent_add (STARTTLS) */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -39,6 +40,7 @@ struct M_net_http_simple {
 	M_event_timer_t      *timer_overall;
 	M_io_t               *io;
 	M_parser_t           *read_parser;
+	M_buf_t              *out_buf;
 	M_buf_t              *header_buf;
 	M_http_simple_read_t *simple;
 	M_http_method_t       method;
@@ -85,6 +87,7 @@ static void M_net_http_simple_destroy(M_net_http_simple_t *hs)
 	M_event_timer_remove(hs->timer_stall);
 	M_event_timer_remove(hs->timer_overall);
 
+	M_buf_cancel(hs->out_buf);
 	M_parser_destroy(hs->read_parser);
 	M_buf_cancel(hs->header_buf);
 	M_http_simple_read_destroy(hs->simple);
@@ -98,6 +101,13 @@ static void M_net_http_simple_destroy(M_net_http_simple_t *hs)
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+static void trigger_softevent(M_io_t *io, M_event_type_t etype)
+{
+	M_io_layer_t *layer = M_io_layer_acquire(io, 0, NULL);
+	M_io_layer_softevent_add(layer, M_FALSE, etype, M_IO_ERROR_SUCCESS);
+	M_io_layer_release(layer);
+}
 
 static void call_done(M_net_http_simple_t *hs)
 {
@@ -180,6 +190,9 @@ static void M_net_http_simple_ready_send(M_net_http_simple_t *hs)
 
 	M_parser_destroy(hs->read_parser);
 	hs->read_parser = M_parser_create(M_PARSER_FLAG_NONE);
+
+	M_buf_cancel(hs->out_buf);
+	hs->out_buf = M_buf_create();
 
 	hs->message_pos = 0;
 
@@ -287,41 +300,10 @@ static void process_response(M_net_http_simple_t *hs)
 	call_done(hs);
 }
 
-static M_bool write_data(M_io_t *io, M_net_http_simple_t *hs)
+static void init_out_buf(M_net_http_simple_t *hs)
 {
-	M_io_error_t ioerr;
-	size_t       wrote = 0;
-
-	/* Keep writing our headers until we've gotten them all out. */
-	if (M_buf_len(hs->header_buf) > 0) {
-		ioerr = M_io_write_from_buf(io, hs->header_buf);
-		if (ioerr != M_IO_ERROR_SUCCESS && ioerr != M_IO_ERROR_WOULDBLOCK) {
-			hs->neterr = M_net_io_error_to_net_error(ioerr);
-			M_io_get_error_string(io, hs->error, sizeof(hs->error));
-			return M_FALSE;
-		}
-
-		/* If we have data in the header buf we've
- 		 * written everything we can and shouldn't
-		 * try to write more until we've emptied it. */
-		if (M_buf_len(hs->header_buf) > 0) {
-			return M_TRUE;
-		}
-	}
-
-	/* Write the message. */
-	if (hs->message_pos < hs->message_len) {
-		ioerr = M_io_write(io, hs->message+hs->message_pos, hs->message_len-hs->message_pos, &wrote);
-		if (ioerr == M_IO_ERROR_SUCCESS) {
-			hs->message_pos += wrote;
-		} else if (ioerr != M_IO_ERROR_WOULDBLOCK) {
-			hs->neterr = M_net_io_error_to_net_error(ioerr);
-			M_io_get_error_string(io, hs->error, sizeof(hs->error));
-			return M_FALSE;
-		}
-	}
-
-	return M_TRUE;
+	M_buf_add_bytes(hs->out_buf, M_buf_peek(hs->header_buf), M_buf_len(hs->header_buf));
+	M_buf_add_bytes(hs->out_buf, hs->message, hs->message_len);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -330,18 +312,20 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	M_net_http_simple_t *hs = thunk;
 	M_http_error_t       httperr;
+	M_io_error_t         ioerr;
 
 	(void)el;
 
 	switch (etype) {
 		case M_EVENT_TYPE_CONNECTED:
 			/* Kick this off by writing our headers. */
-			if (!write_data(io, hs)) {
-				call_done(hs);
-			}
+			init_out_buf(hs);
+			trigger_softevent(io, M_EVENT_TYPE_WRITE);
 			break;
 		case M_EVENT_TYPE_READ:
-			M_io_read_into_parser(io, hs->read_parser);
+			ioerr = M_io_read_into_parser(io, hs->read_parser);
+			if (ioerr == M_IO_ERROR_DISCONNECT)
+				goto disconnect;
 			if (hs->receive_max != 0 && M_parser_len(hs->read_parser) > hs->receive_max) {
 				hs->neterr = M_NET_ERROR_OVER_LIMIT;
 				M_snprintf(hs->error, sizeof(hs->error), "Exceeded maximum receive data size limit");
@@ -371,24 +355,14 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 			break;
 		case M_EVENT_TYPE_WRITE:
 			timer_start_stall(hs);
-			if (!write_data(io, hs)) {
+			ioerr = M_io_write_from_buf(io, hs->out_buf);
+			if (ioerr == M_IO_ERROR_DISCONNECT)
+				goto disconnect;
+			if (ioerr != M_IO_ERROR_SUCCESS && ioerr != M_IO_ERROR_WOULDBLOCK)
 				call_done(hs);
-			}
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
-			/* We got a disconenct from the server. Normally we're the ones
-			 * to disconnect once we get the response.
-			 *
-			 * We'll do a final check on the data because we might not have gotten
-			 * content-length and this is how we'd know when all data is sent. */
-			httperr = M_http_simple_read_parser(&hs->simple, hs->read_parser, M_HTTP_SIMPLE_READ_NONE);
-			if (httperr == M_HTTP_ERROR_SUCCESS || httperr == M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE) {
-				process_response(hs);
-				break;
-			}
-			hs->neterr = M_NET_ERROR_DISCONNET;
-			M_io_get_error_string(io, hs->error, sizeof(hs->error));
-			call_done(hs);
+			goto disconnect;
 			break;
 		case M_EVENT_TYPE_ERROR:
 			hs->neterr = M_net_io_error_to_net_error(M_io_get_error(io));
@@ -399,6 +373,22 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 		case M_EVENT_TYPE_OTHER:
 			break;
 	}
+	return;
+disconnect:
+	/* We got a disconenct from the server. Normally we're the ones
+	 * to disconnect once we get the response.
+	 *
+	 * We'll do a final check on the data because we might not have gotten
+	 * content-length and this is how we'd know when all data is sent. */
+	httperr = M_http_simple_read_parser(&hs->simple, hs->read_parser, M_HTTP_SIMPLE_READ_NONE);
+	if (httperr == M_HTTP_ERROR_SUCCESS || httperr == M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE) {
+		process_response(hs);
+		return;
+	}
+	hs->neterr = M_NET_ERROR_DISCONNET;
+	M_io_get_error_string(io, hs->error, sizeof(hs->error));
+	call_done(hs);
+	return;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
