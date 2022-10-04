@@ -41,7 +41,6 @@ struct M_net_http_simple {
 	M_io_t               *io;
 	M_parser_t           *read_parser;
 	M_buf_t              *out_buf;
-	M_buf_t              *header_buf;
 	M_http_simple_read_t *simple;
 	M_http_method_t       method;
 	char                 *user_agent;
@@ -89,7 +88,6 @@ static void M_net_http_simple_destroy(M_net_http_simple_t *hs)
 
 	M_buf_cancel(hs->out_buf);
 	M_parser_destroy(hs->read_parser);
-	M_buf_cancel(hs->header_buf);
 	M_http_simple_read_destroy(hs->simple);
 	M_hash_dict_destroy(hs->headers);
 	M_free(hs->message);
@@ -184,9 +182,6 @@ static void timer_start_overall(M_net_http_simple_t *hs)
 static void M_net_http_simple_ready_send(M_net_http_simple_t *hs)
 {
 	hs->thunk = NULL;
-
-	M_buf_cancel(hs->header_buf);
-	hs->header_buf = M_buf_create();
 
 	M_parser_destroy(hs->read_parser);
 	hs->read_parser = M_parser_create(M_PARSER_FLAG_NONE);
@@ -300,12 +295,6 @@ static void process_response(M_net_http_simple_t *hs)
 	call_done(hs);
 }
 
-static void init_out_buf(M_net_http_simple_t *hs)
-{
-	M_buf_add_bytes(hs->out_buf, M_buf_peek(hs->header_buf), M_buf_len(hs->header_buf));
-	M_buf_add_bytes(hs->out_buf, hs->message, hs->message_len);
-}
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
@@ -318,8 +307,6 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 
 	switch (etype) {
 		case M_EVENT_TYPE_CONNECTED:
-			/* Kick this off by writing our headers. */
-			init_out_buf(hs);
 			trigger_softevent(io, M_EVENT_TYPE_WRITE);
 			break;
 		case M_EVENT_TYPE_READ:
@@ -545,17 +532,10 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 		return M_FALSE;
 	}
 
-	/* Setup read and write buffer. */
-	/*
-	hs->header_buf  = M_buf_create();
-	hs->read_parser = M_parser_create(M_PARSER_FLAG_NONE);
-	*/ /* Already done in M_net_http_simple_ready_send() */
-
-	/* Add the data to the write buf. */
-	M_http_simple_write_request_buf(hs->header_buf, hs->method,
+	M_http_simple_write_request_buf(hs->out_buf, hs->method,
 		M_url_host(url_st), M_url_port_u16(url_st), M_url_path(url_st),
 		hs->user_agent, hs->content_type, hs->headers,
-		NULL, hs->message_len, hs->charset);
+		hs->message, hs->message_len, hs->charset);
 
 	/* Start/reset our timers. */
 	timer_start_connect(hs);
