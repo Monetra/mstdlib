@@ -27,6 +27,8 @@
 #include <../net/http2/m_net_http2_simple.h>
 #include <../net/http2/m_net_http2_simple_request.h>
 
+static void h2_request(M_net_http_simple_t *hs, M_url_t *url);
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 struct M_net_http_simple {
@@ -54,6 +56,7 @@ struct M_net_http_simple {
 	size_t                message_len;
 	size_t                message_pos;
 	size_t                tls_layer_id;
+	M_url_t              *url;
 	M_http_version_t      version;
 	M_http_error_t        httperr;
 	M_net_error_t         neterr;
@@ -90,6 +93,7 @@ static void M_net_http_simple_destroy(M_net_http_simple_t *hs)
 	M_event_timer_remove(hs->timer_stall);
 	M_event_timer_remove(hs->timer_overall);
 
+	M_url_destroy(hs->url);
 	M_buf_cancel(hs->out_buf);
 	M_parser_destroy(hs->read_parser);
 	M_http_simple_read_destroy(hs->simple);
@@ -222,7 +226,7 @@ static M_bool setup_io(M_net_http_simple_t *hs, const M_url_t *url_st)
 			M_snprintf(hs->error, sizeof(hs->error), "HTTPS Connection required but client context no set");
 			goto fail;
 		}
-		if (hs->version == M_HTTP_VERSION_2) {
+		if (hs->version == M_HTTP_VERSION_2 || hs->version == M_HTTP_VERSION_ANY) {
 			applist = M_list_str_create(M_LIST_STR_NONE);
 			M_list_str_insert(applist, "h2");
 			M_tls_clientctx_set_applications(hs->ctx, applist);
@@ -313,20 +317,29 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 	M_net_http_simple_t *hs = thunk;
 	M_http_error_t       httperr;
 	M_io_error_t         ioerr;
+	char                *app;
+	M_bool               is_h2;
 
 	(void)el;
 
 	switch (etype) {
 		case M_EVENT_TYPE_CONNECTED:
-			if (hs->version == M_HTTP_VERSION_2) {
-				char *app = M_tls_get_application(io, hs->tls_layer_id);
-				if (!M_str_eq(app, "h2")) {
+			app = M_tls_get_application(io, hs->tls_layer_id);
+			is_h2 = M_str_eq(app, "h2");
+			M_free(app);
+			if (is_h2) {
+				h2_request(hs, hs->url);
+			} else {
+				if (hs->version == M_HTTP_VERSION_2) {
 					hs->neterr = M_NET_ERROR_PROTOFORMAT;
 					M_snprintf(hs->error, sizeof(hs->error), "ALPN failed to negotiate h2");
 					call_done(hs);
+					return;
 				}
-				M_free(app);
-				return;
+				M_http_simple_write_request_buf(hs->out_buf, hs->method,
+					M_url_host(hs->url), M_url_port_u16(hs->url), M_url_path(hs->url),
+					hs->user_agent, hs->content_type, hs->headers,
+					hs->message, hs->message_len, hs->charset);
 			}
 			trigger_softevent(io, M_EVENT_TYPE_WRITE);
 			break;
@@ -564,6 +577,8 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 	if (url_st == NULL)
 		return M_FALSE;
 
+	M_url_destroy(hs->url);
+	hs->url = url_st;
 	/* Setup the object for sending data. */
 	M_net_http_simple_ready_send(hs);
 
@@ -571,17 +586,7 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 
 	/* Create our io object. */
 	if (!setup_io(hs, url_st)) {
-		M_url_destroy(url_st);
 		return M_FALSE;
-	}
-
-	if (hs->version == M_HTTP_VERSION_2) {
-		h2_request(hs, url_st);
-	} else {
-		M_http_simple_write_request_buf(hs->out_buf, hs->method,
-			M_url_host(url_st), M_url_port_u16(url_st), M_url_path(url_st),
-			hs->user_agent, hs->content_type, hs->headers,
-			hs->message, hs->message_len, hs->charset);
 	}
 
 	/* Start/reset our timers. */
@@ -596,10 +601,8 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 		M_snprintf(hs->error, sizeof(hs->error), "Event error: Failed to start");
 		M_io_destroy(hs->io);
 		hs->io = NULL;
-		M_url_destroy(url_st);
 		return M_FALSE;
 	}
 
-	M_url_destroy(url_st);
 	return M_TRUE;
 }
