@@ -933,7 +933,7 @@ START_TEST(check_httpr3)
 	/* Start. */
 	ck_assert_msg(ht->type == M_HTTP_MESSAGE_TYPE_REQUEST, "Wrong type: got '%d', expected '%d'", ht->type, M_HTTP_MESSAGE_TYPE_REQUEST);
 	ck_assert_msg(ht->method == M_HTTP_METHOD_GET, "Wrong method: got '%d', expected '%d'", ht->method, M_HTTP_METHOD_GET);
-	ck_assert_msg(M_str_eq(ht->uri, "https://www.google.com/index.html"), "Wrong uri: got '%s', expected '%s'", ht->uri, "https://www.google.com/index.html");
+	ck_assert_msg(M_str_eq(ht->uri, "/index.html"), "Wrong uri: got '%s', expected '%s'", ht->uri, "/index.html");
 	ck_assert_msg(ht->version == M_HTTP_VERSION_2, "Wrong version: got '%d', expected '%d'", ht->version, M_HTTP_VERSION_1_1);
 
 	httpr_test_destroy(ht);
@@ -958,7 +958,7 @@ START_TEST(check_httpr4)
 	/* Start. */
 	ck_assert_msg(ht->type == M_HTTP_MESSAGE_TYPE_REQUEST, "Wrong type: got '%d', expected '%d'", ht->type, M_HTTP_MESSAGE_TYPE_REQUEST);
 	ck_assert_msg(ht->method == M_HTTP_METHOD_HEAD, "Wrong method: got '%d', expected '%d'", ht->method, M_HTTP_METHOD_HEAD);
-	ck_assert_msg(M_str_eq(ht->uri, "https://www.google.com/"), "Wrong uri: got '%s', expected '%s'", ht->uri, "https://www.google.com/");
+	ck_assert_msg(M_str_eq(ht->uri, "/"), "Wrong uri: got '%s', expected '%s'", ht->uri, "/");
 	ck_assert_msg(ht->version == M_HTTP_VERSION_2, "Wrong version: got '%d', expected '%d'", ht->version, M_HTTP_VERSION_1_1);
 
 	httpr_test_destroy(ht);
@@ -987,7 +987,7 @@ START_TEST(check_httpr5)
 	/* Start. */
 	ck_assert_msg(ht->type == M_HTTP_MESSAGE_TYPE_REQUEST, "Wrong type: got '%d', expected '%d'", ht->type, M_HTTP_MESSAGE_TYPE_REQUEST);
 	ck_assert_msg(ht->method == M_HTTP_METHOD_POST, "Wrong method: got '%d', expected '%d'", ht->method, M_HTTP_METHOD_POST);
-	ck_assert_msg(M_str_eq(ht->uri, "https://www.google.com/login"), "Wrong uri: got '%s', expected '%s'", ht->uri, "https://www.google.com/login");
+	ck_assert_msg(M_str_eq(ht->uri, "/login"), "Wrong uri: got '%s', expected '%s'", ht->uri, "/login");
 	ck_assert_msg(ht->version == M_HTTP_VERSION_2, "Wrong version: got '%d', expected '%d'", ht->version, M_HTTP_VERSION_2);
 
 	/* Headers. */
@@ -1143,7 +1143,7 @@ START_TEST(check_httpr8)
 	/* Start. */
 	ck_assert_msg(ht->type == M_HTTP_MESSAGE_TYPE_REQUEST, "Wrong type: got '%d', expected '%d'", ht->type, M_HTTP_MESSAGE_TYPE_REQUEST);
 	ck_assert_msg(ht->method == M_HTTP_METHOD_POST, "Wrong method: got '%d', expected '%d'", ht->method, M_HTTP_METHOD_POST);
-	ck_assert_msg(M_str_eq(ht->uri, "https://www.google.com/login"), "Wrong uri: got '%s', expected '%s'", ht->uri, "https://www.google.com/login");
+	ck_assert_msg(M_str_eq(ht->uri, "/login"), "Wrong uri: got '%s', expected '%s'", ht->uri, "/login");
 	ck_assert_msg(ht->version == M_HTTP_VERSION_2, "Wrong version: got '%d', expected '%d'", ht->version, M_HTTP_VERSION_2);
 
 	/* Part Headers. */
