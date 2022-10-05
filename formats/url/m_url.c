@@ -93,6 +93,9 @@ M_url_t *M_url_create(const char *url_str)
 	if (url->port == NULL)
 		M_url_default_port(url);
 
+	if (url->path == NULL)
+		url->path = M_strdup("/");
+
 	return url;
 }
 

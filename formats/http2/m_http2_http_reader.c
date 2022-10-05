@@ -183,15 +183,7 @@ static M_http_error_t M_http2_http_reader_header_func(M_http2_header_t *header, 
 			args->request.path      != NULL
 		) {
 			M_http_method_t  method  = M_http_method_from_str(args->request.method);
-			M_buf_t         *uri_buf = M_buf_create();
-			char            *uri_str = NULL;
-			M_buf_add_str(uri_buf, args->request.scheme);
-			M_buf_add_str(uri_buf, "://");
-			M_buf_add_str(uri_buf, args->request.authority);
-			M_buf_add_str(uri_buf, args->request.path);
-			uri_str = M_buf_finish_str(uri_buf, NULL);
-			h_error = hr->cbs.start_func(M_HTTP_MESSAGE_TYPE_REQUEST, M_HTTP_VERSION_2, method, uri_str, 0, NULL, hr->thunk);
-			M_free(uri_str);
+			h_error = hr->cbs.start_func(M_HTTP_MESSAGE_TYPE_REQUEST, M_HTTP_VERSION_2, method, args->request.path, 0, NULL, hr->thunk);
 		}
 	}
 

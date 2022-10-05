@@ -48,6 +48,7 @@ static void trigger_softevent(M_io_t *io, M_event_type_t etype)
 typedef struct {
 	const char *json_key;
 	M_bool      is_tls;
+	M_bool      is_h2;
 } test_server_args_t;
 
 struct test_server_t;
@@ -190,6 +191,7 @@ static void test_server_event_cb(M_event_t *event, M_event_type_t type, M_io_t *
 	test_server_stream_t *stream = thunk;
 	M_io_error_t          ioerr;
 	M_http_error_t        herr;
+	size_t                len;
 	(void)event;
 	(void)io;
 
@@ -204,7 +206,7 @@ static void test_server_event_cb(M_event_t *event, M_event_type_t type, M_io_t *
 			ioerr = M_io_read_into_parser(stream->io, stream->in_parser);
 			if (ioerr == M_IO_ERROR_DISCONNECT)
 				goto disconnect;
-			herr = M_http_reader_read(stream->httpr, M_parser_peek(stream->in_parser), M_parser_len(stream->in_parser), NULL);
+			herr = M_http_reader_read(stream->httpr, M_parser_peek(stream->in_parser), M_parser_len(stream->in_parser), &len);
 			if (herr == M_HTTP_ERROR_SUCCESS)
 				respond(stream);
 			break;
@@ -237,8 +239,11 @@ static void test_server_listen_cb(M_event_t *event, M_event_type_t type, M_io_t 
 		size_t                 idx    = srv->stream_count;
 		test_server_stream_t  *stream = &srv->streams[idx];
 		stream->server                = srv;
+		M_io_error_t           ioerr  = M_io_accept(&stream->io, io_listen);
 
-		M_io_accept(&stream->io, io_listen);
+		if (ioerr != M_IO_ERROR_SUCCESS && ioerr != M_IO_ERROR_WOULDBLOCK) {
+			M_printf("%s:%d: M_io_accept: %s\n", __FILE__, __LINE__, M_io_error_string(ioerr));
+		}
 
 		srv->stream_count++;
 		M_event_add(g.el, stream->io, test_server_event_cb, stream);
@@ -253,6 +258,12 @@ static test_server_t *test_server_create(test_server_args_t *args)
 	srv->port              = M_io_net_get_port(srv->io_listen);
 	srv->json              = M_json_object_value(g.json, args->json_key);
 	if (args->is_tls) {
+		if (args->is_h2) {
+			M_list_str_t *applist = M_list_str_create(M_LIST_STR_NONE);
+			M_list_str_insert(applist, "h2");
+			M_tls_serverctx_set_applications(g.sctx, applist);
+			M_list_str_destroy(applist);
+		}
 		M_io_tls_server_add(srv->io_listen, g.sctx, NULL);
 	}
 	M_event_add(g.el, srv->io_listen, test_server_listen_cb, srv);
@@ -319,7 +330,7 @@ static M_bool iocreate_cb_fail(M_io_t *io, char *error, size_t errlen, void *thu
 START_TEST(check_tls)
 {
 	test_args_t          args      = { 0 };
-	test_server_args_t   srv_args  = { "basic", M_TRUE };
+	test_server_args_t   srv_args  = { "basic", M_TRUE, M_FALSE };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
 	char                 url[]     = "https://localhost:99999/";
@@ -343,7 +354,7 @@ END_TEST
 
 START_TEST(check_disconnect)
 {
-	test_server_args_t   srv_args  = { "basic", M_FALSE };
+	test_server_args_t   srv_args  = { "basic", M_FALSE, M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -362,7 +373,7 @@ END_TEST
 
 START_TEST(check_badproto)
 {
-	test_server_args_t   srv_args  = { "basic", M_FALSE };
+	test_server_args_t   srv_args  = { "basic", M_FALSE, M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -381,7 +392,7 @@ END_TEST
 
 START_TEST(check_recvmax)
 {
-	test_server_args_t   srv_args  = { "basic", M_FALSE };
+	test_server_args_t   srv_args  = { "basic", M_FALSE, M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -401,7 +412,7 @@ END_TEST
 
 START_TEST(check_post)
 {
-	test_server_args_t   srv_args  = { "basic", M_FALSE };
+	test_server_args_t   srv_args  = { "basic", M_FALSE, M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -429,7 +440,7 @@ END_TEST
 
 START_TEST(check_iocreate_cb)
 {
-	test_server_args_t   srv_args  = { "basic", M_FALSE };
+	test_server_args_t   srv_args  = { "basic", M_FALSE, M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -448,7 +459,7 @@ END_TEST
 
 START_TEST(check_badurl)
 {
-	test_server_args_t   srv_args  = { "basic", M_FALSE };
+	test_server_args_t   srv_args  = { "basic", M_FALSE, M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -497,7 +508,7 @@ END_TEST
 
 START_TEST(check_timeout)
 {
-	test_server_args_t   srv_args  = { "timeout", M_FALSE };
+	test_server_args_t   srv_args  = { "timeout", M_FALSE, M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -525,7 +536,7 @@ END_TEST
 
 START_TEST(check_redirect)
 {
-	test_server_args_t   srv_args  = { "basic", M_FALSE };
+	test_server_args_t   srv_args  = { "basic", M_FALSE, M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -571,7 +582,7 @@ END_TEST
 
 START_TEST(check_basic)
 {
-	test_server_args_t   srv_args  = { "basic", M_FALSE };
+	test_server_args_t   srv_args  = { "basic", M_FALSE, M_FALSE };
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -582,6 +593,30 @@ START_TEST(check_basic)
 	/* Double set to test for memory leak */
 	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, "User Agent", "text/plain", "utf-8", NULL, NULL, 0);
 	M_net_http_simple_set_version(hs, M_HTTP_VERSION_1_1);
+	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
+
+	M_event_loop(g.el, M_TIMEOUT_INF);
+
+	ck_assert_msg(args.is_success == M_TRUE, "Should have received 'It works!' HTML");
+
+	test_server_destroy(srv);
+	cleanup();
+}
+END_TEST
+
+START_TEST(check_basic_h2)
+{
+	test_server_args_t   srv_args  = { "basic", M_TRUE, M_TRUE };
+	test_args_t          args      = { 0 };
+	test_server_t       *srv       = test_server_create(&srv_args);
+	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
+	char                 url[]     = "https://localhost:99999";
+
+	sprintf(url, "https://localhost:%hu", srv->port);
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, "User Agent", "text/plain", "utf-8", NULL, NULL, 0);
+	M_net_http_simple_set_version(hs, M_HTTP_VERSION_2);
+	M_net_http_simple_set_tlsctx(hs, g.ctx);
+	M_tls_clientctx_set_verify_level(g.ctx, M_TLS_VERIFY_NONE);
 	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
 
 	M_event_loop(g.el, M_TIMEOUT_INF);
@@ -622,6 +657,8 @@ static Suite *net_http_suite(void)
 	add_test("badproto", check_badproto);
 	add_test("disconnect", check_disconnect);
 	add_test("tls", check_tls);
+
+	add_test("basic_h2", check_basic_h2);
 
 #undef add_test_timeout
 #undef add_test

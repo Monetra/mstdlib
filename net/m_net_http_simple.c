@@ -23,6 +23,9 @@
 
 #include "m_net_int.h"
 #include <mstdlib/io/m_io_layer.h> /* M_io_layer_softevent_add (STARTTLS) */
+#include <../formats/http2/m_http2.h>
+#include <../net/http2/m_net_http2_simple.h>
+#include <../net/http2/m_net_http2_simple_request.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -50,6 +53,7 @@ struct M_net_http_simple {
 	unsigned char        *message;
 	size_t                message_len;
 	size_t                message_pos;
+	size_t                tls_layer_id;
 	M_http_version_t      version;
 	M_http_error_t        httperr;
 	M_net_error_t         neterr;
@@ -202,6 +206,7 @@ static M_bool setup_io(M_net_http_simple_t *hs, const M_url_t *url_st)
 {
 	M_io_error_t  ioerr;
 	size_t        lid;
+	M_list_str_t *applist;
 
 	ioerr = M_io_net_client_create(&hs->io, hs->dns, M_url_host(url_st), M_url_port_u16(url_st), M_IO_NET_ANY);
 	if (ioerr != M_IO_ERROR_SUCCESS) {
@@ -217,8 +222,14 @@ static M_bool setup_io(M_net_http_simple_t *hs, const M_url_t *url_st)
 			M_snprintf(hs->error, sizeof(hs->error), "HTTPS Connection required but client context no set");
 			goto fail;
 		}
-			
+		if (hs->version == M_HTTP_VERSION_2) {
+			applist = M_list_str_create(M_LIST_STR_NONE);
+			M_list_str_insert(applist, "h2");
+			M_tls_clientctx_set_applications(hs->ctx, applist);
+			M_list_str_destroy(applist);
+		}
 		ioerr = M_io_tls_client_add(hs->io, hs->ctx, NULL, &lid);
+		hs->tls_layer_id = lid;
 		if (ioerr != M_IO_ERROR_SUCCESS) {
 			hs->neterr = M_NET_ERROR_TLS_SETUP_FAILURE;
 			M_snprintf(hs->error, sizeof(hs->error), "Failed to add client context: %s", M_io_error_string(ioerr));
@@ -307,6 +318,16 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 
 	switch (etype) {
 		case M_EVENT_TYPE_CONNECTED:
+			if (hs->version == M_HTTP_VERSION_2) {
+				char *app = M_tls_get_application(io, hs->tls_layer_id);
+				if (!M_str_eq(app, "h2")) {
+					hs->neterr = M_NET_ERROR_PROTOFORMAT;
+					M_snprintf(hs->error, sizeof(hs->error), "ALPN failed to negotiate h2");
+					call_done(hs);
+				}
+				M_free(app);
+				return;
+			}
 			trigger_softevent(io, M_EVENT_TYPE_WRITE);
 			break;
 		case M_EVENT_TYPE_READ:
@@ -437,6 +458,7 @@ void M_net_http_simple_set_tlsctx(M_net_http_simple_t *hs, M_tls_clientctx_t *ct
 	if (hs == NULL)
 		return;
 
+
 	/* unhook existing ctx */
 	M_tls_clientctx_destroy(hs->ctx);
 
@@ -508,6 +530,27 @@ void M_net_http_simple_set_message(M_net_http_simple_t *hs, M_http_method_t meth
 	}
 }
 
+static void h2_request(M_net_http_simple_t *hs, M_url_t *url)
+{
+	M_http2_frame_settings_t *settings;
+	M_http2_frame_headers_t *headers;
+
+	M_http2_pri_str_to_buf(hs->out_buf);
+
+	settings = M_http2_frame_settings_create(0, 0);
+	M_http2_frame_settings_add(settings, M_HTTP2_SETTING_HEADER_TABLE_SIZE, 0); /* Disable Dynamic Table */
+	M_http2_frame_settings_add(settings, M_HTTP2_SETTING_ENABLE_PUSH, 0); /* Disable PUSH_PROMISE frames */
+	M_http2_frame_settings_add(settings, M_HTTP2_SETTING_NO_RFC7540_PRIORITIES, 1); /* Disable PRIORITY frames */
+	M_http2_frame_settings_finish_to_buf(settings, hs->out_buf); /* Configure settings */
+
+	headers = M_http2_frame_headers_create(1, 0x05); /* END_STREAM | END_HEADERS */
+	M_http2_frame_headers_add(headers, ":scheme", M_url_schema(url));
+	M_http2_frame_headers_add(headers, ":method", "GET");
+	M_http2_frame_headers_add(headers, ":authority", M_url_host(url));
+	M_http2_frame_headers_add(headers, ":path", M_url_path(url));
+	M_http2_frame_headers_finish_to_buf(headers, hs->out_buf);
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *thunk)
@@ -532,10 +575,14 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 		return M_FALSE;
 	}
 
-	M_http_simple_write_request_buf(hs->out_buf, hs->method,
-		M_url_host(url_st), M_url_port_u16(url_st), M_url_path(url_st),
-		hs->user_agent, hs->content_type, hs->headers,
-		hs->message, hs->message_len, hs->charset);
+	if (hs->version == M_HTTP_VERSION_2) {
+		h2_request(hs, url_st);
+	} else {
+		M_http_simple_write_request_buf(hs->out_buf, hs->method,
+			M_url_host(url_st), M_url_port_u16(url_st), M_url_path(url_st),
+			hs->user_agent, hs->content_type, hs->headers,
+			hs->message, hs->message_len, hs->charset);
+	}
 
 	/* Start/reset our timers. */
 	timer_start_connect(hs);
