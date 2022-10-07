@@ -270,6 +270,11 @@ if (MSTDLIB_BUILD_BACKTRACE)
 endif ()
 
 if (MSTDLIB_BUILD_THREAD)
+
+	if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+		add_link_options("-pthread")
+	endif()
+
 	# Need to prefer pthreads on platforms that may have more threading choices (e.g. Solaris)
 	set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 	find_package(Threads)
