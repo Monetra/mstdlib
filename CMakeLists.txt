@@ -271,14 +271,11 @@ endif ()
 
 if (MSTDLIB_BUILD_THREAD)
 
-	if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
-		add_link_options("-pthread")
-	endif()
-
 	# Need to prefer pthreads on platforms that may have more threading choices (e.g. Solaris)
 	set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 	find_package(Threads)
-	if (Threads_FOUND AND (CMAKE_HAVE_LIBC_PTHREAD OR CMAKE_HAVE_PTHREAD_H) AND NOT MINGW)
+
+	if (Threads_FOUND AND NOT MINGW)
 		set(HAVE_PTHREAD TRUE)
 
 		# Fix solaris9 bug due to libc having pthread_create() stubs that always fail.  CMake
