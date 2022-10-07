@@ -275,7 +275,7 @@ if (MSTDLIB_BUILD_THREAD)
 	set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 	find_package(Threads)
 
-	if (Threads_FOUND AND NOT MINGW)
+	if (Threads_FOUND AND NOT WIN32)
 		set(HAVE_PTHREAD TRUE)
 
 		# Fix solaris9 bug due to libc having pthread_create() stubs that always fail.  CMake
