@@ -48,6 +48,9 @@ struct M_net_http_simple {
 	M_buf_t              *out_buf;
 	M_http_simple_read_t *simple;
 	M_http_method_t       method;
+	M_http2_reader_t     *h2r;
+	M_bool                h2_header_done;
+	M_bool                h2_data_done;
 	char                 *user_agent;
 	char                 *content_type;
 	char                 *charset;
@@ -89,6 +92,8 @@ static void M_net_http_simple_destroy(M_net_http_simple_t *hs)
 	hs->io = NULL;
 
 	M_tls_clientctx_destroy(hs->ctx);
+
+	M_http2_reader_destroy(hs->h2r);
 
 	M_event_timer_remove(hs->timer_stall);
 	M_event_timer_remove(hs->timer_overall);
@@ -311,6 +316,80 @@ static void process_response(M_net_http_simple_t *hs)
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+static M_http_error_t M_nh2s_settings_end_func(M_http2_framehdr_t *framehdr, void *thunk)
+{
+	M_net_http_simple_t *hs = thunk;
+	if ((framehdr->flags & 0x01) == 0) {
+		/* Acknowledge settings */
+		M_http2_frame_settings_t *settings = M_http2_frame_settings_create(framehdr->stream.id.u32, 0x01);
+		M_http2_frame_settings_finish_to_buf(settings, hs->out_buf);
+		trigger_softevent(hs->io, M_EVENT_TYPE_WRITE);
+	}
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_nh2s_header_func(M_http2_header_t *header, void *thunk)
+{
+	M_net_http_simple_t *hs = thunk;
+	(void)header;
+	hs->h2_header_done = M_TRUE;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_nh2s_data_func(M_http2_data_t *data, void *thunk)
+{
+	M_net_http_simple_t *hs = thunk;
+	(void) data;
+	hs->h2_data_done = M_TRUE;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static void M_read_http_version_2(M_net_http_simple_t *hs)
+{
+	size_t         len;
+	M_http_error_t httperr;
+
+	M_http2_reader_read(hs->h2r, M_parser_peek(hs->read_parser), M_parser_len(hs->read_parser), &len);
+	M_parser_mark(hs->read_parser);
+	httperr = M_http_simple_read_parser(&hs->simple, hs->read_parser, M_HTTP_SIMPLE_READ_NONE);
+	M_parser_mark_rewind(hs->read_parser);
+	M_parser_consume(hs->read_parser, len);
+	if (hs->h2_header_done) {
+		M_uint32 status_code = M_http_simple_read_status_code(hs->simple);
+		if (status_code >= 300 && status_code <= 399) {
+			handle_redirect(hs);
+			return;
+		}
+	}
+	if (httperr == M_HTTP_ERROR_SUCCESS && hs->h2_header_done && hs->h2_data_done) {
+		call_done(hs);
+	}
+}
+
+static void M_read_http_version_1(M_net_http_simple_t *hs)
+{
+	M_http_error_t httperr;
+	M_parser_mark(hs->read_parser);
+	httperr = M_http_simple_read_parser(&hs->simple, hs->read_parser, M_HTTP_SIMPLE_READ_NONE);
+	if (httperr == M_HTTP_ERROR_SUCCESS) {
+		process_response(hs);
+	} else if (httperr == M_HTTP_ERROR_MOREDATA || httperr == M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE) {
+		/* More possible means we didn't get a content-length so we don't
+		 * know if we have all the data. We need to wait for a disconenct
+		 * to find out. */
+		if (httperr == M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE) {
+			M_http_simple_read_destroy(hs->simple);
+			hs->simple = NULL;
+		}
+		M_parser_mark_rewind(hs->read_parser);
+		timer_start_stall(hs);
+	} else {
+		hs->neterr  = M_NET_ERROR_PROTOFORMAT;
+		hs->httperr = httperr;
+		M_snprintf(hs->error, sizeof(hs->error), "Format error: %s", M_http_errcode_to_str(httperr));
+		call_done(hs);
+	}
+}
 
 static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
@@ -319,6 +398,10 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 	M_io_error_t         ioerr;
 	char                *app;
 	M_bool               is_h2;
+	struct M_http2_reader_callbacks h2r_cbs = { 0 };
+	h2r_cbs.settings_end_func = M_nh2s_settings_end_func;
+	h2r_cbs.data_func = M_nh2s_data_func;
+	h2r_cbs.header_func = M_nh2s_header_func;
 
 	(void)el;
 
@@ -328,6 +411,7 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 			is_h2 = M_str_eq(app, "h2");
 			M_free(app);
 			if (is_h2) {
+				hs->h2r = M_http2_reader_create(&h2r_cbs, M_HTTP2_READER_NONE, hs);
 				h2_request(hs, hs->url);
 			} else {
 				if (hs->version == M_HTTP_VERSION_2) {
@@ -353,25 +437,10 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 				call_done(hs);
 				break;
 			}
-			M_parser_mark(hs->read_parser);
-			httperr = M_http_simple_read_parser(&hs->simple, hs->read_parser, M_HTTP_SIMPLE_READ_NONE);
-			if (httperr == M_HTTP_ERROR_SUCCESS) {
-				process_response(hs);
-			} else if (httperr == M_HTTP_ERROR_MOREDATA || httperr == M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE) {
-				/* More possible means we didn't get a content-length so we don't
-				 * know if we have all the data. We need to wait for a disconenct
-				 * to find out. */
-				if (httperr == M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE) {
-					M_http_simple_read_destroy(hs->simple);
-					hs->simple = NULL;
-				}
-				M_parser_mark_rewind(hs->read_parser);
-				timer_start_stall(hs);
+			if (hs->version == M_HTTP_VERSION_2) {
+				M_read_http_version_2(hs);
 			} else {
-				hs->neterr  = M_NET_ERROR_PROTOFORMAT;
-				hs->httperr = httperr;
-				M_snprintf(hs->error, sizeof(hs->error), "Format error: %s", M_http_errcode_to_str(httperr));
-				call_done(hs);
+				M_read_http_version_1(hs);
 			}
 			break;
 		case M_EVENT_TYPE_WRITE:

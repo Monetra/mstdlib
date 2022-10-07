@@ -22,6 +22,19 @@ typedef struct {
 	M_http_error_t http_error;
 } test_args_t;
 
+static const M_uint8 test_dat01[] = {
+	0x00, 0x00, 0x4c, 0x01, 0x00, 0x00, 0x00, 0x00, 0x01, /* HEADERS frame */
+	0x88, 0x00, 0x83, 0xbe, 0x34, 0x97, 0x95, 0xd0, 0x7a, 0xbe, 0x94, 0x75, 0x4d, 0x03, 0xf4, 0xa0,
+	0x80, 0x17, 0x94, 0x00, 0x6e, 0x00, 0x57, 0x00, 0xca, 0x98, 0xb4, 0x6f, 0x00, 0x8a, 0xbc, 0x7a,
+	0x92, 0x5a, 0x92, 0xb6, 0x72, 0xd5, 0x32, 0x67, 0x82, 0x69, 0xaf, 0x00, 0x87, 0xbc, 0x7a, 0xaa,
+	0x29, 0x12, 0x63, 0xd5, 0x84, 0x25, 0x07, 0x41, 0x7f, 0x00, 0x89, 0xbc, 0x7a, 0x92, 0x5a, 0x92,
+	0xb6, 0xff, 0x55, 0x97, 0x87, 0x49, 0x7c, 0xa5, 0x89, 0xd3, 0x4d, 0x1f,
+	0x00, 0x00, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, /* DATA frame */
+	0x3c, 0x68, 0x74, 0x6d, 0x6c, 0x3e, 0x3c, 0x62, 0x6f, 0x64, 0x79, 0x3e, 0x3c, 0x68, 0x31, 0x3e,
+	0x49, 0x74, 0x20, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x21, 0x3c, 0x2f, 0x68, 0x31, 0x3e, 0x3c, 0x2f,
+	0x62, 0x6f, 0x64, 0x79, 0x3e, 0x3c, 0x2f, 0x68, 0x74, 0x6d, 0x6c, 0x3e,
+};
+
 static void cleanup_int(void)
 {
 	M_tls_serverctx_destroy(g.sctx);
@@ -97,6 +110,17 @@ static M_http_error_t respond_header_full_func(const char *key, const char *val,
 	return M_HTTP_ERROR_SUCCESS;
 }
 
+static M_bool check_headers_match_h2_basic(M_hash_dict_t *headers)
+{
+	if (
+		M_str_eq(M_hash_dict_get_direct(headers, ":method"), "GET"      ) &&
+		M_str_eq(M_hash_dict_get_direct(headers, ":path"),   "/h2_basic")
+	) {
+		return M_TRUE;
+	}
+	return M_FALSE;
+}
+
 static M_bool check_headers_match_keys(M_hash_dict_t *headers, M_json_node_t *json_keys)
 {
 	size_t len = M_json_array_len(json_keys);
@@ -135,6 +159,10 @@ static void compute_response(test_server_stream_t *stream)
 	for (i=0; i<len; i++) {
 		M_json_node_t *json_entry = M_json_array_at(json_entries, i);
 		M_json_node_t *json_keys  = M_json_object_value(json_entry, "keys");
+		if (check_headers_match_h2_basic(headers)) {
+			M_buf_add_bytes(buf, test_dat01, sizeof(test_dat01));
+			return;
+		}
 		if (check_headers_match_keys(headers, json_keys)) {
 			add_output_string(buf, M_json_object_value_string(json_entry, "value"), stream->server);
 			return;
@@ -610,9 +638,9 @@ START_TEST(check_basic_h2)
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
-	char                 url[]     = "https://localhost:99999";
+	char                 url[]     = "https://localhost:99999/h2_basic";
 
-	sprintf(url, "https://localhost:%hu", srv->port);
+	sprintf(url, "https://localhost:%hu/h2_basic", srv->port);
 	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, "User Agent", "text/plain", "utf-8", NULL, NULL, 0);
 	M_net_http_simple_set_version(hs, M_HTTP_VERSION_2);
 	M_net_http_simple_set_tlsctx(hs, g.ctx);
