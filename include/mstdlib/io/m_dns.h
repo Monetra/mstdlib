@@ -182,6 +182,12 @@ M_API M_bool M_dns_pton(int af, const char *src, void *dst);
  */
 M_API M_bool M_dns_ntop(int af, const void *src, char *addr, size_t addr_size);
 
+/*! Cancels any pending gethostbyname calls
+ *  \param[in] dns     Handle to DNS pointer created with M_dns_create()
+	*  \param[in] cb_arg  cb_arg passed to gethostbyname function
+ */
+M_API void M_dns_gethostbyname_cancel(M_dns_t *dns, void *cb_arg);
+
 /*! @} */
 
 __END_DECLS

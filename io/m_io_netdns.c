@@ -375,6 +375,7 @@ static void M_io_netdns_dns_callback(const M_list_str_t *ips, void *cb_data, M_d
 	M_io_handle_t *handle      = M_io_layer_get_handle(layer);
 	size_t         i;
 
+	handle->data.netdns.pending_queries--;
 	handle->data.netdns.query_time = M_time_elapsed(&handle->data.netdns.query_start);
 	if (result != M_DNS_RESULT_SUCCESS && result != M_DNS_RESULT_SUCCESS_CACHE && result != M_DNS_RESULT_SUCCESS_CACHE_EVICT) {
 		handle->state = M_IO_NET_STATE_ERROR;
@@ -427,9 +428,9 @@ static void M_io_netdns_dns_callback(const M_list_str_t *ips, void *cb_data, M_d
 
 static M_bool M_io_netdns_init_cb(M_io_layer_t *layer)
 {
-	M_io_t        *io     = M_io_layer_get_io(layer);
-	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	M_event_t     *event  = M_io_get_event(io);
+	M_io_t        *io        = M_io_layer_get_io(layer);
+	M_io_handle_t *handle    = M_io_layer_get_handle(layer);
+	M_event_t     *event     = M_io_get_event(io);
 
 	switch (handle->state) {
 		case M_IO_NET_STATE_INIT:
@@ -437,6 +438,7 @@ static M_bool M_io_netdns_init_cb(M_io_layer_t *layer)
 			handle->state              = M_IO_NET_STATE_RESOLVING;
 //M_printf("%s(): looking up %s\n", __FUNCTION__, handle->host);
 			M_time_elapsed_start(&handle->data.netdns.query_start);
+			handle->data.netdns.pending_queries++;
 			M_dns_gethostbyname(handle->data.netdns.dns, event, handle->host, handle->type, M_io_netdns_dns_callback, layer);
 			break;
 		case M_IO_NET_STATE_CONNECTING:
@@ -555,6 +557,10 @@ static void M_io_netdns_destroy_cb(M_io_layer_t *layer)
 		return;
 
 	/* reset_cb() clears the rest and is called first */
+
+	if (handle->data.netdns.pending_queries > 0) {
+		M_dns_gethostbyname_cancel(handle->data.netdns.dns, layer);
+	}
 
 	M_free(handle->host);
 	M_free(handle);

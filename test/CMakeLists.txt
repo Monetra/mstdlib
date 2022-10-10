@@ -96,6 +96,8 @@ if (MSTDLIB_BUILD_FORMATS)
 		formats/check_http_reader.c
 		formats/check_http_simple_reader.c
 		formats/check_http_simple_writer.c
+		formats/check_http2.c
+		formats/check_http2_reader.c
 		formats/check_mtzfile.c
 		formats/check_settings.c
 		formats/check_table.c
@@ -169,6 +171,7 @@ endif()
 if(MSTDLIB_BUILD_NET)
 	list(APPEND tests
 		net/check_smtp.c
+		net/check_net_http.c
 	)
 endif()
 

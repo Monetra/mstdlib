@@ -480,17 +480,60 @@ done:
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+M_http_error_t M_http_reader_header_entry(M_http_reader_t *httpr, const char *key, const char *val)
+{
+	M_http_error_t   res         = M_HTTP_ERROR_SUCCESS;
+	M_list_str_t    *subvals     = NULL;
+	char            *subval      = NULL;
+	size_t           num_subvals = 0;
+	size_t           i;
+
+	/* Record we saw this header. */
+	M_http_read_header_full_process(httpr, key, val);
+
+	/* Empty value means we don't need to process it any further.
+	 * Just inform the header was seen without a value. */
+	if (M_str_isempty(val))
+		return M_http_read_header_process(httpr, key, val);
+
+	/* Values can be a separated list. We want to treat these as if
+	 * the header is appearing multiple times. */
+	subvals = M_http_split_header_vals(key, val);
+	if (subvals == NULL)
+		return M_HTTP_ERROR_HEADER_INVALID;
+
+	num_subvals = M_list_str_len(subvals);
+	for (i=0; i<num_subvals; i++) {
+		subval = M_strdup(M_list_str_at(subvals, i));
+
+		/* We can't have an empty entry in the value list. */
+		M_str_trim(subval);
+		if (M_str_isempty(subval)) {
+			res = M_HTTP_ERROR_HEADER_INVALID;
+			break;
+		}
+
+		res = M_http_read_header_process(httpr, key, subval);
+		if (res != M_HTTP_ERROR_SUCCESS)
+			break;
+
+		M_free(subval);
+		subval = NULL;
+	}
+
+	M_list_str_destroy(subvals);
+	M_free(subval);
+
+	return res;
+}
+
 static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *parser, M_bool *full_read)
 {
 	M_parser_t      *header      = NULL;
 	M_parser_t     **kv          = NULL;
-	M_list_str_t    *subvals     = NULL;
 	char            *key         = NULL;
 	char            *val         = NULL;
-	char            *subval      = NULL;
 	size_t           num_kv      = 0;
-	size_t           num_subvals = 0;
-	size_t           i;
 	M_http_error_t   res         = M_HTTP_ERROR_SUCCESS;
 
 	*full_read = M_FALSE;
@@ -557,55 +600,8 @@ static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *par
 			M_str_trim(val);
 		}
 
-		/* Record we saw this header. */
-		M_http_read_header_full_process(httpr, key, val);
+		res = M_http_reader_header_entry(httpr, key, val);
 
-		/* Empty value means we don't need to process it any further.
- 		 * Just inform the header was seen without a value. */
-		if (M_str_isempty(val)) {
-			res = M_http_read_header_process(httpr, key, val);
-			if (res != M_HTTP_ERROR_SUCCESS) {
-				break;
-			}
-			goto end_of_header;
-		}
-
-		/* Values can be a separated list. We want to treat these as if
-		 * the header is appearing multiple times. */
-		subvals = M_http_split_header_vals(key, val);
-		if (subvals == NULL) {
-			res = M_HTTP_ERROR_HEADER_INVALID;
-			break;
-		}
-
-		num_subvals = M_list_str_len(subvals);
-		for (i=0; i<num_subvals; i++) {
-			subval = M_strdup(M_list_str_at(subvals, i));
-
-			/* We can't have an empty entry in the value list. */
-			M_str_trim(subval);
-			if (M_str_isempty(subval)) {
-				res = M_HTTP_ERROR_HEADER_INVALID;
-				break;
-			}
-
-			res = M_http_read_header_process(httpr, key, subval);
-			if (res != M_HTTP_ERROR_SUCCESS) {
-				break;
-			}
-
-			M_free(subval);
-			subval = NULL;
-		}
-
-		M_list_str_destroy(subvals);
-		M_free(subval);
-
-		if (res != M_HTTP_ERROR_SUCCESS) {
-			break;
-		}
-
-end_of_header:
 		M_free(key);
 		M_free(val);
 		key = NULL;
@@ -1155,6 +1151,42 @@ static M_http_error_t M_http_reader_calculate_body_len(M_http_reader_t *httpr)
 	return M_HTTP_ERROR_SUCCESS;
 }
 
+M_http_error_t M_http_reader_body(M_http_reader_t *httpr, M_parser_t *parser)
+{
+	M_http_error_t res = M_HTTP_ERROR_SUCCESS;
+
+	/* Read the body (not chunked message). */
+	if (httpr->rstep == M_HTTP_READER_STEP_BODY) {
+		M_bool         full_read;
+		res = M_http_read_body(httpr, parser, &full_read);
+
+		if (res != M_HTTP_ERROR_SUCCESS || !full_read)
+			return res;
+
+		/* We may never know if this is done if the content length wasn't set. */
+		httpr->rstep = M_HTTP_READER_STEP_DONE;
+		res = httpr->cbs.body_done_func(httpr->thunk);
+		return res;
+	}
+
+	/* If we're chunked then read the chunks. */
+	if (httpr->rstep == M_HTTP_READER_STEP_CHUNK_START ||
+		httpr->rstep == M_HTTP_READER_STEP_CHUNK_DATA  ||
+		httpr->rstep == M_HTTP_READER_STEP_TRAILER)
+	{
+		res = M_http_read_chunked(httpr, parser);
+	}
+
+	if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_PREAMBLE ||
+		httpr->rstep == M_HTTP_READER_STEP_MULTIPART_HEADER   ||
+		httpr->rstep == M_HTTP_READER_STEP_MULTIPART_DATA     ||
+		httpr->rstep == M_HTTP_READER_STEP_MULTIPART_EPILOUGE)
+	{
+		res = M_http_read_multipart(httpr, parser);
+	}
+	return res;
+}
+
 M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *data, size_t data_len, size_t *len_read)
 {
 	M_parser_t     *parser;
@@ -1171,6 +1203,12 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 
 	if (httpr->rstep == M_HTTP_READER_STEP_DONE)
 		return M_HTTP_ERROR_SUCCESS;
+
+	/* Try to read as HTTP2 first.  Fallback to HTTP1 on failure. */
+	res = M_http2_http_reader_read(httpr, data, data_len, len_read);
+	if (res == M_HTTP_ERROR_SUCCESS || res == M_HTTP_ERROR_INTERNAL)
+		/* Internal error means it is in HTTP2 format but got messed up somewhere in the weeds. */
+		return res;
 
 	parser = M_parser_create_const(data, data_len, M_PARSER_FLAG_NONE);
 
@@ -1239,34 +1277,8 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 
 	}
 
-	/* Read the body (not chunked message). */
-	if (httpr->rstep == M_HTTP_READER_STEP_BODY) {
-		res = M_http_read_body(httpr, parser, &full_read);
+	res = M_http_reader_body(httpr, parser);
 
-		if (res != M_HTTP_ERROR_SUCCESS || !full_read)
-			goto done;
-
-		/* We may never know if this is done if the content length wasn't set. */
-		httpr->rstep = M_HTTP_READER_STEP_DONE;
-		res = httpr->cbs.body_done_func(httpr->thunk);
-		goto done;
-	}
-
-	/* If we're chunked then read the chunks. */
-	if (httpr->rstep == M_HTTP_READER_STEP_CHUNK_START ||
-		httpr->rstep == M_HTTP_READER_STEP_CHUNK_DATA  ||
-		httpr->rstep == M_HTTP_READER_STEP_TRAILER)
-	{
-		res = M_http_read_chunked(httpr, parser);
-	}
-
-	if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_PREAMBLE ||
-		httpr->rstep == M_HTTP_READER_STEP_MULTIPART_HEADER   ||
-		httpr->rstep == M_HTTP_READER_STEP_MULTIPART_DATA     ||
-		httpr->rstep == M_HTTP_READER_STEP_MULTIPART_EPILOUGE)
-	{
-		res = M_http_read_multipart(httpr, parser);
-	}
 
 done:
 	*len_read = data_len - M_parser_len(parser);

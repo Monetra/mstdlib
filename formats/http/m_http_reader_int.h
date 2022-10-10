@@ -65,4 +65,7 @@ struct M_http_reader {
 	M_http_message_type_t           msg_type;
 };
 
+M_http_error_t M_http_reader_header_entry(M_http_reader_t *httpr, const char *key, const char *val);
+M_http_error_t M_http_reader_body(M_http_reader_t *httpr, M_parser_t *parser);
+
 #endif

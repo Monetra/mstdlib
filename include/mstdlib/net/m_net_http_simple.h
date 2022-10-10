@@ -192,6 +192,121 @@ __BEGIN_DECLS
  * }
  * \endcode
  *
+ * Example (version 2):
+ *
+ * \code{.c}
+ * #include <mstdlib/mstdlib.h>
+ * #include <mstdlib/mstdlib_net.h>
+ *
+ * static void trace_cb(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_type, const unsigned char *data, size_t data_len)
+ * {
+ * 	const char *io_type = "UNKNOWN";
+ * 	char       *dump    = NULL;
+ *
+ * 	switch (type) {
+ * 		case M_IO_TRACE_TYPE_READ:
+ * 			io_type = "READ";
+ * 			break;
+ * 		case M_IO_TRACE_TYPE_WRITE:
+ * 			io_type = "WRITE";
+ * 			break;
+ * 		case M_IO_TRACE_TYPE_EVENT:
+ * 			return;
+ * 	}
+ *
+ * 	dump = M_str_hexdump(M_STR_HEXDUMP_NONE, 0, "\t", data, data_len);
+ * 	if (M_str_isempty(dump)) {
+ * 		M_free(dump);
+ * 		dump = M_strdup("\t<No Data>");
+ * 	}
+ *
+ * 	M_printf("%s\n%s\n", io_type, dump);
+ * 	M_free(dump);
+ * }
+ *
+ * static M_bool iocreate_cb(M_io_t *io, char *error, size_t errlen, void *thunk)
+ * {
+ * 	(void)error;
+ * 	(void)errlen;
+ * 	(void)thunk;
+ *
+ * 	M_io_add_trace(io, NULL, trace_cb, io, NULL, NULL);
+ * 	return M_TRUE;
+ * }
+ *
+ * static void done_cb(M_net_error_t net_error, M_http_error_t http_error, const M_http_simple_read_t *simple, const char *error, void *thunk)
+ * {
+ * 	M_event_t *el = thunk;
+ * 	M_hash_dict_t       *headers;
+ * 	M_hash_dict_enum_t  *he;
+ * 	const char          *key;
+ * 	const char          *val;
+ * 	const unsigned char *data;
+ * 	size_t               len;
+ *
+ * 	if (net_error != M_NET_ERROR_SUCCESS) {
+ * 		M_printf("Net Error: %s: %s\n", M_net_errcode_to_str(net_error), error);
+ * 		M_event_done(el);
+ * 		return;
+ * 	}
+ *
+ * 	if (http_error != M_HTTP_ERROR_SUCCESS) {
+ * 		M_printf("HTTP Error: %s: %s\n", M_http_errcode_to_str(http_error), error);
+ * 		M_event_done(el);
+ * 		return;
+ * 	}
+ *
+ * 	M_printf("---\n");
+ *
+ * 	M_printf("Status code: %u - %s\n", M_http_simple_read_status_code(simple), M_http_simple_read_reason_phrase(simple));
+ *
+ * 	M_printf("---\n");
+ *
+ * 	M_printf("Headers:\n");
+ * 	headers = M_http_simple_read_headers_dict(simple);
+ * 	M_hash_dict_enumerate(headers, &he);
+ * 	while (M_hash_dict_enumerate_next(headers, he, &key, &val)) {
+ * 		M_printf("\t%s: %s\n", key, val);
+ * 	}
+ * 	M_hash_dict_enumerate_free(he);
+ * 	M_hash_dict_destroy(headers);
+ *
+ * 	M_printf("---\n");
+ *
+ * 	M_printf("Body:\n");
+ * 	data = M_http_simple_read_body(simple, &len);
+ * 	M_printf("%.*s\n", (int)len, data);
+ *
+ * 	M_printf("---\n");
+ *
+ * 	M_event_done(el);
+ * }
+ *
+ * int main(int argc, char **argv)
+ * {
+ * 	M_event_t            *el  = M_event_create(M_EVENT_FLAG_NONE);
+ * 	M_dns_t              *dns = M_dns_create(el);
+ * 	M_net_http_simple_t  *hs  = M_net_http_simple_create(el, dns, done_cb);
+ * 	M_tls_clientctx_t    *ctx = M_tls_clientctx_create();
+ *
+ * 	M_tls_clientctx_set_default_trust(ctx);
+ *
+ * 	M_net_http_simple_set_iocreate(hs, iocreate_cb);
+ * 	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
+ * 	M_net_http_simple_set_tlsctx(hs, ctx);
+ * 	M_net_http_simple_set_version(hs, M_HTTP_VERSION_2);
+ * 	if (!M_net_http_simple_send(hs, "https://nghttp2.org/", el)) {
+ * 		M_printf("FAILED: M_net_http_simple_send(%p, 'https://nghttp2.org/', %p)\n", hs, el);
+ * 		goto done;
+ * 	}
+ * 	M_event_loop(el, M_TIMEOUT_INF);
+ * done:
+ * 	M_dns_destroy(dns);
+ * 	M_event_destroy(el);
+ * 	return 0;
+ * }
+ * \endcode
+ *
  * @{
  *
  */
@@ -290,6 +405,16 @@ M_API void M_net_http_simple_set_timeouts(M_net_http_simple_t *hs, M_uint64 conn
  * \param[in] max Maximum number of redirects. 0 will disable redirects.
  */
 M_API void M_net_http_simple_set_max_redirects(M_net_http_simple_t *hs, M_uint64 max);
+
+
+/*! Set the HTTP version
+ *
+ * Default HTTP v1
+ *
+ * \param[in] hs      HTTP simple network object.
+ * \param[in] version which version to use
+ */
+M_API void M_net_http_simple_set_version(M_net_http_simple_t *hs, M_http_version_t version);
 
 
 /*! Set max receive data size
