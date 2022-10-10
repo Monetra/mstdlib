@@ -359,7 +359,7 @@ M_bool M_sql_report_hide_column(M_sql_report_t *report, const char *sql_col_name
 }
 
 
-static M_sql_report_col_t *M_sql_report_addcol_get(const M_sql_report_t *report, const char *name, ssize_t idx)
+static M_sql_report_col_t *M_sql_report_addcol_get_by_sqlnameidx(const M_sql_report_t *report, const char *name, ssize_t idx)
 {
 	M_llist_node_t *node;
 
@@ -373,6 +373,16 @@ static M_sql_report_col_t *M_sql_report_addcol_get(const M_sql_report_t *report,
 	return NULL;
 }
 
+
+static M_bool M_sql_report_col_exists(const M_sql_report_col_t *cols, size_t num_cols, const char *name)
+{
+	size_t i;
+	for (i=0; i<num_cols; i++) {
+		if (M_str_caseeq(cols[i].name, name))
+			return M_TRUE;
+	}
+	return M_FALSE;
+}
 
 static M_sql_report_col_t *M_sql_report_create_cols_passthru(const M_sql_report_t *report, M_sql_stmt_t *stmt, size_t *out_cnt, char *error, size_t error_size)
 {
@@ -396,11 +406,14 @@ static M_sql_report_col_t *M_sql_report_create_cols_passthru(const M_sql_report_
 		}
 
 		/* Next see if this column has an override */
-		col = M_sql_report_addcol_get(report, name, (ssize_t)i);
+		col = M_sql_report_addcol_get_by_sqlnameidx(report, name, (ssize_t)i);
 		if (col != NULL) {
 			/* Duplicate data and set appropriate index */
 			M_mem_copy(&cols[num_cols], col, sizeof(*col));
 			cols[num_cols].sql_col_idx = (ssize_t)i;
+			/* Hide name since its remapped in case its specified again (such as for a tagged field) */
+			M_hash_u64str_insert(report->hide_cols_byidx, i, NULL);
+			M_hash_dict_insert(report->hide_cols_byname, name, NULL);
 		} else {
 			/* Create new column */
 			cols[num_cols].name        = M_CAST_OFF_CONST(char *, name); /* Won't ever free, this is safe */
@@ -423,10 +436,15 @@ static M_sql_report_col_t *M_sql_report_create_cols_passthru(const M_sql_report_
 		}
 
 		/* Skip one that has already been added */
-		if (col->sql_col_name != NULL || col->sql_col_idx >= 0)
+		if (M_sql_report_col_exists(cols, num_cols, col->name))
 			continue;
 
 		M_mem_copy(&cols[num_cols], col, sizeof(*col));
+
+		/* Get column index from name */
+		if (col->sql_col_name)
+			M_sql_stmt_result_col_idx(stmt, col->sql_col_name, (size_t *)&cols[num_cols].sql_col_idx);
+
 		num_cols++;
 	}
 
