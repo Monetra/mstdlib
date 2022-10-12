@@ -497,6 +497,7 @@ M_net_http_simple_t *M_net_http_simple_create(M_event_t *el, M_dns_t *dns, M_net
 	hs->receive_max     = 1024*1024*50; /* 50 MB */
 	hs->cbs.done_cb     = done_cb;
 	hs->cbs.iocreate_cb = iocreate_cb_default;
+	hs->version         = M_HTTP_VERSION_ANY; /* Use any as default */
 	hs->method          = M_HTTP_METHOD_GET;
 	hs->user_agent      = M_strdup(DEFAULT_USER_AGENT);
 
