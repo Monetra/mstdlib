@@ -65,6 +65,10 @@ __BEGIN_DECLS
  * used once. Upon completion or cancel the object is internally
  * destroyed and all references are invalidated.
  *
+ * Version can be explicitly set.  Default is to use M_HTTP_VERSION_ANY
+ * which will attempt to use HTTP2, detect whether
+ * the server ALPN supports it and downgrade to v1.1 if not.
+ *
  * Example:
  *
  * \code{.c}
