@@ -491,6 +491,27 @@ M_API M_bool M_event_timer_stop(M_event_timer_t *timer);
 M_API M_bool M_event_timer_reset(M_event_timer_t *timer, M_uint64 interval_ms);
 
 
+/*! Adjust the timer interval_ms.
+ *
+ * \see M_event_timer_reset will stop the timer and schedule it to start again in
+ * interval_ms in the future. Adjusting the time does not stop the timer. It is
+ * used to prevent timers from not being run if the interval_ms is constancy
+ * being adjusted.
+ *
+ * If the remaining time on the timer is > the new interval_ms the timer will
+ * be reset to run after the new interval_ms. If the timer has less time
+ * remaining than the new interval_ms it will be allowed to trigger after the
+ * remaining time and then be scheduled to run using the new interval_ms.
+ *
+ *  \param[in] timer       Timer handle returned by M_event_timer_add()
+ *  \param[in] interval_ms Time in milliseconds before the timer will expire.
+ *                         0 is considered an error.
+ *
+ *  \return M_TRUE on success, M_FALSE on failure.
+ */
+M_API M_bool M_event_timer_adjust(M_event_timer_t *timer, M_uint64 interval_ms);
+
+
 /*! Set absolute time for first event to be fired.
  *
  *  This will not take effect until the next call to M_event_timer_start() or M_event_timer_reset().
@@ -569,6 +590,16 @@ M_API M_bool M_event_timer_set_mode(M_event_timer_t *timer, M_event_timer_mode_t
  *  \return Number of milliseconds remaining on timer, or 0 if stopped.
  */
 M_API M_uint64 M_event_timer_get_remaining_ms(M_event_timer_t *timer);
+
+
+/*! Retrieve the current millisecond interval the time is using.
+ *
+ *  \param[in] timer       Timer handle returned by M_event_timer_add()
+ *
+ *  \return Number of milliseconds the timer is configured to use.
+ *          Set from start, reset, or adjust.
+ */
+M_API M_uint64 M_event_timer_get_interval_ms(M_event_timer_t *timer);
 
 
 /*! Retrieves if the timer is active(started) or not.
