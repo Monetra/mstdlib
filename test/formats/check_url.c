@@ -46,6 +46,14 @@ START_TEST(check_url)
 }
 END_TEST
 
+START_TEST(check_nopath)
+{
+	M_url_t *url        = M_url_create("https://localhost:12345");
+	ck_assert_msg(M_str_eq(M_url_path(url), "/"), "Should have parsed path as /");
+	M_url_destroy(url);
+}
+END_TEST
+
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -60,6 +68,7 @@ int main(void)
 
 	add_test(suite, check_url);
 	add_test(suite, check_http_http);
+	add_test(suite, check_nopath);
 
 	sr = srunner_create(suite);
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_url.log");

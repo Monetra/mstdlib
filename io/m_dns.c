@@ -67,6 +67,8 @@ struct M_dns {
 	M_uint64              server_cache_timeout_s;    /*!< How long before re-reading the DNS configuration from the system */
 	M_uint64              query_cache_max_s;         /*!< Maximum amount of time a DNS entry can be cached past its TTL if the DNS servers are unreachable */
 	M_uint64              happyeyeballs_cache_max_s; /*!< Maximum time to cache connectivity related information as per the Happy Eyeballs specification */
+	M_list_t             *cancelled_queries;         /*!< List of cb_args to cancel pending requests */
+	size_t                total_pending;             /*!< Total pending gethostbyname lookups */
 };
 
 struct M_io_handle {
@@ -800,6 +802,8 @@ M_bool M_dns_destroy(M_dns_t *dns)
 	M_thread_mutex_destroy(dns->lock);
 	dns->lock = NULL;
 
+	M_list_destroy(dns->cancelled_queries, M_FALSE);
+
 	M_free(dns);
 
 	return M_TRUE;
@@ -831,6 +835,8 @@ M_dns_t *M_dns_create(M_event_t *event)
 
 	dns->sockhandle                = M_hash_u64vp_create(8, 75, M_HASH_U64VP_NONE, NULL);
 	dns->ares_channels             = M_list_create(&listcb, M_LIST_NONE);
+
+	dns->cancelled_queries         = M_list_create(NULL, M_LIST_NONE);
 
 	if (!M_dns_reload_server(dns, M_FALSE)) {
 		M_dns_destroy(dns);
@@ -870,30 +876,43 @@ typedef struct  {
 	M_dns_result_t        result;       /*!< Ending result code */
 } M_dns_query_t;
 
-
 static void M_dns_gethostbyname_result_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
 {
-	M_dns_query_t *query    = cb_arg;
+	M_dns_query_t *query        = cb_arg;
+	M_bool         is_cancelled = M_FALSE;
 	(void)event;
 	(void)type;
 	(void)io;
 
-	if (query->is_cache_eviction && query->result == M_DNS_RESULT_SUCCESS) {
-		query->callback(query->ipaddrs, query->cb_data, M_DNS_RESULT_SUCCESS_CACHE_EVICT);
-	} else {
-		query->callback(query->ipaddrs, query->cb_data, query->result);
+	M_thread_mutex_lock(query->dns->lock);
+	if (M_list_index_of(query->dns->cancelled_queries, query->cb_data, M_LIST_MATCH_PTR, NULL)) {
+		is_cancelled = M_TRUE;
 	}
+	query->dns->total_pending--;
+	if (query->dns->total_pending == 0) {
+		/* Clear cancelled_queries list */
+		while (M_list_take_last(query->dns->cancelled_queries) != NULL);
+	}
+
+	if (!is_cancelled) {
+		if (query->is_cache_eviction && query->result == M_DNS_RESULT_SUCCESS) {
+			query->callback(query->ipaddrs, query->cb_data, M_DNS_RESULT_SUCCESS_CACHE_EVICT);
+		} else {
+			query->callback(query->ipaddrs, query->cb_data, query->result);
+		}
+	}
+
+	M_thread_mutex_unlock(query->dns->lock);
 
 	M_list_str_destroy(query->ipaddrs);
 	M_free(query->hostname);
 	M_free(query);
 }
 
-
 static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_addrinfo *result)
 {
-	M_dns_query_t       *query = arg;
-	M_dns_cache_entry_t *entry = NULL;
+	M_dns_query_t       *query        = arg;
+	M_dns_cache_entry_t *entry        = NULL;
 
 	(void)timeouts;
 
@@ -942,6 +961,7 @@ static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_ad
 	/* If there is a destroy pending and we were the last query result, destroy! */
 	query->achannel->queries_pending--;
 
+
 	M_thread_mutex_unlock(query->dns->lock);
 
 	if (query->event) {
@@ -949,6 +969,8 @@ static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_ad
 	} else {
 		M_dns_gethostbyname_result_cb(NULL, M_EVENT_TYPE_OTHER, NULL, query);
 	}
+
+
 }
 
 static void M_dns_gethostbyname_enqueue(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
@@ -1051,6 +1073,16 @@ static char *M_dns_punyhostname(const char *hostname)
 	return out;
 }
 
+void M_dns_gethostbyname_cancel(M_dns_t *dns, void* cb_arg)
+{
+	if (dns == NULL)
+		return;
+	M_thread_mutex_lock(dns->lock);
+	if (dns->total_pending > 0) {
+		M_list_insert(dns->cancelled_queries, cb_arg);
+	}
+	M_thread_mutex_unlock(dns->lock);
+}
 
 void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_io_net_type_t type, M_dns_ghbn_callback_t callback, void *cb_data)
 {
@@ -1147,6 +1179,7 @@ void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M
 	query->cb_data           = cb_data;
 	query->is_cache_eviction = is_cache_eviction;
 
+	query->dns->total_pending++;
 	M_event_queue_task(dns->event, M_dns_gethostbyname_enqueue, query);
 
 	M_free(punyhost);

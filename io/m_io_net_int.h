@@ -77,8 +77,15 @@ struct M_io_handle_netdns {
 	M_uint64             query_time;     /*!< Time DNS query took                                            */
 	M_timeval_t          connect_start;  /*!< Time connection start was attempted                            */
 	M_uint64             connect_time;   /*!< Amount of time it took to establish a connection               */
+	size_t               pending_queries;/*!< Number of pending queries to gethostbyname                     */
 
 };
+
+typedef struct {
+	M_bool        is_deleted;
+	M_io_layer_t  *layer;
+	M_io_handle_t *handle;
+} M_ghbn_args_t;
 
 struct M_io_handle {
 	char               *host;          /*!< Hostname or IP address                                    */
@@ -91,6 +98,7 @@ struct M_io_handle {
 	M_event_timer_t    *timer;         /*!< Happy Eyeballs (DNS) or connection timer                  */
 	M_bool              notify_down;   /*!< Whether or not a signal has been delivered to notify down */
 	M_bool              is_netdns;     /*!< Whether or not to use the DNS wrapper                     */
+	M_ghbn_args_t      *ghbn_args;     /*!< Reference to pass to c-ares                               */
 	union {
 		struct M_io_handle_net    net;     /*!< used for non-dns */
 		struct M_io_handle_netdns netdns;  /*!< used for dns     */

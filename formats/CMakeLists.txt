@@ -33,6 +33,14 @@ set(sources
 	ini/m_ini_settings.c
 	ini/m_ini_writer.c
 
+	# http2:
+	http2/m_http2.c
+	http2/m_http2_reader.c
+	http2/m_http2_http_reader.c
+	http2/m_http2_frame_settings.c
+	http2/m_http2_frame_headers.c
+	http2/m_http2_frame.c
+
 	# http:
 	http/m_http.c
 	http/m_http_body.c
