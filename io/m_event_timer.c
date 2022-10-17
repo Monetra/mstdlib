@@ -359,7 +359,7 @@ M_bool M_event_timer_reset(M_event_timer_t *timer, M_uint64 interval_ms)
 
 M_bool M_event_timer_adjust(M_event_timer_t *timer, M_uint64 interval_ms)
 {
-	if (timer == NULL || interval_ms == 0 || interval_ms > INTERVAL_MAX)
+	if (timer == NULL || interval_ms == 0 || interval_ms > INTERVAL_MAX || timer->mode != M_EVENT_TIMER_MODE_RELATIVE)
 		return M_FALSE;
 
 	/* If the remaining time is > our interval, we need to reschedule
