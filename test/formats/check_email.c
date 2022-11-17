@@ -197,6 +197,7 @@ START_TEST(check_mixed_multipart)
 }
 END_TEST
 
+
 START_TEST(check_addresses)
 {
 	size_t i;
@@ -260,6 +261,49 @@ START_TEST(check_addresses)
 }
 END_TEST
 
+START_TEST(check_unecessary_first_multipart)
+{
+	M_hash_dict_t   *headers  = M_hash_dict_create(16, 75, M_HASH_DICT_NONE);
+	M_hash_dict_t   *headers0 = M_hash_dict_create(16, 75, M_HASH_DICT_NONE);
+	M_hash_dict_t   *headers1 = M_hash_dict_create(16, 75, M_HASH_DICT_NONE);
+	M_hash_dict_t   *headers2 = M_hash_dict_create(16, 75, M_HASH_DICT_NONE);
+	M_email_t       *e        = M_email_create();
+	const char      *data     = "data";
+	char            *msg      = NULL;
+	M_email_t       *e_test   = NULL;
+	M_email_error_t  eer;
+
+	M_hash_dict_insert(headers, "From", "from@localhost");
+	M_hash_dict_insert(headers, "Message-ID", "<message-id>");
+	M_hash_dict_insert(headers, "MIME-Version", "1.0");
+	M_hash_dict_insert(headers, "Date", "Thu, 17 Nov 2022 13:10:56 -0500");
+	M_hash_dict_insert(headers, "To", "to@localhost");
+	M_hash_dict_insert(headers, "Content-Type", "multipart/alternative; boundary=\"------------QNN54Ad4VRImGnteNAiMT6ZVgoFk\"");
+	M_hash_dict_insert(headers, "Subject", "subject");
+
+
+	M_hash_dict_insert(headers0, "Content-Type", "multipart/alternative; boundary=\"------------QNN54Ad4VRImGnteNAiMT6ZVgoFk\"");
+
+	M_hash_dict_insert(headers1, "Content-Type", "text/plain; charset=\"utf-8\"");
+	M_hash_dict_insert(headers1, "Content-Transfer-Encoding", "7bit");
+
+	M_hash_dict_insert(headers2, "Content-Type", "text/html; charset=\"us-ascii\"");
+	M_hash_dict_insert(headers2, "Content-Transfer-Encoding", "7bit");
+
+	M_email_set_headers(e, headers);
+	M_email_part_append(e, data, M_str_len(data), headers0, NULL);
+	M_email_part_append(e, data, M_str_len(data), headers1, NULL);
+	M_email_part_append(e, data, M_str_len(data), headers2, NULL);
+
+	msg = M_email_simple_write(e);
+	eer = M_email_simple_read(&e_test, msg, M_str_len(msg), M_EMAIL_SIMPLE_READ_NONE, NULL);
+	ck_assert_msg(eer == M_EMAIL_ERROR_SUCCESS, "Failed to read email message after writing");
+	M_free(msg);
+	M_email_destroy(e);
+	M_email_destroy(e_test);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 int main(void)
@@ -277,6 +321,7 @@ int main(void)
 	add_test(suite, check_addresses);
 	add_test(suite, check_date);
 	add_test(suite, check_messageid);
+	add_test(suite, check_unecessary_first_multipart);
 
 	sr = srunner_create(suite);
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_email.log");
