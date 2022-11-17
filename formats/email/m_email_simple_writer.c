@@ -324,7 +324,13 @@ static M_bool M_email_simple_write_add_parts(const M_email_t *email, M_buf_t *bu
 		M_hash_dict_enumerate(headers, &he);
 		while (M_hash_dict_enumerate_next(headers, he, &key, &val)) {
 			if (i == 0 && M_str_caseeq(key, "Content-Type") && M_str_casestr(val, "multipart") != NULL) {
-				M_email_simple_write_add_headers_content_type(buf, sub_boundary, M_FALSE);
+				if (boundary != sub_boundary) {
+					M_email_simple_write_add_headers_content_type(buf, sub_boundary, M_FALSE);
+				} else {
+					/* This assumes that someone added an unecessary multipart entry in the first entry.
+						* We will snub it out to avoid ambiguous nested boundaries */
+					M_buf_add_str(buf, "Content-Length: 0\r\n");
+				}
 				continue;
 			}
 			M_email_add_header_entry(buf, key, val);
