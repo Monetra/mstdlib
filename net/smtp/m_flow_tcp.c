@@ -155,6 +155,8 @@ static M_bool M_sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_u
 		M_list_str_insert(session->tcp.rcpt_to, address);
 	}
 
+	session->tcp.num_valid_addresses = 0;
+
 	return M_TRUE;
 }
 
