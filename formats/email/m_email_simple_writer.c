@@ -208,9 +208,6 @@ static M_bool M_email_simple_write_recipients(const M_email_t *email, M_buf_t *b
 
 static M_bool M_email_simple_write_add_headers_recipients(const M_email_t *email, M_buf_t *buf)
 {
-	if (M_email_to_len(email) == 0 && M_email_cc_len(email) == 0 && M_email_bcc_len(email) == 0)
-		return M_FALSE;
-
 	if (!M_email_simple_write_recipients(email, buf, "To", M_email_to_len, M_email_to))
 		return M_FALSE;
 
