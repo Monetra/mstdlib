@@ -308,6 +308,32 @@ START_TEST(check_unecessary_first_multipart)
 }
 END_TEST
 
+START_TEST(check_bcc_scrubbed)
+{
+	M_email_error_t   eer;
+	M_email_t        *e;
+	char             *msg;
+	const char       *test_data = \
+"From: test@localhost\r\n" \
+"Bcc: bcc@localhot\r\n" \
+"MIME-Version: 1.0\r\n" \
+"Content-Type: text/plain; charset=\"utf-8\"\r\n" \
+"Content-Transfer-Encoding: 7bit\r\n" \
+"\r\n" \
+"FTX token price is going back up, right?";
+	eer = M_email_simple_read(&e, test_data, M_str_len(test_data), M_EMAIL_SIMPLE_READ_NONE, NULL);
+	ck_assert_msg(eer == M_EMAIL_ERROR_SUCCESS, "Should successfully read test data");
+	msg = M_email_simple_write(e);
+	ck_assert_msg(M_str_str(msg, "FTX token price is going back up, right?") != NULL, "Should write out message");
+	M_free(msg);
+	M_email_bcc_clear(e);
+	msg = M_email_simple_write(e);
+	ck_assert_msg(M_str_str(msg, "FTX token price is going back up, right?") != NULL, "Should write out message");
+	M_free(msg);
+	M_email_destroy(e);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 int main(void)
@@ -326,6 +352,7 @@ int main(void)
 	add_test(suite, check_date);
 	add_test(suite, check_messageid);
 	add_test(suite, check_unecessary_first_multipart);
+	add_test(suite, check_bcc_scrubbed);
 
 	sr = srunner_create(suite);
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_email.log");
