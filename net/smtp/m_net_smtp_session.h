@@ -77,6 +77,7 @@ typedef struct {
 			size_t                  auth_login_response_count;
 			char                   *ehlo_domain;
 			M_list_str_t           *rcpt_to;
+			size_t                  num_valid_addresses;
 		} tcp;
 		struct {
 			M_io_t                 *io_stdin;
