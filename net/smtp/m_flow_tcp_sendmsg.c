@@ -32,6 +32,8 @@ typedef enum {
 	STATE_DATA_RESPONSE,
 	STATE_DATA_PAYLOAD_AND_STOP,
 	STATE_DATA_STOP_RESPONSE,
+	STATE_RSET,
+	STATE_RSET_RESPONSE,
 } state_id;
 
 static M_state_machine_status_t M_state_mail_from(void *data, M_uint64 *next)
@@ -84,11 +86,15 @@ static M_state_machine_status_t M_state_rcpt_to(void *data, M_uint64 *next)
 static M_state_machine_status_t M_rcpt_to_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_session_t     *session        = data;
+	M_net_smtp_session_t     *session   = data;
 
 	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
+	if (session->tcp.smtp_response_code == 504) {
+		/* Invalid email address */
+		goto bypass;
+	}
 	if (session->tcp.smtp_response_code != 250) {
 		const char *line = M_list_str_last(session->tcp.smtp_response);
 		M_snprintf(session->errmsg, sizeof(session->errmsg), "Expected 250 rcpt-to response, got: %llu: %s",
@@ -96,10 +102,18 @@ static M_state_machine_status_t M_rcpt_to_response_post_cb(void *data,
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}
 
+	session->tcp.num_valid_addresses++;
+
+bypass:
+
 	if (M_list_str_len(session->tcp.rcpt_to) > 0) {
 		*next = STATE_RCPT_TO;
 	} else {
-		*next = STATE_DATA;
+		if (session->tcp.num_valid_addresses > 0) {
+			*next = STATE_DATA;
+		} else {
+			*next = STATE_RSET;
+		}
 	}
 		return M_STATE_MACHINE_STATUS_NEXT;
 }
@@ -199,6 +213,35 @@ static M_state_machine_status_t M_data_stop_response_post_cb(void *data,
 	return M_STATE_MACHINE_STATUS_DONE;
 }
 
+static M_state_machine_status_t M_state_rset(void *data, M_uint64 *next)
+{
+	M_net_smtp_session_t *session = data;
+
+	M_buf_add_str(session->out_buf, "RSET\r\n");
+
+	*next = STATE_RSET_RESPONSE;
+	return M_STATE_MACHINE_STATUS_NEXT;
+}
+
+static M_state_machine_status_t M_rset_response_post_cb(void *data,
+		M_state_machine_status_t sub_status, M_uint64 *next)
+{
+	M_net_smtp_session_t     *session        = data;
+	(void)next;
+
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
+
+	if (session->tcp.smtp_response_code != 250) {
+		const char *line = M_list_str_last(session->tcp.smtp_response);
+		M_snprintf(session->errmsg, sizeof(session->errmsg), "Expected 250 rset response, got: %llu: %s",
+				session->tcp.smtp_response_code, line);
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
+	}
+
+	return M_STATE_MACHINE_STATUS_DONE;
+}
+
 M_state_machine_t * M_net_smtp_flow_tcp_sendmsg(void)
 {
 	M_state_machine_t *m = NULL;
@@ -216,6 +259,9 @@ M_state_machine_t * M_net_smtp_flow_tcp_sendmsg(void)
 
 	M_state_machine_insert_state(m, STATE_DATA_PAYLOAD_AND_STOP, 0, NULL, M_state_data_payload_and_stop, NULL, NULL);
 	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_DATA_STOP_RESPONSE, M_data_stop_response_post_cb);
+
+	M_state_machine_insert_state(m, STATE_RSET, 0, NULL, M_state_rset, NULL, NULL);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_RSET_RESPONSE, M_rset_response_post_cb);
 
 	return m;
 }
