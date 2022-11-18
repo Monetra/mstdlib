@@ -298,6 +298,10 @@ START_TEST(check_unecessary_first_multipart)
 	msg = M_email_simple_write(e);
 	eer = M_email_simple_read(&e_test, msg, M_str_len(msg), M_EMAIL_SIMPLE_READ_NONE, NULL);
 	ck_assert_msg(eer == M_EMAIL_ERROR_SUCCESS, "Failed to read email message after writing");
+	M_hash_dict_destroy(headers);
+	M_hash_dict_destroy(headers0);
+	M_hash_dict_destroy(headers1);
+	M_hash_dict_destroy(headers2);
 	M_free(msg);
 	M_email_destroy(e);
 	M_email_destroy(e_test);
