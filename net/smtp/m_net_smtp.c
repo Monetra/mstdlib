@@ -25,17 +25,13 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static void endpoint_failure(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, M_bool is_remove_ep)
+static void endpoint_failure(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, M_uint64 timeout)
 {
 	M_thread_mutex_lock(sp->endpoints_mutex);
-	if (is_remove_ep) {
+	if (timeout == 0) {
 		M_CAST_OFF_CONST(M_net_smtp_endpoint_t*,ep)->is_removed = M_TRUE;
-		/* Reactivate any idle sessions to quit out */
-		M_event_queue_task(sp->el, M_net_smtp_endpoint_reactivate_idle_task, M_CAST_OFF_CONST(M_net_smtp_endpoint_t*,ep));
-		if (M_net_smtp_is_all_endpoints_removed(sp)) {
-			M_net_smtp_pause(M_CAST_OFF_CONST(M_net_smtp_t*,sp));
-		}
 	} else {
+		M_CAST_OFF_CONST(M_net_smtp_endpoint_t*,ep)->timeout_until = M_time() + (M_time_t)timeout;
 		if (sp->load_balance_mode == M_NET_SMTP_LOAD_BALANCE_FAILOVER && M_list_len(sp->endpoints) > 1) {
 			/* Had a failure, but they want to keep the endpoint.
 			 * Fail this endpoint over to the back of the list.
@@ -43,6 +39,11 @@ static void endpoint_failure(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t
 			M_list_remove_val(sp->endpoints, ep, M_LIST_MATCH_PTR);
 			M_list_insert(sp->endpoints, ep);
 		}
+	}
+	/* Reactivate any idle sessions to quit out */
+	M_event_queue_task(sp->el, M_net_smtp_endpoint_reactivate_idle_task, M_CAST_OFF_CONST(M_net_smtp_endpoint_t*,ep));
+	if (M_net_smtp_is_all_endpoints_disabled(sp)) {
+		M_net_smtp_pause(M_CAST_OFF_CONST(M_net_smtp_t*,sp));
 	}
 	M_thread_mutex_unlock(sp->endpoints_mutex);
 }
@@ -79,6 +80,49 @@ static void restart_processing_task(M_event_t *el, M_event_type_t etype, M_io_t 
 M_bool M_net_smtp_is_running(M_net_smtp_status_t status)
 {
 	return status == M_NET_SMTP_STATUS_PROCESSING || status == M_NET_SMTP_STATUS_IDLE;
+}
+
+M_uint64 M_net_smtp_endpoints_min_timeout(const M_net_smtp_t *sp)
+{
+	M_time_t curtime     = M_time();
+	M_uint64 min_timeout = 0;
+	M_bool   is_first    = M_TRUE;
+	size_t   i;
+
+	M_thread_mutex_lock(sp->endpoints_mutex);
+	for (i=0; i<M_list_len(sp->endpoints); i++) {
+		const M_net_smtp_endpoint_t *ep = M_list_at(sp->endpoints, i);
+		if (!ep->is_removed && ep->timeout_until > curtime) {
+			M_uint64 timeout = (M_uint64)(ep->timeout_until - curtime);
+			if (is_first) {
+				min_timeout = timeout;
+				is_first = M_FALSE;
+			} else {
+				if (timeout < min_timeout)
+					min_timeout = timeout;
+			}
+		}
+	}
+	M_thread_mutex_unlock(sp->endpoints_mutex);
+	return min_timeout;
+}
+
+M_bool M_net_smtp_is_all_endpoints_disabled(const M_net_smtp_t *sp)
+{
+	M_time_t curtime                   = M_time();
+	M_bool   is_all_endpoints_disabled = M_TRUE;
+	size_t   i;
+
+	M_thread_mutex_lock(sp->endpoints_mutex);
+	for (i=0; i<M_list_len(sp->endpoints); i++) {
+		const M_net_smtp_endpoint_t *ep = M_list_at(sp->endpoints, i);
+		if (!ep->is_removed && ep->timeout_until <= curtime) {
+			is_all_endpoints_disabled = M_FALSE;
+			break;
+		}
+	}
+	M_thread_mutex_unlock(sp->endpoints_mutex);
+	return is_all_endpoints_disabled;
 }
 
 M_bool M_net_smtp_is_all_endpoints_removed(const M_net_smtp_t *sp)
@@ -184,6 +228,8 @@ void M_net_smtp_prune_endpoints_task(M_event_t *el, M_event_type_t etype, M_io_t
 void M_net_smtp_processing_halted(M_net_smtp_t *sp)
 {
 	M_bool                       is_no_endpoints = M_net_smtp_is_all_endpoints_removed(sp);
+	M_uint64                     delay_minimum_seconds;
+	M_uint64                     delay_seconds;
 	M_uint64                     delay_ms;
 
 	if (is_no_endpoints) {
@@ -192,10 +238,14 @@ void M_net_smtp_processing_halted(M_net_smtp_t *sp)
 		sp->status = M_NET_SMTP_STATUS_STOPPED;
 	}
 
-	delay_ms = sp->cbs.processing_halted_cb(is_no_endpoints, sp->thunk);
-	if (delay_ms == 0 || is_no_endpoints)
+	delay_seconds = sp->cbs.processing_halted_cb(is_no_endpoints, sp->thunk);
+	if (delay_seconds == 0 || is_no_endpoints)
 		return;
 
+	delay_minimum_seconds = M_net_smtp_endpoints_min_timeout(sp);
+	if (delay_minimum_seconds > delay_seconds)
+		delay_seconds = delay_minimum_seconds;
+	delay_ms = 1000 * delay_seconds;
 	sp->restart_processing_timer = M_event_timer_oneshot(sp->el, delay_ms, M_FALSE, restart_processing_task, sp);
 }
 
@@ -206,8 +256,8 @@ void M_net_smtp_connect_fail(M_net_smtp_session_t *session)
 	M_net_error_t                net_error = session->tcp.net_error;
 	const char                  *errmsg    = session->errmsg;
 
-	M_bool is_remove_ep = !sp->cbs.connect_fail_cb(ep->tcp.address, ep->tcp.port, net_error, errmsg, sp->thunk);
-	endpoint_failure(sp, ep, is_remove_ep);
+	M_uint64 timeout = sp->cbs.connect_fail_cb(ep->tcp.address, ep->tcp.port, net_error, errmsg, sp->thunk);
+	endpoint_failure(sp, ep, timeout);
 }
 
 void M_net_smtp_process_fail(M_net_smtp_session_t *session, const char *stdout_str)
@@ -217,8 +267,8 @@ void M_net_smtp_process_fail(M_net_smtp_session_t *session, const char *stdout_s
 	int                          result_code = session->process.result_code;
 	const char                  *errmsg      = session->errmsg;
 
-	M_bool is_remove_ep = !sp->cbs.process_fail_cb(ep->process.command, result_code, stdout_str, errmsg, sp->thunk);
-	endpoint_failure(sp, ep, is_remove_ep);
+	M_uint64 timeout = sp->cbs.process_fail_cb(ep->process.command, result_code, stdout_str, errmsg, sp->thunk);
+	endpoint_failure(sp, ep, timeout);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -254,24 +304,24 @@ static void nop_reschedule_cb(const char *a, M_uint64 b, void *c)
 	(void)c;
 }
 
-static M_bool nop_connect_fail_cb(const char *a, M_uint16 b, M_net_error_t c, const char *d, void *e)
+static M_uint64 nop_connect_fail_cb(const char *a, M_uint16 b, M_net_error_t c, const char *d, void *e)
 {
 	(void)a;
 	(void)b;
 	(void)c;
 	(void)d;
 	(void)e;
-	return M_TRUE; /* Don't remove endpoint */
+	return 300; /* Retry endpoint in 5 min */
 }
 
-static M_bool nop_process_fail_cb(const char *a, int b, const char *c, const char *d, void *e)
+static M_uint64 nop_process_fail_cb(const char *a, int b, const char *c, const char *d, void *e)
 {
 	(void)a;
 	(void)b;
 	(void)c;
 	(void)d;
 	(void)e;
-	return M_TRUE; /* Don't remove endpoint */
+	return 300; /* Retry endpoint in 5 min */
 }
 
 static M_bool nop_send_failed_cb(const M_hash_dict_t *a, const char *b, size_t c, M_bool d, void *e)

@@ -66,6 +66,7 @@ typedef enum {
 	MAX_ATTEMPTS_0          = 36,
 	MULTITHREAD_INSERT_PROC = 37,
 	AUTH_NO_USER_PASS       = 38,
+	ENDPOINT_TIMEOUT        = 39,
 } test_id_t;
 
 #define TESTONLY 0
@@ -568,7 +569,7 @@ static void connect_cb(const char *address, M_uint16 port, void *thunk)
 	M_thread_mutex_unlock(mutex);
 }
 
-static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t net_err,
+static M_uint64 connect_fail_cb(const char *address, M_uint16 port, M_net_error_t net_err,
 		const char *error, void *thunk)
 {
 	args_t   *args = thunk;
@@ -582,25 +583,30 @@ static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t 
 			M_net_errcode_to_str(net_err), error, thunk);
 	if (args->test_id == NO_SERVER || args->test_id == TLS_UNSUPPORTING_SERVER) {
 		if (call_count == 2) {
-			return M_FALSE; /* Remove endpoint */
+			return 0; /* Remove endpoint */
 		}
 	}
 	if (args->test_id == DOMAIN_MISMATCH) {
-		return M_FALSE;
+		return 0;
 	}
 	if (args->test_id == REACTIVATE_IDLE) {
-		return M_FALSE;
+		return 0;
 	}
 	if (args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5 || args->test_id == AUTH_DIGEST_MD5 || args->test_id == AUTH_NO_USER_PASS) {
 		M_event_done(args->el);
 	}
 	if (args->test_id == TIMEOUTS) {
-		return M_FALSE;
+		return 0;
 	}
 	if (args->test_id == BAD_SERVER || args->test_id == BAD_AUTH) {
-		return M_FALSE;
+		return 0;
 	}
-	return M_TRUE; /* Keep endpoint */
+	if (args->test_id == ENDPOINT_TIMEOUT) {
+		if (args->connect_fail_cb_call_count == 1)
+			return 2;
+		return 1;
+	}
+	return 1; /* Keep endpoint */
 }
 
 static void disconnect_cb(const char *address, M_uint16 port, void *thunk)
@@ -619,7 +625,7 @@ static void disconnect_cb(const char *address, M_uint16 port, void *thunk)
 	}
 }
 
-static M_bool process_fail_cb(const char *command, int result_code, const char *proc_stdout,
+static M_uint64 process_fail_cb(const char *command, int result_code, const char *proc_stdout,
 		const char *proc_stderr, void *thunk)
 {
 	args_t   *args = thunk;
@@ -633,7 +639,7 @@ static M_bool process_fail_cb(const char *command, int result_code, const char *
 		M_event_done(args->el);
 	}
 
-	return M_FALSE; /* Remove endpoint */
+	return 0; /* Remove endpoint */
 }
 
 static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
@@ -644,6 +650,10 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 	args->is_processing_halted_cb_called = M_TRUE;
 	args->processing_halted_cb_call_count++;
 	M_thread_mutex_unlock(mutex);
+	if (args->test_id == ENDPOINT_TIMEOUT) {
+		M_event_done(args->el);
+		return 1; /* restart in 2s */
+	}
 	if (args->test_id == NO_SERVER || args->test_id == TLS_UNSUPPORTING_SERVER) {
 		M_event_done(args->el);
 	}
@@ -660,7 +670,7 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 		args->is_success = (no_endpoints == M_TRUE);
 	}
 	if (args->test_id == HALT_RESTART) {
-		return 10; /* restart in 10ms */
+		return 1; /* restart in 1s */
 	}
 	if (args->test_id == BAD_SERVER || args->test_id == BAD_AUTH) {
 		M_event_done(args->el);
@@ -2608,6 +2618,45 @@ START_TEST(check_no_endpoints)
 }
 END_TEST
 
+START_TEST(endpoint_timeout)
+{
+	M_uint16           testport;
+	args_t             args = { 0 };
+	M_event_t         *el   = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t   *emu  = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, ENDPOINT_TIMEOUT);
+	M_net_smtp_t      *sp   = M_net_smtp_create(el, &test_cbs, &args);
+	M_email_t         *e    = generate_email(1, test_address);
+	M_dns_t           *dns  = M_dns_create(el);
+
+	M_printf("START_TEST(endpoint_timeout)\n");
+	smtp_emulator_destroy(emu);
+
+	args.el = el;
+	args.test_id = ENDPOINT_TIMEOUT;
+
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+
+	M_net_smtp_queue_smtp(sp, e);
+
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
+
+	ck_assert_msg(args.processing_halted_cb_call_count == 1, "Should have processing_halted_cb");
+
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
+
+	ck_assert_msg(args.processing_halted_cb_call_count == 2, "Should have processing_halted_cb");
+
+	M_dns_destroy(dns);
+	M_email_destroy(e);
+	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+	cleanup();
+}
+
 START_TEST(dummy_checks)
 {
 
@@ -2942,6 +2991,14 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 38
 	tc = tcase_create("auth_no_user_pass");
 	tcase_add_test(tc, auth_no_user_pass);
+	tcase_set_timeout(tc, 5);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*ENDPOINT_TIMEOUT = 39, */
+#if TESTONLY == 0 || TESTONLY == 39
+	tc = tcase_create("endpoint_timeout");
+	tcase_add_test(tc, endpoint_timeout);
 	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
