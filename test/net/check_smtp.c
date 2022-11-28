@@ -2656,6 +2656,7 @@ START_TEST(endpoint_timeout)
 	M_event_destroy(el);
 	cleanup();
 }
+END_TEST
 
 START_TEST(dummy_checks)
 {
