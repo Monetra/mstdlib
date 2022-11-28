@@ -40,6 +40,7 @@ typedef struct {
 	M_list_t                   *send_sessions;
 	M_list_t                   *idle_sessions;
 	M_list_t                   *cull_sessions;
+	M_time_t                    timeout_until;
 	union {
 		struct {
 			char          *address;

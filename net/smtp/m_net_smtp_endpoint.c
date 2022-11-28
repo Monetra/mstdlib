@@ -27,7 +27,7 @@ M_bool M_net_smtp_endpoint_is_available(const M_net_smtp_endpoint_t *ep)
 {
 	M_bool is_available;
 	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_READ);
-	is_available = (ep->max_sessions - M_list_len(ep->send_sessions)) > 0;
+	is_available = ((ep->max_sessions - M_list_len(ep->send_sessions)) > 0) && (ep->timeout_until <= M_time());
 	M_thread_rwlock_unlock(ep->sessions_rwlock);
 	return is_available;
 }
