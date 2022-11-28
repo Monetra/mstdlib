@@ -102,10 +102,10 @@ typedef void (*M_net_smtp_connect_cb)(const char *address, M_uint16 port, void *
  * \param[in] error   Error message.
  * \param[in] thunk   Thunk parameter provided during create.
  *
- * \return M_FALSE if the endpoint should be be removed from the pool. M_TRUE to allow
- *         the server to be retried later.
+ * \return 0 if the endpoint should be be removed from the pool. Otherwise number of seconds to wait before
+ *         retrying the server later.
  */
-typedef M_bool (*M_net_smtp_connect_fail_cb)(const char *address, M_uint16 port, M_net_error_t net_err, const char *error, void *thunk);
+typedef M_uint64 (*M_net_smtp_connect_fail_cb)(const char *address, M_uint16 port, M_net_error_t net_err, const char *error, void *thunk);
 
 
 /*! Callback when the connection to the server disconnects.
@@ -134,10 +134,10 @@ typedef void (*M_net_smtp_disconnect_cb)(const char *address, M_uint16 port, voi
  * \param[in] proc_stderror Error output of the process.
  * \param[in] thunk         Thunk parameter provided during create.
  *
- * \return M_FALSE if the endpoint should be be removed from the pool. M_TRUE to allow
- *         the server to be retried later.
+ * \return 0 if the endpoint should be be removed from the pool. Otherwise the number of seconds to wait before
+ *         retrying the server later.
  */
-typedef M_bool (*M_net_smtp_process_fail_cb)(const char *command, int result_code, const char *proc_stdout, const char *proc_stderror, void *thunk);
+typedef M_uint64 (*M_net_smtp_process_fail_cb)(const char *command, int result_code, const char *proc_stdout, const char *proc_stderror, void *thunk);
 
 
 /*! Callback when all endpoints have failed.
