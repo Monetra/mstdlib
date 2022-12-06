@@ -489,6 +489,28 @@ M_API M_bool M_tls_serverctx_set_protocols(M_tls_serverctx_t *ctx, int protocols
 M_API M_bool M_tls_serverctx_set_ciphers(M_tls_serverctx_t *ctx, const char *ciphers);
 
 
+/*! Set the server to prefer its own cipher order rather than the client.
+ *
+ * By default, the client cipher order is preferred, this is recommended as a
+ * client may be a mobile device where a cipher like TLS_CHACHA20_POLY1305_SHA256
+ * is more efficient than TLS_AES_256_GCM_SHA384 and will provide a better
+ * customer experience.  However a desktop client may prefer TLS_AES_256_GCM_SHA384
+ * as it supports AES-NI instruction helpers or similar.  Since the server is
+ * often more powerful than the client, it is better suited to the additional
+ * compute.
+ *
+ * Assuming the server is configured to only allow strong ciphers, there should
+ * be no security risk in allowing the client to decide the most efficient.
+ *
+ * \param[in] ctx     Server context.
+ * \param[in] tf      M_TRUE to enable server preference, M_FALSE to disable.
+ *
+ * \see M_tls_clientctx_get_cipherlist
+ */
+M_API M_bool M_tls_serverctx_set_server_preference(M_tls_serverctx_t *ctx, M_bool tf);
+
+
+
 /*! Load a CA certificate for validating the certificate presented by the client.
  *
  * If set the client will be required to present a certificate.
