@@ -12,6 +12,7 @@ find_package(OpenSSL REQUIRED)
 
 set(sources
 	m_net.c
+	m_net_iface_ips.c
 	m_net_http_simple.c
 	smtp/m_net_smtp.c
 	smtp/m_flow_process.c

@@ -101,7 +101,8 @@ M_API int M_net_iface_ips_get_flags(M_net_iface_ips_t *ips, size_t idx);
  * \param[in] ips   Value returned from M_net_iface_ips()
  * \param[in] flags Must specify at least M_NET_IFACE_IPS_FLAG_IPV4 or M_NET_IFACE_IPS_FLAG_IPV6.
  * \param[in] name  Only enumerate for a specific interface name.
- * \return list of ip addresses matching query.  Must be free'd with M_list_str_destroy().
+ * \return list of ip addresses matching query, NULL on no matches.
+ *         Must be free'd with M_list_str_destroy().
  */
 M_API M_list_str_t *M_net_iface_ips_get_ips(M_net_iface_ips_t *ips, int flags, const char *name);
 
@@ -111,7 +112,8 @@ M_API M_list_str_t *M_net_iface_ips_get_ips(M_net_iface_ips_t *ips, int flags, c
  * \param[in] ips   Value returned from M_net_iface_ips()
  * \param[in] flags If either M_NET_IFACE_IPS_FLAG_IPV4 or M_NET_IFACE_IPS_FLAG_IPV6 is specified, will
  *                  exclude interfaces that don't have the specified address class.
- * \return list of interface names matching query.  Must be free'd with M_list_str_destroy().
+ * \return list of interface names matching query, NULL on no matches.
+ *         Must be free'd with M_list_str_destroy().
  */
 M_API M_list_str_t *M_net_iface_ips_get_names(M_net_iface_ips_t *ips, int flags);
 

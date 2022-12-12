@@ -169,6 +169,7 @@ endif()
 if(MSTDLIB_BUILD_NET)
 	list(APPEND tests
 		net/check_smtp.c
+		net/check_iface_ips.c
 	)
 endif()
 
