@@ -189,6 +189,7 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 
 		M_ipentry_add(ips, ifa->ifa_name, addr, addr_len, netmask, addrflag);
 	}
+	freeifaddrs(ifap);
 	return M_TRUE;
 }
 #endif
