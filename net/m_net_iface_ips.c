@@ -33,15 +33,16 @@
 #else
 #  include <sys/types.h>
 #  include <sys/socket.h>
+#  include <net/if.h>
 #  include <ifaddrs.h>
 #  include <sys/ioctl.h>
-#  include <net/if.h>
 #  include <netinet/in.h>
 #endif
 
 typedef struct {
 	char                    *name;
 	char                    *addr;
+	M_uint8                  netmask;
 	M_net_iface_ips_flags_t  flags;
 } M_ipentry_t;
 
@@ -78,7 +79,7 @@ static void M_ipentry_remove_noaddr(M_net_iface_ips_t *ips, const char *name)
 	}
 }
 
-static void M_ipentry_add(M_net_iface_ips_t *ips, const char *name, const unsigned char *addr, size_t addr_len, M_net_iface_ips_flags_t flags)
+static void M_ipentry_add(M_net_iface_ips_t *ips, const char *name, const unsigned char *addr, size_t addr_len, M_uint8 netmask, M_net_iface_ips_flags_t flags)
 {
 	M_ipentry_t *ipentry    = M_malloc_zero(sizeof(*ipentry));
 	char         ipaddr[40] = { 0 };
@@ -94,11 +95,23 @@ static void M_ipentry_add(M_net_iface_ips_t *ips, const char *name, const unsign
 				flags |= M_NET_IFACE_IPS_FLAG_IPV6;
 			}
 			M_ipentry_remove_noaddr(ips, name);
+			ipentry->netmask = netmask;
 		}
 	}
 
 	ipentry->flags       = flags;
 	M_list_insert(ips->ips, ipentry);
+}
+
+static M_uint8 M_net_count_bits(const unsigned char *addr, size_t addr_len)
+{
+	size_t  i;
+	M_uint8 count = 0;
+
+	for (i=0; i<addr_len; i++) {
+		count += M_uint8_popcount(addr[i]);
+	}
+	return count;
 }
 
 #ifdef _WIN32
@@ -126,6 +139,7 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 		M_net_iface_ips_flags_t addrflag = 0;
 		const void             *addr     = NULL;
 		size_t                  addr_len = 0;
+		M_uint8                 netmask  = 0;
 
 		/* User is not enumerating offline interfaces */
 		if (!(ifa->ifa_flags & IFF_UP) && !(flags & M_NET_IFACE_IPS_FLAG_OFFLINE))
@@ -154,12 +168,16 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 		if (ifa->ifa_addr != NULL) {
 			if (ifa->ifa_addr->sa_family == AF_INET) {
 				struct sockaddr_in *sockaddr_in = (struct sockaddr_in *)((void *)ifa->ifa_addr);
-				addr     = &sockaddr_in->sin_addr;
-				addr_len = 4;
+				addr        = &sockaddr_in->sin_addr;
+				addr_len    = 4;
+				sockaddr_in = (struct sockaddr_in *)((void *)ifa->ifa_netmask);
+				netmask     = M_net_count_bits((const void *)&sockaddr_in->sin_addr, addr_len);
 			} if (ifa->ifa_addr->sa_family == AF_INET6) {
 				struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)((void *)ifa->ifa_addr);
-				addr     = &sockaddr_in6->sin6_addr;
-				addr_len = 16;
+				addr         = &sockaddr_in6->sin6_addr;
+				addr_len     = 16;
+				sockaddr_in6 = (struct sockaddr_in6 *)((void *)ifa->ifa_netmask);
+				netmask      = M_net_count_bits((const void *)&sockaddr_in6->sin6_addr, addr_len);
 			}
 		}
 
@@ -169,7 +187,7 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 		if (!(ifa->ifa_flags & IFF_UP))
 			addrflag |= M_NET_IFACE_IPS_FLAG_OFFLINE;
 
-		M_ipentry_add(ips, ifa->ifa_name, addr, addr_len, addrflag);
+		M_ipentry_add(ips, ifa->ifa_name, addr, addr_len, netmask, addrflag);
 	}
 	return M_TRUE;
 }
@@ -230,6 +248,19 @@ const char *M_net_iface_ips_get_addr(M_net_iface_ips_t *ips, size_t idx)
 	return entry->addr;
 }
 
+M_uint8 M_net_iface_ips_get_netmask(M_net_iface_ips_t *ips, size_t idx)
+{
+	const M_ipentry_t *entry = NULL;
+
+	if (ips == NULL)
+		return 0;
+	if (idx >= M_net_iface_ips_count(ips))
+		return 0;
+	entry = M_list_at(ips->ips, idx);
+	if (entry == NULL)
+		return 0;
+	return entry->netmask;
+}
 
 int M_net_iface_ips_get_flags(M_net_iface_ips_t *ips, size_t idx)
 {
@@ -348,3 +379,22 @@ void M_net_iface_ips_free(M_net_iface_ips_t *ips)
 	M_list_destroy(ips->ips, M_TRUE);
 	M_free(ips);
 }
+
+static const M_bitlist_t ifaceflags[] = {
+  { M_NET_IFACE_IPS_FLAG_OFFLINE, "OFFLINE"   },
+  { M_NET_IFACE_IPS_FLAG_LOOPBACK, "LOOPBACK" },
+  { M_NET_IFACE_IPS_FLAG_IPV4,     "IPV4"     },
+  { M_NET_IFACE_IPS_FLAG_IPV6,     "IPV6"     },
+  { 0,                             NULL       }
+};
+
+
+char *M_net_iface_ips_flags_to_str(int flags)
+{
+	char *human_flags = NULL;
+	if (!M_bitlist_list(&human_flags, M_BITLIST_FLAG_NONE, ifaceflags, (M_uint64)flags, '|', NULL, 0))
+		return NULL;
+
+	return human_flags;
+}
+

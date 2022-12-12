@@ -17,8 +17,17 @@ START_TEST(check_iface_ips)
 
 	M_printf("%zu entries\n", M_net_iface_ips_count(ips));
 	for (i=0; i<M_net_iface_ips_count(ips); i++) {
+		char *flags;
 		ck_assert(M_net_iface_ips_get_name(ips, i) != NULL);
-		M_printf("%zu: name=%s, ipaddr=%s, flags=%02X\n", i, M_net_iface_ips_get_name(ips, i), M_net_iface_ips_get_addr(ips, i), M_net_iface_ips_get_flags(ips, i));
+		M_printf("%zu: name=%s, ipaddr=", i, M_net_iface_ips_get_name(ips, i));
+		if (M_net_iface_ips_get_addr(ips, i) == NULL) {
+			M_printf("None");
+		} else {
+			M_printf("%s/%d", M_net_iface_ips_get_addr(ips, i), M_net_iface_ips_get_netmask(ips, i));
+		}
+		flags = M_net_iface_ips_flags_to_str(M_net_iface_ips_get_flags(ips, i));
+		M_printf(", flags=%s\n", flags);
+		M_free(flags);
 	}
 	M_net_iface_ips_free(ips);
 }

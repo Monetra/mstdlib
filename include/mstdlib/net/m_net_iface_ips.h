@@ -87,6 +87,14 @@ M_API const char *M_net_iface_ips_get_name(M_net_iface_ips_t *ips, size_t idx);
  */
 M_API const char *M_net_iface_ips_get_addr(M_net_iface_ips_t *ips, size_t idx);
 
+/*! Return the netmask for the ip address of interface associated with specified index.
+ *
+ * \param[in] ips  Value returned from M_net_iface_ips()
+ * \param[in] idx  Index to query
+ * \return netmask, only relevant if there is an ip address
+ */
+M_API M_uint8 M_net_iface_ips_get_netmask(M_net_iface_ips_t *ips, size_t idx);
+
 /*! Return flags on interface associated with specified index.
  *
  * \param[in] ips  Value returned from M_net_iface_ips()
@@ -122,6 +130,14 @@ M_API M_list_str_t *M_net_iface_ips_get_names(M_net_iface_ips_t *ips, int flags)
  * \param[in] ips   Value returned from M_net_iface_ips()
  */
 M_API void M_net_iface_ips_free(M_net_iface_ips_t *ips);
+
+/*! Given a set of flags, convert into human-readable form
+ *
+ * \param[in] flags  Flags to print
+ * \return human readable string, must be M_free()'d.
+ */
+M_API char *M_net_iface_ips_flags_to_str(int flags);
+
 
 /*! @} */
 
