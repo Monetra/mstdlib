@@ -58,6 +58,7 @@ static void M_ipentry_free(void *arg)
 
 	M_free(ipentry->name);
 	M_free(ipentry->addr);
+	M_free(ipentry);
 }
 
 /* OS might list an interface first with no address followed by an address, purge the
@@ -103,6 +104,83 @@ static void M_ipentry_add(M_net_iface_ips_t *ips, const char *name, const unsign
 	M_list_insert(ips->ips, ipentry);
 }
 
+
+#ifdef _WIN32
+static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_flags_t flags)
+{
+	ULONG                 flags     = GAA_FLAG_INCLUDE_PREFIX|GAA_FLAG_SKIP_FRIENDLY_NAME|GAA_FLAG_INCLUDE_ALL_INTERFACES;
+	ULONG                 outBufLen = 0;
+	DWORD                 retval;
+	IP_ADAPTER_ADDRESSES *addresses = NULL;
+	IP_ADAPTER_ADDRESSES *address   = NULL;
+
+	/* Get necessary buffer size */
+	GetAdaptersAddresses(AF_UNSPEC, flags, NULL, NULL, &outBufLen);
+	if (outBufLen == 0)
+		return M_FALSE;
+
+	addresses = M_malloc_zero(outBufLen);
+	retval    = GetAdaptersAddresses(AF_UNSPEC, flags, NULL, addresses, outBufLen);
+	if (retval != ERROR_SUCCESS)
+		goto done;
+
+	for (address=addresses; address != NULL && address->Next != NULL; address=address->Next) {
+		IP_ADAPTER_UNICAST_ADDRESS *ipaddr   = NULL;
+		M_net_iface_ips_flags_t     addrflag = 0;
+
+		/* User is not enumerating offline interfaces */
+		if (address->OperStatus != IfOperStatusUp) {
+			if (!(flags & M_NET_IFACE_IPS_FLAG_OFFLINE))
+				continue;
+			addrflag |= M_NET_IFACE_IPS_FLAG_OFFLINE;
+		}
+
+		/* User is not enumerating loopback interfaces */
+		if (address->IfType == IF_TYPE_SOFTWARE_LOOPBACK) {
+			if (!(flags & M_NET_IFACE_IPS_FLAG_LOOPBACK))
+				continue;
+			addrflag |= M_NET_IFACE_IPS_FLAG_LOOPBACK;
+		}
+
+		/* Add interface itself, regardless if it has any addresses, but only if we're not restricting to only
+		 * those that do have addresses */
+		if (!(flags & (M_NET_IFACE_IPS_FLAG_IPV4|M_NET_IFACE_IPS_FLAG_IPV6))) {
+			M_ipentry_add(ips, address->AdpaterName, NULL, 0, 0, addrflag);
+		}
+
+		for (ipaddr=address->FirstUnicastAddress; ipaddr != NULL && ipaddr->Next != NULL; ipaddr = ipaddr->Next) {
+			const void  *addr     = NULL;
+			size_t       addr_len = 0;
+
+			/* User is restricting based on address class */
+			if (flags & (M_NET_IFACE_IPS_FLAG_IPV4|M_NET_IFACE_IPS_FLAG_IPV6)) {
+				/* user is not enumerating ipv4 */
+				if (ipaddr->Address.lpSockaddr->sa_family == AF_INET && !(flags & M_NET_IFACE_IPS_FLAG_IPV4))
+					continue;
+
+				/* user is not enumerating ipv6 */
+				if (ipaddr->Address.lpSockaddr->sa_family == AF_INET6 && !(flags & M_NET_IFACE_IPS_FLAG_IPV6))
+					continue;
+			}
+			if (ipaddr->Address.lpSockaddr->sa_family == AF_INET) {
+				struct sockaddr_in *sockaddr_in = (struct sockaddr_in *)((void *)ipaddr->Address.lpSockaddr);
+				addr        = &sockaddr_in->sin_addr;
+				addr_len    = 4;
+			} else if (ipaddr->Address.lpSockaddr->sa_family == AF_INET6) {
+				struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)((void *)ipaddr->Address.lpSockaddr);
+				addr         = &sockaddr_in6->sin6_addr;
+				addr_len     = 16;
+			}
+			M_ipentry_add(ips, address->AdpaterName, addr, addr_len, ipaddr->OnLinkPrefixLength, addrflag);
+		}
+	}
+
+done:
+	M_free(addresses);
+	return M_FALSE;
+}
+
+#else
 static M_uint8 M_net_count_bits(const unsigned char *addr, size_t addr_len)
 {
 	size_t  i;
@@ -114,19 +192,6 @@ static M_uint8 M_net_count_bits(const unsigned char *addr, size_t addr_len)
 	return count;
 }
 
-#ifdef _WIN32
-static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_flags_t flags)
-{
-	/* TODO: Implement me
-	 * https://learn.microsoft.com/en-us/windows/win32/api/iphlpapi/nf-iphlpapi-getadaptersaddresses
-	 * https://learn.microsoft.com/en-us/windows/win32/api/iptypes/ns-iptypes-ip_adapter_addresses_lh
-	 * - flags IP_ADAPTER_IPV4_ENABLED|IP_ADAPTER_IPV6_ENABLED
-	 * - iftype IF_TYPE_SOFTWARE_LOOPBACK
-	 * - OperStatus IfOperStatusUp
-	 */
-	return M_FALSE;
-}
-#else
 static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_flags_t flags)
 {
 	struct ifaddrs *ifap = NULL;
@@ -172,7 +237,7 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 				addr_len    = 4;
 				sockaddr_in = (struct sockaddr_in *)((void *)ifa->ifa_netmask);
 				netmask     = M_net_count_bits((const void *)&sockaddr_in->sin_addr, addr_len);
-			} if (ifa->ifa_addr->sa_family == AF_INET6) {
+			} else if (ifa->ifa_addr->sa_family == AF_INET6) {
 				struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)((void *)ifa->ifa_addr);
 				addr         = &sockaddr_in6->sin6_addr;
 				addr_len     = 16;

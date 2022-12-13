@@ -62,7 +62,7 @@ target_link_libraries(${PROJECT_NAME}
 # Link extra system libraries.
 if (WIN32 OR MINGW)
 	target_link_libraries(${PROJECT_NAME}
-		PRIVATE Ws2_32.lib Crypt32.lib
+		PRIVATE ws2_32.lib crypt32.lib iphlpapi.lib
 	)
 endif ()
 
