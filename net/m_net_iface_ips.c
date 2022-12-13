@@ -31,6 +31,7 @@
 #  include <winsock2.h>
 #  include <ws2tcpip.h>
 #  include <iphlpapi.h>
+#  include "base/platform/m_platform_win.h"
 #else
 #  include <sys/types.h>
 #  include <sys/socket.h>
