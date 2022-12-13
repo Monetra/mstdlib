@@ -127,7 +127,7 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 	if (retval != ERROR_SUCCESS)
 		goto done;
 
-	for (address=addresses; address != NULL && address->Next != NULL; address=address->Next) {
+	for (address=addresses; address != NULL; address=address->Next) {
 		IP_ADAPTER_UNICAST_ADDRESS *ipaddr   = NULL;
 		M_net_iface_ips_flags_t     addrflag = 0;
 
@@ -153,7 +153,7 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 			M_free(name);
 		}
 
-		for (ipaddr=address->FirstUnicastAddress; ipaddr != NULL && ipaddr->Next != NULL; ipaddr = ipaddr->Next) {
+		for (ipaddr=address->FirstUnicastAddress; ipaddr != NULL; ipaddr = ipaddr->Next) {
 			const void  *addr     = NULL;
 			size_t       addr_len = 0;
 			char        *name     = NULL;
