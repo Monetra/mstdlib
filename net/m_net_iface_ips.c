@@ -112,6 +112,7 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 	ULONG                 myflags   = GAA_FLAG_INCLUDE_PREFIX|GAA_FLAG_SKIP_FRIENDLY_NAME|GAA_FLAG_INCLUDE_ALL_INTERFACES;
 	ULONG                 outBufLen = 0;
 	DWORD                 retval;
+	M_bool                rv        = M_FALSE;
 	IP_ADAPTER_ADDRESSES *addresses = NULL;
 	IP_ADAPTER_ADDRESSES *address   = NULL;
 
@@ -176,9 +177,10 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 		}
 	}
 
+	rv = M_TRUE;
 done:
 	M_free(addresses);
-	return M_FALSE;
+	return rv;
 }
 
 #else
