@@ -45,10 +45,10 @@ typedef struct {
 	char                    *name;
 	char                    *addr;
 	M_uint8                  netmask;
-	M_net_iface_ips_flags_t  flags;
+	M_io_net_iface_ips_flags_t  flags;
 } M_ipentry_t;
 
-struct M_net_iface_ips {
+struct M_io_net_iface_ips {
 	M_list_t *ips;
 };
 
@@ -65,7 +65,7 @@ static void M_ipentry_free(void *arg)
 
 /* OS might list an interface first with no address followed by an address, purge the
  * no-address entry */
-static void M_ipentry_remove_noaddr(M_net_iface_ips_t *ips, const char *name)
+static void M_ipentry_remove_noaddr(M_io_net_iface_ips_t *ips, const char *name)
 {
 	size_t i;
 
@@ -82,7 +82,7 @@ static void M_ipentry_remove_noaddr(M_net_iface_ips_t *ips, const char *name)
 	}
 }
 
-static void M_ipentry_add(M_net_iface_ips_t *ips, const char *name, const unsigned char *addr, size_t addr_len, M_uint8 netmask, M_net_iface_ips_flags_t flags)
+static void M_ipentry_add(M_io_net_iface_ips_t *ips, const char *name, const unsigned char *addr, size_t addr_len, M_uint8 netmask, M_io_net_iface_ips_flags_t flags)
 {
 	M_ipentry_t *ipentry    = M_malloc_zero(sizeof(*ipentry));
 	char         ipaddr[40] = { 0 };
@@ -108,7 +108,7 @@ static void M_ipentry_add(M_net_iface_ips_t *ips, const char *name, const unsign
 
 
 #ifdef _WIN32
-static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_flags_t flags)
+static M_bool M_io_net_iface_ips_enumerate(M_io_net_iface_ips_t *ips, M_io_net_iface_ips_flags_t flags)
 {
 	ULONG                 myflags   = GAA_FLAG_INCLUDE_PREFIX /*|GAA_FLAG_INCLUDE_ALL_INTERFACES */;
 	ULONG                 outBufLen = 0;
@@ -129,7 +129,7 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 
 	for (address=addresses; address != NULL; address=address->Next) {
 		IP_ADAPTER_UNICAST_ADDRESS *ipaddr   = NULL;
-		M_net_iface_ips_flags_t     addrflag = 0;
+		M_io_net_iface_ips_flags_t     addrflag = 0;
 
 		/* User is not enumerating offline interfaces */
 		if (address->OperStatus != IfOperStatusUp) {
@@ -201,7 +201,7 @@ static M_uint8 M_net_count_bits(const unsigned char *addr, size_t addr_len)
 	return count;
 }
 
-static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_flags_t flags)
+static M_bool M_io_net_iface_ips_enumerate(M_io_net_iface_ips_t *ips, M_io_net_iface_ips_flags_t flags)
 {
 	struct ifaddrs *ifap = NULL;
 	struct ifaddrs *ifa  = NULL;
@@ -210,7 +210,7 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 		return M_FALSE;
 
 	for (ifa = ifap; ifa != NULL; ifa = ifa->ifa_next) {
-		M_net_iface_ips_flags_t addrflag = 0;
+		M_io_net_iface_ips_flags_t addrflag = 0;
 		const void             *addr     = NULL;
 		size_t                  addr_len = 0;
 		M_uint8                 netmask  = 0;
@@ -269,9 +269,9 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 #endif
 
 
-M_net_iface_ips_t *M_net_iface_ips(int flags)
+M_io_net_iface_ips_t *M_io_net_iface_ips(int flags)
 {
-	M_net_iface_ips_t *ips = M_malloc_zero(sizeof(*ips));
+	M_io_net_iface_ips_t *ips = M_malloc_zero(sizeof(*ips));
 	struct M_list_callbacks listcb = {
 		NULL /* equality */,
 		NULL /* duplicate_insert */,
@@ -280,28 +280,28 @@ M_net_iface_ips_t *M_net_iface_ips(int flags)
 	};
 	ips->ips = M_list_create(&listcb, M_LIST_NONE);
 
-	if (!M_net_iface_ips_enumerate(ips, (M_net_iface_ips_flags_t)flags) || M_net_iface_ips_count(ips) == 0) {
-		M_net_iface_ips_free(ips);
+	if (!M_io_net_iface_ips_enumerate(ips, (M_io_net_iface_ips_flags_t)flags) || M_io_net_iface_ips_count(ips) == 0) {
+		M_io_net_iface_ips_free(ips);
 		return NULL;
 	}
 
 	return ips;
 }
 
-size_t M_net_iface_ips_count(M_net_iface_ips_t *ips)
+size_t M_io_net_iface_ips_count(M_io_net_iface_ips_t *ips)
 {
 	if (ips == NULL)
 		return 0;
 	return M_list_len(ips->ips);
 }
 
-const char *M_net_iface_ips_get_name(M_net_iface_ips_t *ips, size_t idx)
+const char *M_io_net_iface_ips_get_name(M_io_net_iface_ips_t *ips, size_t idx)
 {
 	const M_ipentry_t *entry = NULL;
 
 	if (ips == NULL)
 		return NULL;
-	if (idx >= M_net_iface_ips_count(ips))
+	if (idx >= M_io_net_iface_ips_count(ips))
 		return NULL;
 	entry = M_list_at(ips->ips, idx);
 	if (entry == NULL)
@@ -309,13 +309,13 @@ const char *M_net_iface_ips_get_name(M_net_iface_ips_t *ips, size_t idx)
 	return entry->name;
 }
 
-const char *M_net_iface_ips_get_addr(M_net_iface_ips_t *ips, size_t idx)
+const char *M_io_net_iface_ips_get_addr(M_io_net_iface_ips_t *ips, size_t idx)
 {
 	const M_ipentry_t *entry = NULL;
 
 	if (ips == NULL)
 		return NULL;
-	if (idx >= M_net_iface_ips_count(ips))
+	if (idx >= M_io_net_iface_ips_count(ips))
 		return NULL;
 	entry = M_list_at(ips->ips, idx);
 	if (entry == NULL)
@@ -323,13 +323,13 @@ const char *M_net_iface_ips_get_addr(M_net_iface_ips_t *ips, size_t idx)
 	return entry->addr;
 }
 
-M_uint8 M_net_iface_ips_get_netmask(M_net_iface_ips_t *ips, size_t idx)
+M_uint8 M_io_net_iface_ips_get_netmask(M_io_net_iface_ips_t *ips, size_t idx)
 {
 	const M_ipentry_t *entry = NULL;
 
 	if (ips == NULL)
 		return 0;
-	if (idx >= M_net_iface_ips_count(ips))
+	if (idx >= M_io_net_iface_ips_count(ips))
 		return 0;
 	entry = M_list_at(ips->ips, idx);
 	if (entry == NULL)
@@ -337,13 +337,13 @@ M_uint8 M_net_iface_ips_get_netmask(M_net_iface_ips_t *ips, size_t idx)
 	return entry->netmask;
 }
 
-int M_net_iface_ips_get_flags(M_net_iface_ips_t *ips, size_t idx)
+int M_io_net_iface_ips_get_flags(M_io_net_iface_ips_t *ips, size_t idx)
 {
 	const M_ipentry_t *entry = NULL;
 
 	if (ips == NULL)
 		return 0;
-	if (idx >= M_net_iface_ips_count(ips))
+	if (idx >= M_io_net_iface_ips_count(ips))
 		return 0;
 	entry = M_list_at(ips->ips, idx);
 	if (entry == NULL)
@@ -352,7 +352,7 @@ int M_net_iface_ips_get_flags(M_net_iface_ips_t *ips, size_t idx)
 }
 
 
-M_list_str_t *M_net_iface_ips_get_ips(M_net_iface_ips_t *ips, int flags, const char *name)
+M_list_str_t *M_io_net_iface_ips_get_ips(M_io_net_iface_ips_t *ips, int flags, const char *name)
 {
 	size_t        i;
 	M_list_str_t *list = NULL;
@@ -365,7 +365,7 @@ M_list_str_t *M_net_iface_ips_get_ips(M_net_iface_ips_t *ips, int flags, const c
 	 * IPs */
 	list = M_list_str_create(M_LIST_STR_NONE);
 
-	for (i=0; i<M_net_iface_ips_count(ips); i++) {
+	for (i=0; i<M_io_net_iface_ips_count(ips); i++) {
 		const M_ipentry_t *entry = M_list_at(ips->ips, i);
 		if (entry == NULL)
 			continue;
@@ -421,7 +421,7 @@ static char *M_net_sanitize_ipaddr(const char *ipaddr)
 	return M_strdup(ipstr);
 }
 
-M_list_str_t *M_net_iface_ips_get_names(M_net_iface_ips_t *ips, int flags, const char *ipaddr)
+M_list_str_t *M_io_net_iface_ips_get_names(M_io_net_iface_ips_t *ips, int flags, const char *ipaddr)
 {
 	size_t        i;
 	M_list_str_t *list = NULL;
@@ -437,7 +437,7 @@ M_list_str_t *M_net_iface_ips_get_names(M_net_iface_ips_t *ips, int flags, const
 	 * output more than once */
 	list = M_list_str_create(M_LIST_STR_SET|M_LIST_STR_CASECMP);
 
-	for (i=0; i<M_net_iface_ips_count(ips); i++) {
+	for (i=0; i<M_io_net_iface_ips_count(ips); i++) {
 		const M_ipentry_t *entry = M_list_at(ips->ips, i);
 		if (entry == NULL)
 			continue;
@@ -482,7 +482,7 @@ M_list_str_t *M_net_iface_ips_get_names(M_net_iface_ips_t *ips, int flags, const
 	return list;
 }
 
-void M_net_iface_ips_free(M_net_iface_ips_t *ips)
+void M_io_net_iface_ips_free(M_io_net_iface_ips_t *ips)
 {
 	if (ips == NULL)
 		return;
@@ -499,7 +499,7 @@ static const M_bitlist_t ifaceflags[] = {
 };
 
 
-char *M_net_iface_ips_flags_to_str(int flags)
+char *M_io_net_iface_ips_flags_to_str(int flags)
 {
 	char *human_flags = NULL;
 	if (!M_bitlist_list(&human_flags, M_BITLIST_FLAG_NONE, ifaceflags, (M_uint64)flags, '|', NULL, 0))

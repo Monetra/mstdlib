@@ -33,7 +33,6 @@
  */
 
 #include <mstdlib/net/m_net.h>
-#include <mstdlib/net/m_net_iface_ips.h>
 #include <mstdlib/net/m_net_http_simple.h>
 #include <mstdlib/net/m_net_smtp.h>
 

@@ -88,7 +88,8 @@ TESTS += \
 		io/check_serial \
 		io/check_process \
 		io/check_pipespeed \
-		io/check_netspeed
+		io/check_netspeed \
+		io/check_iface_ips
 
 # HID support only on Win32, MacOS, Linux
 if WIN32

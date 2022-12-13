@@ -129,6 +129,7 @@ if (MSTDLIB_BUILD_IO)
 		io/check_process.c
 		io/check_netspeed.c
 		io/check_event_bwshaping.c
+		io/check_iface_ips.c
 	)
 	list(APPEND slow_tests
 		io/check_event_interactions.c
@@ -169,7 +170,6 @@ endif()
 if(MSTDLIB_BUILD_NET)
 	list(APPEND tests
 		net/check_smtp.c
-		net/check_iface_ips.c
 	)
 endif()
 

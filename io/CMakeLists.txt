@@ -29,13 +29,14 @@ endif ()
 # E.g. HID, BLE, Bluetooth, serial.
 set(sources
 	# No OS specific implementations
-	m_dns.c
 	m_io.c
 	m_io_block.c
 	m_io_bwshaping.c
 	m_io_loopback.c
-	m_io_net.c
-	m_io_netdns.c
+	net/m_dns.c
+	net/m_io_net.c
+	net/m_io_netdns.c
+	net/m_io_net_iface_ips.c
 	m_io_meta.c
 	m_io_process.c
 	m_io_proxy_protocol.c
