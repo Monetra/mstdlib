@@ -402,14 +402,36 @@ M_list_str_t *M_net_iface_ips_get_ips(M_net_iface_ips_t *ips, int flags, const c
 }
 
 
-M_list_str_t *M_net_iface_ips_get_names(M_net_iface_ips_t *ips, int flags)
+static char *M_net_sanitize_ipaddr(const char *ipaddr)
+{
+	unsigned char ipbin[16];
+	char          ipstr[64];
+	size_t        ipbin_len = 0;
+
+	if (ipaddr == NULL)
+		return NULL;
+
+	/* Double convert to sanitize */
+	if (!M_io_net_ipaddr_to_bin(ipbin, sizeof(ipbin), ipaddr, &ipbin_len))
+		return NULL;
+
+	if (!M_io_net_bin_to_ipaddr(ipstr, sizeof(ipstr), ipbin, ipbin_len))
+		return NULL;
+
+	return M_strdup(ipstr);
+}
+
+M_list_str_t *M_net_iface_ips_get_names(M_net_iface_ips_t *ips, int flags, const char *ipaddr)
 {
 	size_t        i;
 	M_list_str_t *list = NULL;
+	char         *ipaddr_sanitized = NULL;
 
-	/* If neither IPv6 nor ipv4 were specified, act like both were */
-	if (!(flags & (M_NET_IFACE_IPS_FLAG_IPV4|M_NET_IFACE_IPS_FLAG_IPV6)))
-		flags |= (M_NET_IFACE_IPS_FLAG_IPV4|M_NET_IFACE_IPS_FLAG_IPV6);
+	if (!M_str_isempty(ipaddr)) {
+		ipaddr_sanitized = M_net_sanitize_ipaddr(ipaddr);
+		if (ipaddr_sanitized == NULL)
+			return NULL;
+	}
 
 	/* We mark this as a set so if the name already exists, it won't be
 	 * output more than once */
@@ -428,12 +450,23 @@ M_list_str_t *M_net_iface_ips_get_names(M_net_iface_ips_t *ips, int flags)
 		if (entry->flags & M_NET_IFACE_IPS_FLAG_LOOPBACK && !(flags & M_NET_IFACE_IPS_FLAG_LOOPBACK))
 			continue;
 
-		/* User isn't enumerating ipv4 */
-		if (entry->flags & M_NET_IFACE_IPS_FLAG_IPV4 && !(flags & M_NET_IFACE_IPS_FLAG_IPV4))
-			continue;
+		/* User is restricting based on ipv4/ipv6 */
+		if (flags & (M_NET_IFACE_IPS_FLAG_IPV4|M_NET_IFACE_IPS_FLAG_IPV6)) {
+			/* Interface doesn't support either ipv4 or ipv6 */
+			if (!(entry->flags & (M_NET_IFACE_IPS_FLAG_IPV4|M_NET_IFACE_IPS_FLAG_IPV6)))
+				continue;
 
-		/* User isn't enumerating ipv6 */
-		if (entry->flags & M_NET_IFACE_IPS_FLAG_IPV6 && !(flags & M_NET_IFACE_IPS_FLAG_IPV6))
+			/* User isn't enumerating ipv4 */
+			if (entry->flags & M_NET_IFACE_IPS_FLAG_IPV4 && !(flags & M_NET_IFACE_IPS_FLAG_IPV4))
+				continue;
+
+			/* User isn't enumerating ipv6 */
+			if (entry->flags & M_NET_IFACE_IPS_FLAG_IPV6 && !(flags & M_NET_IFACE_IPS_FLAG_IPV6))
+				continue;
+		}
+
+		/* IP address does not match */
+		if (!M_str_isempty(ipaddr_sanitized) && !M_str_caseeq(entry->addr, ipaddr_sanitized))
 			continue;
 
 		/* Match! */
@@ -444,6 +477,8 @@ M_list_str_t *M_net_iface_ips_get_names(M_net_iface_ips_t *ips, int flags)
 		M_list_str_destroy(list);
 		list = NULL;
 	}
+
+	M_free(ipaddr_sanitized);
 	return list;
 }
 

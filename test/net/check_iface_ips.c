@@ -9,8 +9,9 @@
 
 START_TEST(check_iface_ips)
 {
-	M_net_iface_ips_t *ips = M_net_iface_ips(M_NET_IFACE_IPS_FLAG_OFFLINE|M_NET_IFACE_IPS_FLAG_LOOPBACK);
+	M_net_iface_ips_t *ips  = M_net_iface_ips(M_NET_IFACE_IPS_FLAG_OFFLINE|M_NET_IFACE_IPS_FLAG_LOOPBACK);
 	size_t             i;
+	M_list_str_t      *strs = NULL;
 
 	ck_assert(ips != NULL);
 	ck_assert(M_net_iface_ips_count(ips) != 0);
@@ -29,6 +30,12 @@ START_TEST(check_iface_ips)
 		M_printf(", flags=%s\n", flags);
 		M_free(flags);
 	}
+
+	M_printf("\nLookup interface for 127.0.0.1...\n");
+	strs = M_net_iface_ips_get_names(ips, M_NET_IFACE_IPS_FLAG_IPV4|M_NET_IFACE_IPS_FLAG_LOOPBACK, "127.0.0.1");
+	ck_assert(strs != NULL);
+	M_printf("127.0.0.1 -> %s\n", M_list_str_at(strs, 0));
+	M_list_str_destroy(strs);
 	M_net_iface_ips_free(ips);
 }
 END_TEST

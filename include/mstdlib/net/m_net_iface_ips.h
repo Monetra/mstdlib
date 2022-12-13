@@ -117,13 +117,15 @@ M_API M_list_str_t *M_net_iface_ips_get_ips(M_net_iface_ips_t *ips, int flags, c
 /*! Retrieve a list of interfaces from the result set matching the query. 
  *  Will only return interface names and not any flags or ip addresses.
  *
- * \param[in] ips   Value returned from M_net_iface_ips()
- * \param[in] flags If either M_NET_IFACE_IPS_FLAG_IPV4 or M_NET_IFACE_IPS_FLAG_IPV6 is specified, will
- *                  exclude interfaces that don't have the specified address class.
+ * \param[in] ips    Value returned from M_net_iface_ips()
+ * \param[in] flags  If either M_NET_IFACE_IPS_FLAG_IPV4 or M_NET_IFACE_IPS_FLAG_IPV6 is specified, will
+ *                   exclude interfaces that don't have the specified address class.
+ * \param[in] ipaddr Optional. Use NULL if not wanted. Search for interface containing specified
+ *                   IP address.
  * \return list of interface names matching query, NULL on no matches.
  *         Must be free'd with M_list_str_destroy().
  */
-M_API M_list_str_t *M_net_iface_ips_get_names(M_net_iface_ips_t *ips, int flags);
+M_API M_list_str_t *M_net_iface_ips_get_names(M_net_iface_ips_t *ips, int flags, const char *ipaddr);
 
 /*! Free the ip address returned from M_net_iface_ips().
  * 
