@@ -110,7 +110,7 @@ static void M_ipentry_add(M_net_iface_ips_t *ips, const char *name, const unsign
 #ifdef _WIN32
 static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_flags_t flags)
 {
-	ULONG                 myflags   = GAA_FLAG_INCLUDE_PREFIX|GAA_FLAG_INCLUDE_ALL_INTERFACES;
+	ULONG                 myflags   = GAA_FLAG_INCLUDE_PREFIX /*|GAA_FLAG_INCLUDE_ALL_INTERFACES */;
 	ULONG                 outBufLen = 0;
 	DWORD                 retval;
 	M_bool                rv        = M_FALSE;
