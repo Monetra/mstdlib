@@ -121,7 +121,7 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 		return M_FALSE;
 
 	addresses = M_malloc_zero(outBufLen);
-	retval    = GetAdaptersAddresses(AF_UNSPEC, myflags, NULL, addresses, outBufLen);
+	retval    = GetAdaptersAddresses(AF_UNSPEC, myflags, NULL, addresses, &outBufLen);
 	if (retval != ERROR_SUCCESS)
 		goto done;
 
