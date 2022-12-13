@@ -147,12 +147,15 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 		/* Add interface itself, regardless if it has any addresses, but only if we're not restricting to only
 		 * those that do have addresses */
 		if (!(flags & (M_NET_IFACE_IPS_FLAG_IPV4|M_NET_IFACE_IPS_FLAG_IPV6))) {
-			M_ipentry_add(ips, address->FriendlyName, NULL, 0, 0, addrflag);
+			char *name = M_win32_wchar_to_char(address->FriendlyName);
+			M_ipentry_add(ips, name, NULL, 0, 0, addrflag);
+			M_free(name);
 		}
 
 		for (ipaddr=address->FirstUnicastAddress; ipaddr != NULL && ipaddr->Next != NULL; ipaddr = ipaddr->Next) {
 			const void  *addr     = NULL;
 			size_t       addr_len = 0;
+			char        *name     = NULL;
 
 			/* User is restricting based on address class */
 			if (flags & (M_NET_IFACE_IPS_FLAG_IPV4|M_NET_IFACE_IPS_FLAG_IPV6)) {
@@ -173,7 +176,9 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 				addr         = &sockaddr_in6->sin6_addr;
 				addr_len     = 16;
 			}
-			M_ipentry_add(ips, address->FriendlyName, addr, addr_len, ipaddr->OnLinkPrefixLength, addrflag);
+			name = M_win32_wchar_to_char(address->FriendlyName);
+			M_ipentry_add(ips, name, addr, addr_len, ipaddr->OnLinkPrefixLength, addrflag);
+			M_free(name);
 		}
 	}
 
