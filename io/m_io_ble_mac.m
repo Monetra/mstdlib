@@ -319,11 +319,13 @@ M_io_error_t M_io_ble_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 		case M_IO_BLE_RTYPE_RSSI:
 			/* Get the RSSI. */
 			M_hash_multi_u64_insert_int(mdata, M_IO_BLE_META_KEY_RSSI, rdata->d.rssi.val);
+			*read_len = 0;
 			M_llist_remove_node(node);
 			break;
 		case M_IO_BLE_RTYPE_NOTIFY:
 			M_hash_multi_u64_insert_str(mdata, M_IO_BLE_META_KEY_SERVICE_UUID, rdata->d.notify.service_uuid);
 			M_hash_multi_u64_insert_str(mdata, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, rdata->d.notify.characteristic_uuid);
+			*read_len = 0;
 			M_llist_remove_node(node);
 			break;
 	}
