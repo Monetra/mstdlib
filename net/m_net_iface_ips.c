@@ -29,6 +29,7 @@
 
 #ifdef _WIN32
 #  include <winsock2.h>
+#  include <ws2tcpip.h>
 #  include <iphlpapi.h>
 #else
 #  include <sys/types.h>
@@ -108,19 +109,19 @@ static void M_ipentry_add(M_net_iface_ips_t *ips, const char *name, const unsign
 #ifdef _WIN32
 static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_flags_t flags)
 {
-	ULONG                 flags     = GAA_FLAG_INCLUDE_PREFIX|GAA_FLAG_SKIP_FRIENDLY_NAME|GAA_FLAG_INCLUDE_ALL_INTERFACES;
+	ULONG                 myflags   = GAA_FLAG_INCLUDE_PREFIX|GAA_FLAG_SKIP_FRIENDLY_NAME|GAA_FLAG_INCLUDE_ALL_INTERFACES;
 	ULONG                 outBufLen = 0;
 	DWORD                 retval;
 	IP_ADAPTER_ADDRESSES *addresses = NULL;
 	IP_ADAPTER_ADDRESSES *address   = NULL;
 
 	/* Get necessary buffer size */
-	GetAdaptersAddresses(AF_UNSPEC, flags, NULL, NULL, &outBufLen);
+	GetAdaptersAddresses(AF_UNSPEC, myflags, NULL, NULL, &outBufLen);
 	if (outBufLen == 0)
 		return M_FALSE;
 
 	addresses = M_malloc_zero(outBufLen);
-	retval    = GetAdaptersAddresses(AF_UNSPEC, flags, NULL, addresses, outBufLen);
+	retval    = GetAdaptersAddresses(AF_UNSPEC, myflags, NULL, addresses, outBufLen);
 	if (retval != ERROR_SUCCESS)
 		goto done;
 
@@ -145,7 +146,7 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 		/* Add interface itself, regardless if it has any addresses, but only if we're not restricting to only
 		 * those that do have addresses */
 		if (!(flags & (M_NET_IFACE_IPS_FLAG_IPV4|M_NET_IFACE_IPS_FLAG_IPV6))) {
-			M_ipentry_add(ips, address->AdpaterName, NULL, 0, 0, addrflag);
+			M_ipentry_add(ips, address->AdapterName, NULL, 0, 0, addrflag);
 		}
 
 		for (ipaddr=address->FirstUnicastAddress; ipaddr != NULL && ipaddr->Next != NULL; ipaddr = ipaddr->Next) {
@@ -171,7 +172,7 @@ static M_bool M_net_iface_ips_enumerate(M_net_iface_ips_t *ips, M_net_iface_ips_
 				addr         = &sockaddr_in6->sin6_addr;
 				addr_len     = 16;
 			}
-			M_ipentry_add(ips, address->AdpaterName, addr, addr_len, ipaddr->OnLinkPrefixLength, addrflag);
+			M_ipentry_add(ips, address->AdapterName, addr, addr_len, ipaddr->OnLinkPrefixLength, addrflag);
 		}
 	}
 
