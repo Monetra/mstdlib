@@ -45,6 +45,7 @@ set(sources
 	# Stubs
 	m_io_ble.c
 	m_io_ble_rdata.c
+	m_io_ble_wcomplete.c
 	m_io_bluetooth.c
 	m_io_hid.c
 	m_io_serial.c

@@ -1370,6 +1370,34 @@ M_API M_io_ble_property_t M_io_ble_get_characteristic_properties(M_io_t *io, con
 M_API void M_io_ble_get_max_write_sizes(M_io_t *io, size_t *with_response, size_t *without_response);
 
 
+/*! Get the last service and characteristic uuids that generated a write event.
+ *
+ * Write with response will generate a write event when the data is written.
+ * This allows getting the last service and characteristic uuid that generated
+ * a write event in order to differentiate writes to multiple characteristics.
+ * Due to write events all being on the same event loop, calling this function
+ * in a write event will always correspond to the service and characteristic
+ * that generated the event.
+ *
+ * Once called the information will be removed so the next call will be
+ * information for the next write event. Calling multiple times or not calling
+ * in a write event can cause the event vs data from this function to become
+ * out of sync.
+ *
+ * Use of this function is optional and is not be necessary if only writing
+ * once service and one characteristic.
+ *
+ * \param[in]  io                  io object.
+ * \param[out] service_uuid        UUID of service.
+ * \param[out] characteristic_uuid UUID of characteristic.
+ *
+ * \return M_TRUE if service_uuid and characteristic_uuid was filled. M_FALSE if not filled due to error
+ *         or because there are no entries. Use M_TRUE to determine if service_uuid and characteristic_uuid
+ *         response parameters should be freed.
+ */
+M_API M_bool M_io_ble_get_last_write_characteristic(M_io_t *io, char **service_uuid, char **characteristic_uuid);
+
+
 /*! Get the service associated with a meta object.
  *
  * \param[in] io   io object.

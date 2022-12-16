@@ -968,7 +968,7 @@ M_io_error_t M_io_ble_device_req_rssi(const char *uuid)
 	return M_IO_ERROR_SUCCESS;
 }
 
-void M_io_ble_device_write_complete(const char *uuid)
+void M_io_ble_device_write_complete(const char *uuid, const char *service_uuid, const char *characteristic_uuid)
 {
 	M_io_ble_device_t *dev;
 	M_io_layer_t      *layer;
@@ -989,6 +989,7 @@ void M_io_ble_device_write_complete(const char *uuid)
 	/* Inform the io object that we can write again. */
 	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 	dev->handle->can_write = M_TRUE;
+	M_io_ble_wcomplete_queue_push(dev->handle->wcomplete_queue, service_uuid, characteristic_uuid);
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
 	M_io_layer_release(layer);
 

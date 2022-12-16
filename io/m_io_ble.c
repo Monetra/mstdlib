@@ -273,6 +273,29 @@ void M_io_ble_get_max_write_sizes(M_io_t *io, size_t *with_response, size_t *wit
 	}
 }
 
+M_bool M_io_ble_get_last_write_characteristic(M_io_t *io, char **service_uuid, char **characteristic_uuid)
+{
+	M_io_layer_t  *layer;
+	M_io_handle_t *handle = NULL;
+	size_t         len;
+	size_t         i;
+	M_bool         ret    = M_FALSE;
+
+	len = M_io_layer_count(io);
+	for (i=len; i-->0; ) {
+		layer = M_io_layer_acquire(io, i, M_IO_BLE_NAME);
+		if (layer != NULL) {
+			handle = M_io_layer_get_handle(layer);
+			if (handle != NULL) {
+				ret = M_io_ble_wcomplete_queue_pop(handle->wcomplete_queue, service_uuid, characteristic_uuid);
+			}
+			M_io_layer_release(layer);
+			break;
+		}
+	}
+	return ret;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_io_error_t M_io_ble_create(M_io_t **io_out, const char *identifier, M_uint64 timeout_ms)

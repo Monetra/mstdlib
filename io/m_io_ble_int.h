@@ -24,6 +24,7 @@
 #ifndef __M_IO_BLE_INT_H__
 #define __M_IO_BLE_INT_H__
 
+#include <mstdlib/mstdlib.h>
 #include <mstdlib/io/m_io_layer.h>
 #include "m_io_meta.h"
 
@@ -68,11 +69,17 @@ typedef struct {
 	} d;
 } M_io_ble_rdata_t;
 
+typedef struct {
+	char service_uuid[256];
+	char characteristic_uuid[256];
+} M_io_ble_wcomplete_t;
+
 struct M_io_handle {
 	M_io_t           *io;                /*!< io object handle is associated with. */
 	char              uuid[256];         /*!< UUID of device in use. */
 	char              service_uuid[256]; /*!< UUID of service used for connecting using service. */
 	M_llist_t        *read_queue;        /*!< List of M_io_ble_rdata_t objects with data that has been read. */
+	M_list_t         *wcomplete_queue;   /*!< List of M_io_ble_wcomplete_t object with write event identifiers. */
 	M_event_timer_t  *timer;             /*!< Timer to handle connection timeouts */
 	M_event_timer_t  *initalized_timer;  /*!< Timer to retry connecting when waiting for initialization*/
 	M_uint64          timeout_ms;        /*!< Timeout for connecting. */
@@ -99,6 +106,11 @@ M_bool M_io_ble_rdata_queue_add_read(M_llist_t *queue, const char *service_uuid,
 M_bool M_io_ble_rdata_queue_add_rssi(M_llist_t *queue, M_int64 rssi);
 M_bool M_io_ble_rdata_queue_add_notify(M_llist_t *queue, const char *service_uuid, const char *characteristic_uuid);
 
+void M_io_ble_wcomplete_destroy(M_io_ble_wcomplete_t *wc);
+void *M_io_ble_wcomplete_duplicate(M_io_ble_wcomplete_t *wc);
+int M_io_ble_wcomplete_compar(const void *arg1, const void *arg2, void *thunk);
+M_bool M_io_ble_wcomplete_queue_push(M_list_t *write_resp_uuids, const char *service_uuid, const char *characteristic_uuid);
+M_bool M_io_ble_wcomplete_queue_pop(M_list_t *write_resp_uuids, char **service_uuid, char **characteristic_uuid);
 
 /* Used by ble.c but not in the file. */
 
