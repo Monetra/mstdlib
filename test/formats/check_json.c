@@ -200,6 +200,8 @@ static struct {
 	{ "[ \"ꯍ\" ]",              "[\"\\uABCD\"]",                  M_JSON_WRITER_NONE                                                   },
 	{ "[ \"ꈽ\" ]",             "[\"\\uA23D\"]",                  M_JSON_WRITER_NONE                                                   },
 	{ "[ \"ꈽ\" ]",             "[\"ꈽ\"]",                       M_JSON_WRITER_DONT_ENCODE_UNICODE                                    },
+	{ "[ \"DÂ€™S K\" ]",        "[\"D\\u00C2\\u20AC\\u2122S K\"]",M_JSON_WRITER_NONE                                                   },
+	{ "[ \"DÂ€™S K\" ]",        "[\"DÂ€™S K\"]",                  M_JSON_WRITER_DONT_ENCODE_UNICODE                                    },
 	{ NULL, NULL, M_JSON_WRITER_NONE    }
 };
 
