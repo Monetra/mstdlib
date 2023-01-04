@@ -202,6 +202,12 @@ static struct {
 	{ "[ \"ꈽ\" ]",             "[\"ꈽ\"]",                       M_JSON_WRITER_DONT_ENCODE_UNICODE                                    },
 	{ "[ \"DÂ€™S K\" ]",        "[\"D\\u00C2\\u20AC\\u2122S K\"]",M_JSON_WRITER_NONE                                                   },
 	{ "[ \"DÂ€™S K\" ]",        "[\"DÂ€™S K\"]",                  M_JSON_WRITER_DONT_ENCODE_UNICODE                                    },
+	/* C escapes for unicode characters. */
+	{ "[\"D\u00C2\u20AC\u2122S K\"]", "[\"D\\u00C2\\u20AC\\u2122S K\"]", M_JSON_WRITER_NONE                                            },
+	{ "[\"D\u00C2\u20AC\u2122S K\"]", "[\"DÂ€™S K\"]",            M_JSON_WRITER_DONT_ENCODE_UNICODE                                    },
+	/* JSON json encoded unicode to encoded vs not encoded. */
+	{ "[\"D\\u00C2\\u20AC\\u2122S K\"]", "[\"D\\u00C2\\u20AC\\u2122S K\"]", M_JSON_WRITER_NONE                                            },
+	{ "[\"D\\u00C2\\u20AC\\u2122S K\"]", "[\"DÂ€™S K\"]",            M_JSON_WRITER_DONT_ENCODE_UNICODE                                    },
 	{ NULL, NULL, M_JSON_WRITER_NONE    }
 };
 
