@@ -435,9 +435,17 @@ M_API M_uint64 M_time_elapsed(const M_timeval_t *start_tv) M_WARN_NONNULL(1);
  *
  * Offsets:
  *
- * - Support 'now', 'epoch', 'yesterday', 'today' (same as 'now'), 'tomorrow', '+/-N magnitude', where magnitude is:
- *   - year, month, day, hour, min, sec
- *   - where long names and plural are supported
+ * - Support:
+ *   - 'now'
+ *   - 'epoch'
+ *   - 'yesterday' (at same time as current day)
+ *   - 'today' (same as 'now'),
+ *   - 'tomorrow' (at same time as current day),
+ *   - 'BOD' (beginning of current day)
+ *   - 'EOD' (end of current day)
+ *   - +/-N magnitude', where magnitude is:
+ *     - year, month, day, hour, min, sec
+ *     - where long names and plural are supported
  *
  * Ex: +6 Months  or -7 hours
  *
