@@ -315,7 +315,7 @@ size_t M_json_object_num_children(const M_json_node_t *node)
 
 M_bool M_json_object_insert(M_json_node_t *node, const char *key, M_json_node_t *value)
 {
-	if (node == NULL || node->type != M_JSON_TYPE_OBJECT || value->parent != NULL)
+	if (node == NULL || node->type != M_JSON_TYPE_OBJECT || value == NULL || value->parent != NULL)
 		return M_FALSE;
 
 	if (M_hash_strvp_insert(node->data.json_object, key, (void *)value)) {
@@ -439,7 +439,7 @@ M_bool M_json_array_at_bool(const M_json_node_t *node, size_t idx)
 
 M_bool M_json_array_insert(M_json_node_t *node, M_json_node_t *value)
 {
-	if (node == NULL || node->type != M_JSON_TYPE_ARRAY || value->parent != NULL)
+	if (node == NULL || node->type != M_JSON_TYPE_ARRAY || value == NULL || value->parent != NULL)
 		return M_FALSE;
 
 	if (M_list_insert(node->data.json_array, value)) {
@@ -523,7 +523,7 @@ M_bool M_json_array_insert_bool(M_json_node_t *node, M_bool value)
 
 M_bool M_json_array_insert_at(M_json_node_t *node, M_json_node_t *value, size_t idx)
 {
-	if (node == NULL || node->type != M_JSON_TYPE_ARRAY)
+	if (node == NULL || node->type != M_JSON_TYPE_ARRAY || value == NULL || value->parent != NULL)
 		return M_FALSE;
 
 	if (M_list_insert_at(node->data.json_array, value, idx)) {

@@ -107,6 +107,12 @@ char *M_table_write_json(const M_table_t *table, M_uint32 flags)
 	size_t         i;
 	size_t         j;
 
+	if (table == NULL)
+		return NULL;
+
+	if (M_table_row_count(table) == 0)
+		return M_strdup("[]");
+
 	/* Validate all columns are named. */
 	numcols = M_table_column_count(table);
 	for (i=0; i<numcols; i++) {
