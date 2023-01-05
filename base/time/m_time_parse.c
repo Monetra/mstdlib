@@ -55,6 +55,20 @@ static int M_time_parseoffset(const char *timestr, const M_time_tz_t *tz, M_time
 	} else if (M_str_caseeq(timestr, "epoch")) {
 		*out_time = 0;
 		return 1;
+	} else if (M_str_caseeq(timestr, "BOD") || M_str_caseeq(timestr, "EOD")) { /* Beginning of day / End of Day */
+		M_time_tolocal(t, &ltime, tz);
+		M_mem_set(&result, 0, sizeof(result));
+		result.isdst = -1;
+		result.year  = ltime.year;
+		result.month = ltime.month;
+		result.day   = ltime.day;
+		if (M_str_caseeq(timestr, "EOD")) {
+			result.hour = 23;
+			result.min  = 59;
+			result.sec  = 59;
+		}
+		*out_time    = M_time_fromlocal(&result, tz);
+		return 1;
 	} else if (M_str_caseeq(timestr, "yesterday")) {
 		timestr = "-1 day";
 	} else if (M_str_caseeq(timestr, "tomorrow")) {
