@@ -97,9 +97,13 @@ else ()
 	endif ()
 endif ()
 
-# JNI
 if (ANDROID)
 	list(APPEND sources m_io_jni.c)
+
+	# Replacement for getifaddrs() for Android API < 24
+	if (CMAKE_SYSTEM_VERSION LESS 24)
+		list(APPEND sources net/android_ifaddrs/ifaddrs.c)
+	fi
 endif ()
 
 # Bluetooth LE

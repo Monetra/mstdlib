@@ -36,7 +36,11 @@
 #  include <sys/types.h>
 #  include <sys/socket.h>
 #  include <net/if.h>
-#  include <ifaddrs.h>
+#  if defined(__ANDROID_API__) && __ANDROID_API__ < 24
+#    include "android_ifaddrs/ifaddrs.h"
+#  else
+#    include <ifaddrs.h>
+#  endif
 #  include <sys/ioctl.h>
 #  include <netinet/in.h>
 #endif
@@ -491,7 +495,7 @@ void M_io_net_iface_ips_free(M_io_net_iface_ips_t *ips)
 }
 
 static const M_bitlist_t ifaceflags[] = {
-  { M_NET_IFACE_IPS_FLAG_OFFLINE, "OFFLINE"   },
+  { M_NET_IFACE_IPS_FLAG_OFFLINE,  "OFFLINE"  },
   { M_NET_IFACE_IPS_FLAG_LOOPBACK, "LOOPBACK" },
   { M_NET_IFACE_IPS_FLAG_IPV4,     "IPV4"     },
   { M_NET_IFACE_IPS_FLAG_IPV6,     "IPV6"     },
