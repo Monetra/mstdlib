@@ -103,7 +103,7 @@ if (ANDROID)
 	# Replacement for getifaddrs() for Android API < 24
 	if (CMAKE_SYSTEM_VERSION LESS 24)
 		list(APPEND sources net/android_ifaddrs/ifaddrs.c)
-	fi
+	endif ()
 endif ()
 
 # Bluetooth LE
