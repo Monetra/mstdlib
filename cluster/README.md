@@ -10,6 +10,18 @@ Though this implementation doesn't strictly conform to the above, it attempts
 to in spirit along with some real world modifications to better handle
 potentially hostile environments.
 
+A few modifications include:
+  1. All nodes send heartbeats to eachother that are tracked independently and
+     are not based on current traffic loads.  These also do not generate NoOp
+     Log entries like RAFT.
+  2. Timers are self-adjusting to current network conditions which can better
+     handle route changes across geographic areas.
+  3. Authentication and Transport are strictly defined.
+  4. Cluster Initialization and Cluster Verification are defined.
+  5. Define learning of new cluster members as well as graceful shutdown of
+     cluster members, including leaders.
+
+
 # Overview
 
 The cluster system relies on a single elected Leader in order to make
@@ -41,12 +53,16 @@ all data from the cluster as long as it can reach the Leader.
 # Plug-in Callback System
 
 The plugin system is used to interpret the Log messages that get replicated
-across the cluster.  This may best be described using an example.
+across the cluster.  It is up to the plugin to define the function and form
+of each log message, and also to apply it to its backend with whatever
+representation that may be.
+
+This may best be described using an example.
 
 A common implementation of a plugin might consist of common actions such as:
 
    ReadKey, InsertKey, InsertOrReplaceKey, CompareAndSetKey, IncrementKey,
-   DecrementKey.
+   DecrementKey, and NoOp.
 
 Some of the above list of actions may have validators associated with them
 which can fail (For instance, CompareAndSet may fail if the required value
@@ -67,16 +83,20 @@ guarantees (which may be invalidated if the current Leader isn't really the
 Leader any more). Similarly, log entires like InsertKey, CompareAndSetKey,
 IncrementKey, and DecrementKey might all be rewritten to a simplified
 InsertOrReplaceKey as an optimization to prevent the Follower nodes from needing
-to do additional work.
+to do additional work that the Leader has already performed.
 
 If the validation step of the plugin fails for Follower receiving the replicated
-log, the node will immediately go into an Error state and notify all connected
-peers. This most likely means the node is corrupt.
+log, the Follower node will immediately go into an Error state and notify all
+connected peers. This most likely means the node is corrupt and will need to
+reinitialize its state from scratch.
 
 In addition to the above log insertion/interpretation, the plug-in system must
 also support serialization and deserialization of the data (regardless if
-stored on disk or in memory) for bringing new nodes online.  For large datasets
-it is strongly recommended to implement chunking of the data.
+stored on disk or in memory) for bringing new nodes online.  Only so many log
+entries may be maintained for incremental state restoration, so it may be
+necessary to do a bulk sync (especially if we're talking multiple-GB of data).
+For large datasets it is strongly recommended to implement chunking of the data
+within the plugin dataset.
 
 An optional callback can also be called to rollback log entries.  Most
 implementations probably won't have this ability.  This would only be called
