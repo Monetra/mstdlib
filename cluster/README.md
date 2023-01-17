@@ -344,6 +344,12 @@ is in the CountKnownPeers but not CountJoinedPeers.
 #### CA - CountActivePeers - Int16
 Number of nodes actively responding (not in an error or disconnected state)
 
+#### CT - CurrentTerm - Int64
+Current term.  Used when requesting votes to elect a new leader, the current
+term will be incremented and votes will be collected.  This is always greater
+than the known latest LogTerm on all nodes in the cluster (assuming all nodes
+are in sync).
+
 #### ST - NodeState - Int8
 State of the node:
  - 0x01: INIT
@@ -428,13 +434,7 @@ Required Request Tags: `RT`, `NT`
 
 Optional Request Tags: `LT`, `LI`
 
-Required Response Tags: `RT`,`LT`,`LI`,`AL`,`NL`
-
-Optional Response Tags: `SP`
-
-SerializedPluginData is only sent in the response if the joining node did not
-LogTerm or LogID and the NodeType is Member.  This data is used to bring the
-node into sync.
+Required Response Tags: `RT`,`RC`,`LT`,`LI`,`AL`,`NL`
 
 Can return one of these codes:
 - `OK`
@@ -461,9 +461,8 @@ Can return one of these codes:
 - If LogID < oldest log, return `INSUFFICIENT_LOGS`
 - If Log[LogID].Term != Term, return `OUT_OF_SYNC`
 - If LogTerm and LogID can be played from current log entries, this is `OK`
-- If LogTerm and LogID are 0, then serialize data and send (possibly chunked),
-  use `MORE_DATA` return code if chunked, except on last block which will return
-  `OK`.
+- If LogTerm and LogID are not specified, this is also OK, the node will request
+  SyncPluginData.
 - If returning `OK`, send AppendEntries with AddNode to the other nodes and wait
   for quorum before sending response to client (if we don't get quorum then we
   must no longer be the leader and will return `NOT_LEADER`).
@@ -471,6 +470,23 @@ Can return one of these codes:
   AppendEntries, otherwise send **all** logs and node will store those logs for
   future syncing (not used for applying as SerializedPluginData did this).
 
+
+### SyncPluginData
+SerializedPluginData is only sent in the response. This data is used to bring
+the node into sync.  The node will cache any AppendEntries logs received until
+the plugin data is synced.
+
+Required Request Tags: `RT`
+
+Optional Request Tags: `SM`
+
+Required Response Tags: `RT`, `RC`, `SM`, `SP`
+
+Can return one of these codes:
+- `OK`
+- `MORE_DATA`
+- `BAD_REQUEST`
+- `NOT_LEADER`
 
 ### HeartBeat
 
@@ -482,7 +498,7 @@ in order to measure latency. Any node in the state of `Leader`, `Follower`,
 
 Required Request Tags: `RT`
 
-Required Response Tags: `RT`,`CP`,`CJ`,`CA`,`ST`
+Required Response Tags: `RT`,`RC`,`CP`,`CJ`,`CA`,`ST`
 
 Can return one of these codes:
 - `OK`
@@ -509,17 +525,11 @@ This request will be sent to all members of the cluster that are in `Leader` or
 as well).  Record self as `VotedFor` in state before sending and increment
 the internally tracked current Term.
 
-RequestType: `0x05`
-Response: `0x85`
+Required Request Tags: `RT`, `CT`, `LT`, `LI`
 
-#### Request Format
-`[currentTerm 8B][LogTerm 8B][LogID 8B]`
-- currentTerm: Current term requesting votes for
-- LogTerm: Last Committed term number as known to node
-- LogID: Current LogID as known to node
+Required Response Tags: `RT`, `RC`
 
-#### Response Format
-No Payload. Can return one of these codes:
+Can return one of these codes:
 - `OK`
 - `TOO_OLD`
 - `ALREADY_VOTED`
@@ -529,20 +539,20 @@ No Payload. Can return one of these codes:
 - On `OK`, increment the positive vote counter, others increment negative
   vote counter.
 - If the positive vote counter reaches quorum, transition to `LEADER`, append a
-  NoOp log entry with the current Term which will notify all other nodes
-  of the new leadership.
+  NoOp log entry with the CurrentTerm as the LogTerm which will notify all other
+  nodes of the new leadership.
 - If the negative vote counter reaches quorum, wait for next election or
   notification of another node winning.
 
 ##### Responder Validations/Procedure
 - if `LogTerm` is less than our recorded log term, or `LogID` is less than
-  our recorded log id, return `TOO_OLD`
-- if packet currentTerm is less than our Node's current term, return
+  our recorded log id, or the received `CurrentTerm` is less than or equal
+  to our `LogTerm` return `TOO_OLD`
+- if packet currentTerm is less than our Node's currentTerm, return
   `ALREADY_VOTED`
 - Otherwise set our currentTerm to the one received and return `OK`, but do
   NOT set a new leader, wait for an `AppendEntries` with >= currentTerm to
   set the new leader.
-
 
 ### Finish
 
@@ -550,14 +560,12 @@ This request will be sent from a node performing a graceful shutdown to the
 Leader to detach from the cluster.  The effect of detaching from the cluster
 will reduce the total number of nodes participating in Quorum.
 
-RequestType: `0x06`
-Response: `0x86`
+Only nodes that are `Leader`, `Follower`, or `Voter` may
 
-#### Request Format
-There is no request format.
+Required Request Tags: `RT`
 
-#### Response Format
-There is no response format.
+Required Response Tags: `RT`, `RC`
+
 Can return one of these codes:
 - `OK`
 - `NOT_LEADER`
@@ -570,8 +578,8 @@ Can return one of these codes:
 
 ##### Responder Validations/Procedure
 - If not leader, return `NOT_LEADER`
-- Send `AppendEntries` with `RemoveNode` to all `Followers`, wait on Quorum,
-  then return `OK`.  If `Quorum` not acheived, return `NOT_LEADER`
+- Send `AppendEntries` with `RemoveNode` to all `Followers` and `Voters`, wait
+  on Quorum, then return `OK`.  If `Quorum` not acheived, return `NOT_LEADER`
 
 
 ### AppendEntries
