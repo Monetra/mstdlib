@@ -260,22 +260,22 @@ All Request Types sent to a remote node will insert a latency entry upon
 the received response.
 
 
-### Tags
+## Message Tags
 
-#### RT - Request Type - Int16
+### RT - Request Type - Int16
 Required on **all** requests *and* responses.
 
 Specific request types:
-- 0x0001: AuthNonce
-- 0x0002: Authenticate
+- 0x0001: Authenticate
+- 0x0002: Heartbeat
 - 0x0003: Join
-- 0x0004: Heartbeat
-- 0x0005: RequestVote
-- 0x0006: Finish
-- 0x0007: AppendEntries
+- 0x0004: RequestVote
+- 0x0005: Finish
+- 0x0006: AppendEntries
+- 0x0007: SyncPluginData
 - 0x0100: ClientRequest
 
-#### RC - Response Code - Int16
+### RC - Response Code - Int16
 Required on all responses.
 
 Possible response codes:
@@ -300,27 +300,27 @@ Possible response codes:
 - `CANT_APPLY` (0x0C): Log cannot be applied due to validation failure.  This
   is a critical Follower error.
 
-#### CN - ClusterName - AN
+### CN - ClusterName - AN
 Name of the cluster.  Used as a sanity check to ensure the cluster being
 connected to matches the current known cluster.
 
-#### NI - Node ID - IPv4/IPv6 Address plus Port
+### NI - Node ID - IPv4/IPv6 Address plus Port
 What node identifies itself as.  Either an IPv4 address or IPv6 with port in
 string form. E.g. `192.168.1.1:5555` or `[2620:2A::35]:5555`
 
-#### NO - Nonce - B
+### NO - Nonce - B
 Random 32byte (256bit) value used for HMAC authentication
 
-#### CI - Cluster ID - Int64
+### CI - Cluster ID - Int64
 Unique 64bit (Big Endian) cluster id that is randomly generated when the cluster
 is first initialized to ensure any nodes attempting to rejoin that may have been
 detached are joining the same cluster.
 
-#### AU - HmacAuthentication - B
+### AU - HmacAuthentication - B
 HMAC Auth: The HMAC-SHA256 result when using the received `Nonce` as the data
 and the System Configured `SharedSecret` as the key.
 
-#### LM - LatencyMs - Int16
+### LM - LatencyMs - Int16
 Cluster Latency in milliseconds as known by peer.  If a Leader or Follower in
 an existing cluster, this is the cluster-wide known value as determined by the
 current leader.  Otherwise this is a best effort guess by the peer based on
@@ -329,51 +329,51 @@ heartbeats.
 
 This value is also used to calculate fault and election timers.
 
-#### LA - LeaderAddress - IPv4/IPv6 Address plus Port
+### LA - LeaderAddress - IPv4/IPv6 Address plus Port
 String representing leader ip address, same form as NodeID.  Only peers that are
 in the `LEADER`, `FOLLOWER`, or `VOTER` state may respond with this.
 
-#### NT - NodeType - Int8
+### NT - NodeType - Int8
 Configured Node Type
 
 Possible Values:
  - 0x01: Member - full cluster member
  - 0x02: Voter - voter-only (quorum participant, but does not receive logs)
 
-#### LT - LogTerm - Int64
+### LT - LogTerm - Int64
 Last committed term that exists on this node. This is **not** the Node's
 currentTerm counter which may be different.
 
-#### LI - LogID - Int64
+### LI - LogID - Int64
 Last committed log id that exists on the node.
 
-#### NL - NodeList - List of IPv4/IPv6 Address plus Port member list
+### NL - NodeList - List of IPv4/IPv6 Address plus Port member list
 Comma delimited list of nodes known to the server that are articipating in
 quorum. Each node is in NodeID format.
 
-#### SP - SerializedPluginData - Binary
+### SP - SerializedPluginData - Binary
 Plugin-specific serialized plugin data.  May be complete serialized data or
 partial depending on implementation.  If partial, additional follow-up requests
 will be made to complete sync.
 
-#### CP - CountKnownPeers - Int16
+### CP - CountKnownPeers - Int16
 Total number of known nodes that could participate in the cluster.
 
-#### CJ - CountJoinedPeers - Int16
+### CJ - CountJoinedPeers - Int16
 Total number of nodes that are supposed to be participating in the cluster for
 quorum (but may not be due to faults).  A node that has gracefully disconnected
 is in the CountKnownPeers but not CountJoinedPeers.
 
-#### CA - CountActivePeers - Int16
+### CA - CountActivePeers - Int16
 Number of nodes actively responding (not in an error or disconnected state)
 
-#### CT - CurrentTerm - Int64
+### CT - CurrentTerm - Int64
 Current term.  Used when requesting votes to elect a new leader, the current
 term will be incremented and votes will be collected.  This is always greater
 than the known latest LogTerm on all nodes in the cluster (assuming all nodes
 are in sync).
 
-#### ST - NodeState - Int8
+### ST - NodeState - Int8
 State of the node:
  - 0x01: INIT
  - 0x02: CONN
@@ -385,7 +385,7 @@ State of the node:
  - 0x08: VOTER
  - 0x09: FINISH
 
-## Message Descriptions
+## Request Type Descriptions
 
 ### Authenticate
 
@@ -470,14 +470,14 @@ Can return one of these codes:
 
 ### SyncPluginData
 SerializedPluginData is only sent in the response. This data is used to bring
-the node into sync.  The node will cache any AppendEntries logs received until
-the plugin data is synced.
+the node into sync up to the LogTerm and LogID at the time the sync was started.
+This may be chunked, meaning the client must re-send the same request until
+the result is no longer `MORE_DATA`.  After all plugin data is synced, the
+server will send AppendEntries for any data processed
 
 Required Request Tags: `RT`
 
-Optional Request Tags: `SM`
-
-Required Response Tags: `RT`, `RC`, `SM`, `SP`
+Required Response Tags: `RT`, `RC`, `LT`, `LI`, `SP`
 
 Can return one of these codes:
 - `OK`
@@ -584,27 +584,23 @@ Can return one of these codes:
 
 Append a log entry to all follower nodes.  Only performed by the Leader.
 
-RequestType: `0x07`
-Response: `0x87`
+Required Request Tags: `RT`, `LT`, `LI`, `SP`
+
+Required Response Tags: `RT`, `RC`
+
+Can return one of these codes:
+- `OK`
+- `ONLY_FROM_LEADER`
+- `BAD_REQUEST`
+- `CANT_APPLY`
 
 #### Request Format
-`[Cnt 4B]...[LogTerm 8B][LogID 8B][Type 2B][Len 4B][Data]...` (repeats for each entry)
-- Cnt: Number of log entries to apply
-- LogTerm: Term of log entry
-- LogID: ID of log entry
 - Type: `Log` (0x01), `AddNode` (0x02), `RemoveNode` (0x03), `NewTerm` (0x04)
 - Data:
   - `Log`: payload data for plugin (possibly empty indicating NoOp)
   - `AddNode`:  NodeID format of node being added
   - `RemoveNode`: NodeID format of node being removed
   - `NewTerm`: AvgLatencyMs as 64bit Integer
-
-#### Response Format
-
-No response. Can return one of these codes:
-- `OK`
-- `ONLY_FROM_LEADER`
-- `CANT_APPLY`
 
 ##### Requestor Validations/Procedure
 - Triggered based on a new node coming online, an old node gracefully
