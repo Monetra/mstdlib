@@ -122,22 +122,41 @@ it in its entirety from the new leader.
                          If not provided, will choose a non-localhost and
                          non-link-local ip address at random.
 
-# Node State
+# Node States
 
-- State         - enum:
-  - INIT:     Initializing - may not be connected to any nodes, this is the
-              initial state.  When tracking servers, this state does not count
-              toward quorum (and obviously won't receive logs).
-  - JOIN:     Node is trying to join the cluster.  When tracking servers, this
-              state does not count toward quorum and does not receive logs.
-  - FOLLOWER: Not the primary node, just receiving logs from leader to apply and
-              can participate in voting.
-  - LEADER:   Primary Node.  Responsible for processing all requests.
-  - VOTER:    Does not receive logs, only participates in voting (arbitration
-              mode)
-  - ERROR:    Node is in an error state (e.g. maximum latency, non-leader
-              sending log entries), evicted from cluster.  Still counts toward
-              quorum as it is expected to reconnect and re-sync.
+Enumeration of possible node states.
+
+- INIT:     Initializing - Not be connected to any nodes, and not attempting
+            to connect. This is the initial state.  Counts towards quorum if
+            isError. Next state is CONN or JOIN (depending on initiator).
+- CONN:     Attempting to connect at the OS level, but not yet established.
+            Counts towards quorum if isError.  Next state is JOIN.  Failure
+            state is INIT.
+- AUTH1:    Sent Authenticate, but have not received equivalent from remote.
+            Next state is AUTH2 once authentication request from remote has
+            been received.
+- AUTH2:    Received Authenticate, but have not yet received response from our
+            own authentication request. Next state is JOIN once authentication
+            response is received.
+- JOIN:     Node is trying to join the cluster.  Counts towards quorum if
+            isError.  Next state is FOLLOWER or VOTER.
+- FOLLOWER: Not the primary node, just receiving logs from leader to apply and
+            can participate in voting. Can transition to LEADER on election.
+- LEADER:   Primary Node.  Responsible for processing all requests.
+- VOTER:    Does not receive logs, only participates in voting (arbitration
+            mode).
+- FINISH:   Node requested graceful disconnect.  Does not count toward quorum.
+            Differentiated from INIT in the fact that we expect the node to
+            initiate the connection to us and we will never initiate the
+            connection.  Next state is JOIN.
+
+# Node Variables
+
+- State         - enum - One of the Node States
+- isError       - bool - Only applicable to INIT, CONN, and JOIN states.  If the
+                         node was evicted or unexpectedly disconnected, this
+                         flag is set to true until it successfully rejoins the
+                         cluster.
 - currentTerm   - u64  - Current node term, 0 if not set.  This may be
                          greater than the newest Log entry's term during
                          elections.
@@ -147,7 +166,9 @@ it in its entirety from the new leader.
                          when to skip applying logs.
 - Log[]         - list - Committed Log Entries containing Term, LogID, and
                          Payload.  Stored only in memory currently.
-- AvgLatencyMs  - u64  - The average latency in ms for the cluster
+- LatencyMs     - u16  - The currrent max latency in ms for the cluster.
+                         Learned from leader node, if no leader, calculated
+                         based on connected nodes.
 - ClusterID     - u64  - Unique cluster state id when a new cluster is brought
                          online.  This prevents 2 detached clusters using the
                          same nodes and configuration from trying to merge.
@@ -156,11 +177,14 @@ it in its entirety from the new leader.
                          on.
 - VotedFor      - ptr   - Points to the node voted in the current term if any
 - ElectionTimer - timer - Timer to try start a new election.  Reset if node
-                          receives a RequestVote
+                          receives a RequestVote or a HeartBeat from the current
+                          Leader.
 - Flags         - bits  - Flags about the connection, for instance we need
                           `AUTHENTICATED_PEER`, and `AUTHENTICATED_SELF` to make
                           sure a node is allowed to transition to join.
-
+- NodeConnTimer - timer - Timer that triggers on a random interval (1-3s) to
+                          scan connections of known nodes to see if new
+                          connections need to be spawned.
 
 ## Nodes List
 
@@ -168,8 +192,7 @@ The list of servers maintained in the node state contains these data elements:
 
 - Ip Address     - text  - Ip address of peer
 - Port           - u16   - Peer Port
-- State          - enum  - Any of the same states as our own Node State, but
-                           specific to the peer.
+- State          - enum  - One of the Node States.
 - ConnectTimer   - et    - Elapsed Time since connect. Monotonic tracking of how
                            long this node has been connected.
 - LastMsgTimer   - et    - Elapsed Time since last message. Monotonic tracking
@@ -190,7 +213,7 @@ The list of servers maintained in the node state contains these data elements:
 - ConnectedPeers - u16   - Known number of connected peers that are in a leader,
                            follower, or voter state.
 - HeartbeatTimer - timer - Timer to send heartbeat messages which fire off every
-                           4x AvgLatencyMs (or 20ms, whichever is greater) in
+                           4x LatencyMs (or 20ms, whichever is greater) in
                            node state Leader, Follower, Join, or Voter.
 - Nonce          - bin32 - Nonce value sent to peer, used during authentication
                            with remote
@@ -199,14 +222,14 @@ The list of servers maintained in the node state contains these data elements:
 ## Calculated Node Variables
 
 - NodeLatencyMs -     LatencyTotal / LatencyCnt
-- AvgLatencyMs -      Received during Vote for leader from proposed leader.  If
+- LatencyMs -         Received during Vote for leader from proposed leader.  If
                       proposing, perform MAX(Servers[n].Latency) and use
-                      that value (minimum 1).
-- ElectionTimeoutMs - Base value is 10 x AvgLatencyMs with a minimum value of
-                      100ms.  An existing leader node will use this value as its
-                      election timer.  Follower nodes will use a random value of
-                      1.5x to 2x the base value.
-- FaultTimeoutMs -    25x AvgLatencyMs or Configured Maximum RTT, whichever is
+                      that value (minimum 1, max 65535).
+- ElectionTimeoutMs - Base value is 10 x LatencyMs with a minimum value of
+                      100ms.  Nodes will use a random value of 1.0x to 2x the
+                      base value.  Every reset of the timer will calculate a
+                      new value to ensure random distribution.
+- FaultTimeoutMs -    25x LatencyMs or Configured Maximum RTT, whichever is
                       less.  If a reply to a message takes longer than this, the
                       node is put into an Error state and disconnected.
 
@@ -297,8 +320,8 @@ detached are joining the same cluster.
 HMAC Auth: The HMAC-SHA256 result when using the received `Nonce` as the data
 and the System Configured `SharedSecret` as the key.
 
-#### AL - AverageLatencyMs - Int64
-Average Latency in milliseconds as known by peer.  If a Leader or Follower in
+#### LM - LatencyMs - Int16
+Cluster Latency in milliseconds as known by peer.  If a Leader or Follower in
 an existing cluster, this is the cluster-wide known value as determined by the
 current leader.  Otherwise this is a best effort guess by the peer based on
 other connections.  This is needed for a newly connected node to participate in
@@ -353,24 +376,31 @@ are in sync).
 #### ST - NodeState - Int8
 State of the node:
  - 0x01: INIT
- - 0x02: JOIN
- - 0x03: FOLLOWER
- - 0x04: LEADER
- - 0x05: VOTER
- - 0x06: ERROR
+ - 0x02: CONN
+ - 0x03: AUTH1
+ - 0x04: AUTH2
+ - 0x05: JOIN
+ - 0x06: FOLLOWER
+ - 0x07: LEADER
+ - 0x08: VOTER
+ - 0x09: FINISH
 
 ## Message Descriptions
 
-### AuthNonce
+### Authenticate
 
 When a remote peer connects to the current node, BOTH nodes will immediately
-send out an AuthNonce packet to the remote node to start mutual authentication.
-The request will identify the current node to the peer and the response will
-contain the Nonce to use for the Authenticate step.
+send out an Authenticate packet to the remote node to start mutual authentication.
+The request will identify the current node to the peer and provide a Nonce for
+finalizing authentication.
 
-Required Request Tags: `RT`, `CN`, `NI`
+Required Request Tags: `RT` (Request Type), `CN` (Cluster Name), `NI` (Node ID),
+  `NO` (Nonce)
 
-Required Response Tags: `RT`, `RC`, `NO`
+Required Response Tags: `RT` (RequestType), `RC` (ResponseCode),
+  `AU` (HmacAuthentication)
+
+Optional Response Tags: `CI` (ClusterID), `LA` (LeaderAddress), `LM` (LatencyMs)
 
 Can return one of these codes:
 - `OK`
@@ -381,49 +411,16 @@ Can return one of these codes:
 #### Requestor Validations/Procedure
 - If receive a code other than `OK`, disconnect. Set self to `INIT`
   state otherwise remove.
-- If `OK`, proceed to Authenticate
+- If `OK`, validate HMAC.  On failure to validate HMAC, disconnect, set to `INIT`
 
 #### Receiver Validations/Procedure
+- If node state not AUTH1, disconnect.
+- Transition state to AUTH2
 - If the Cluster Name sent in the payload does not match, return
   `UNKNOWN_CLUSTER` and disconnect
 - If the Node ID in the Payload does not match the source ip address, return
   `BAD_NODE_ID` and disconnect
-- Otherwise generate `Nonce` and return `OK`
-
-### Authenticate
-
-After receiving a Nonce from the remote, the next message must be a follow-up
-containing the actual authentication packet.
-
-Required Request Tags: `RT`, `AU`
-
-Required Response Tags: `RT`, `RC`
-
-Optional Response Tags: `CI`, `AL`, `LA`
-
-Can return one of these codes:
-- `OK`
-- `BAD_REQUEST`
-- `AUTH_FAILED`
-
-##### Requestor Validations/Procedure
-- All return values other than `OK` must result in an immediate disconnect.
-- If `ClusterID` was returned, and we already know the `ClusterID` and it
-  doesn't match:
-  - If in `INIT` state, clear Node State Variables:
-    - currentTerm
-    - Log[]
-    - ClusterID
-    - Plug-in Data
-  - If in `LEADER`, `FOLLOWER`, or `VOTER` state, ignore.
-- If current node state is `INIT`, transition to `JOIN` state.
-- Set `AUTHENTICATED_SELF` flag on Node connection
-
-##### Respondor Validations/Procedure
-- Validate HMAC, if invalid, return `AUTH_FAILED` and disconnect node.  If the
-  node is a configured node, move to `INIT` state otherwise delete node entry.
-- If Valid, return `OK`, and if ClusterID and LeaderAddress are known, send.
-  Set `AUTHENTICATED_PEER` flag on Node connection.
+- Use Nonce to generate authentication hmac
 
 
 ### Join
@@ -434,7 +431,7 @@ Required Request Tags: `RT`, `NT`
 
 Optional Request Tags: `LT`, `LI`
 
-Required Response Tags: `RT`,`RC`,`LT`,`LI`,`AL`,`NL`
+Required Response Tags: `RT`,`RC`,`LT`,`LI`,`LM`,`NL`
 
 Can return one of these codes:
 - `OK`
@@ -491,7 +488,7 @@ Can return one of these codes:
 ### HeartBeat
 
 A heartbeat packet is queued to be sent to every node at a rate of 4x
-AvgLatency or 20ms, whichever is greater.  This does mean that 2 heartbeats will
+LatencyMs or 20ms, whichever is greater.  This does mean that 2 heartbeats will
 occur during this interval as each node will initiate a heartbeat to the other
 in order to measure latency. Any node in the state of `Leader`, `Follower`,
 `Voter`, or `Join` must participate in Heartbeats.
@@ -509,7 +506,8 @@ Can return one of these codes:
   to send the next.
 
 ##### Responder Validations/Procedure
-- Collect metadata and respond, there are no necessary validations
+- If heartbeat request originated from current leader, reset election timer.
+- Collect metadata and respond.
 
 
 ### RequestVote
@@ -658,21 +656,55 @@ Response: `0x8A`
 - Read Configuration
 - Create Node List from Configuration
 - Listen on Configured port for inbound connections
-- Trigger NodeConnection flow and set a timer to trigger the flow periodically
-  Random between (1-3s) to prevent nodes from establishing connections
-  simultaneously.
+- Start NodeConnection Timer with 0ms interval (immediate fire)
 
-## Node Connection
+## Node Connection (Timer)
 
-- Cycle across all nodes in the INIT or ERROR state that don't have established
-  connections and start establishing a connection on each and wait for an
-  Outbound connection event.
+- Cycle across all nodes in the INIT state, transition those nodes to the
+  CONN state and start connection attempts.
+- Pick random time between 1-3s to trigger self again
 
 ## Outbound Connection Established
 
-- Start authentication flow by sending AuthNonce
+- Start authentication flow by sending Authenticate
+- Transition node's state in node list to AUTH1
 
 ## Inbound Connection Established
+
+- Lookup node in node list
+  - If found and state in node list is NOT: [INIT, CONN, FINISH], then
+    disconnect and stop
+  - If not found, Add Node to node list
+  - Set state to AUTH1
+  - Start authentication flow by sending Authenticate
+
+## Connection Failed
+
+- If state in node list is NOT [INIT, CONN, FINISH, AUTH1, AUTH2, JOIN], then set isError to
+  true on node in node list.
+- If state in node list is NOT [FINISH], then set state to INIT.
+- Cleanup any session related data.
+- If isError in node list is false (and therefore not participating in quorum),
+  verify node is listed in configured server list, if not, purge from known
+  node list.
+
+## Authentication Request Received
+- If node state not AUTH1, disconnect.
+- Transition state to AUTH2
+- If the Cluster Name sent in the payload does not match, return
+  `UNKNOWN_CLUSTER` and disconnect
+- If the Node ID in the Payload does not match the source ip address, return
+  `BAD_NODE_ID` and disconnect
+- Use Nonce to generate authentication hmac and send response
+
+## Authentication Response Received
+- If node state is not AUTH2, disconnect
+- If receive a code other than `OK`, disconnect.
+- Validate HMAC.  On failure to validate HMAC, disconnect.
+- If cluster id received and different than known cluster id, disconnect.
+- If Leader Address received and don't have a current leader, record.
+- If not currently joined to the cluster ourselves, but LatencyMs received, record.
+- Transition to JOIN state
 
 
 
