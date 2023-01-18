@@ -39,8 +39,8 @@
 #include "base/m_defs_int.h"
 #include "m_tls_ctx_common.h"
 
-#define TLS_v1_3_CIPHERS "TLS_CHACHA20_POLY1305_SHA256:TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256"
-#define TLS_v1_2_CIPHERS_STRONG "ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA256"
+#define TLS_v1_3_CIPHERS "TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256"
+#define TLS_v1_2_CIPHERS_STRONG "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA256"
 #define TLS_v1_2_CIPHERS_MEDIUM "ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:AES128-SHA"
 
 #if OPENSSL_VERSION_NUMBER >= 0x1010000fL && !defined(LIBRESSL_VERSION_NUMBER)
@@ -61,6 +61,13 @@ SSL_CTX *M_tls_ctx_init(M_bool is_server)
 	if (ctx == NULL) {
 		return NULL;
 	}
+
+	/* Set security level to 1, which is what 1.0.1 uses.  OpenSSL v3 doesn't let us
+	 * otherwise choose lower ciphers for compatibility, but since we allow the
+	 * user to explicitly overwrite ciphers and protocols we need this */
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL && !defined(LIBRESSL_VERSION_NUMBER)
+	SSL_CTX_set_security_level(ctx, 1);
+#endif
 
 	/* Set some default options */
 	M_tls_ctx_set_protocols(ctx, M_TLS_PROTOCOL_DEFAULT);
@@ -89,10 +96,10 @@ SSL_CTX *M_tls_ctx_init(M_bool is_server)
 		EC_KEY    *ecdh;
 #endif
 
-		/* SSL_OP_CIPHER_SERVER_PREFERENCE tells the client we prefer the server's certifcate order
+		/* SSL_OP_CIPHER_SERVER_PREFERENCE tells the client we prefer the server's certificate order.  No longer set by default.
 		 * SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS is for compatibility with Windows CE (no longer needed)
 		 * SSL_OP_SINGLE_DH_USE tells not to reuse DH keys -- better security */
-		SSL_CTX_set_options(ctx, SSL_OP_CIPHER_SERVER_PREFERENCE|SSL_OP_SINGLE_DH_USE);
+		SSL_CTX_set_options(ctx, SSL_OP_SINGLE_DH_USE);
 
 		/* Enable Forward Secrecy via ECDH */
 #if OPENSSL_VERSION_NUMBER >= 0x1010000fL && !defined(LIBRESSL_VERSION_NUMBER)

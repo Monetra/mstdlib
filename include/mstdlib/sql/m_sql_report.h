@@ -233,6 +233,71 @@ M_API M_bool M_sql_report_add_column(M_sql_report_t *report, const char *name, M
  */
 M_API M_bool M_sql_report_hide_column(M_sql_report_t *report, const char *sql_col_name, ssize_t sql_col_idx);
 
+
+struct M_sql_report_filter;
+/*! Filter object created by M_sql_report_filter_create() */
+typedef struct M_sql_report_filter M_sql_report_filter_t;
+
+typedef enum {
+	M_SQL_REPORT_FILTER_TYPE_OR  = 1, /*!< Rules for filter will be treated as OR */
+	M_SQL_REPORT_FILTER_TYPE_AND = 2  /*!< Rules for filter will be treated as AND */
+} M_sql_report_filter_type_t;
+
+/*! Create filter object
+ *
+ *  \param[in] type  Type of filter to create
+ *  \return filter object on success
+ */
+M_API M_sql_report_filter_t *M_sql_report_filter_create(M_sql_report_filter_type_t type);
+
+/*! Destroy filter object
+ *
+ *  \note Do NOT call if passed to M_sql_report_add_filter() as it takes ownership
+ *
+ *  \param[in] filter Initialized filter object by M_sql_report_filter_create()
+ */
+M_API void M_sql_report_filter_destroy(M_sql_report_filter_t *filter);
+
+typedef enum {
+	M_SQL_REPORT_FILTER_RULE_MATCHES = 1,     /*!< Data matches */
+	M_SQL_REPORT_FILTER_RULE_NOT_MATCHES,     /*!< Data does not match */
+	M_SQL_REPORT_FILTER_RULE_CONTAINS,        /*!< Data contains (sub string) */
+	M_SQL_REPORT_FILTER_RULE_NOT_CONTAINS,    /*!< Data does not contain (sub string) */
+	M_SQL_REPORT_FILTER_RULE_BEGINS_WITH,     /*!< Data begins with */
+	M_SQL_REPORT_FILTER_RULE_NOT_BEGINS_WITH, /*!< Data does not begin with */
+	M_SQL_REPORT_FILTER_RULE_ENDS_WITH,       /*!< Data ends with */
+	M_SQL_REPORT_FILTER_RULE_NOT_ENDS_WITH,   /*!< Data does not end with */
+	M_SQL_REPORT_FILTER_RULE_EMPTY,           /*!< Data is empty */
+	M_SQL_REPORT_FILTER_RULE_NOT_EMPTY        /*!< Data is not empty */
+} M_sql_report_filter_rule_t;
+
+/*! Add filter rule
+ *
+ *  \note when using OR type filters, you can specify the same column more than once
+ *
+ * \param[in] filter           Initialized filter object from M_sql_report_filter_create()
+ * \param[in] column           Name of column in report
+ * \param[in] rule             Type of rule
+ * \param[in] case_insensitive For rules with data, whether the data should match case insensitive or not
+ * \param[in] data             Data for matching
+ * \return M_TRUE on success, M_FALSE on failure
+ *
+ */
+M_API M_bool M_sql_report_filter_add_rule(M_sql_report_filter_t *filter, const char *column, M_sql_report_filter_rule_t rule, M_bool case_insensitive, const char *data);
+
+
+/*! Attach a filter to a report.  Only a single filter can be added to a report.
+ *
+ * \note in the future filters will be allowed to add subfilters to do complex logic, but that is not yet supported
+ *
+ * This function will take ownership of the filter object
+ * \param[in] report   Initialized report object
+ * \param[in] filter   Initialized filter object with at least one rule
+ * \return M_TRUE on success, M_FALSE on failure (such as bad arguments)
+ */
+M_API M_bool M_sql_report_add_filter(M_sql_report_t *report, M_sql_report_filter_t *filter);
+
+
 /*! Process the results from the SQL statement based on the report template configured.
  *
  *  This function will call the registered report output generation functions to output

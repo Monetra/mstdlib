@@ -21,8 +21,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef __GETOPT_H__
-#define __GETOPT_H__
+#ifndef __M_GETOPT_H__
+#define __M_GETOPT_H__
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 

@@ -235,9 +235,15 @@ enum M_EVENT_FLAGS {
                                                      *   need to use it without your knowledge. */
 	M_EVENT_FLAG_EXITONEMPTY          = 1 << 1, /*!< Exit the event loop when there are no registered events */
 	M_EVENT_FLAG_EXITONEMPTY_NOTIMERS = 1 << 2, /*!< When combined with M_EVENT_FLAG_EXITONEMPTY, will ignore timers */
-	M_EVENT_FLAG_SCALABLE_ONLY        = 1 << 3  /*!< Only utilize the 'scalable/large' event subsystem instead of dynamically
-	                                             *   switching at a certain load.  Useful mostly for test cases, in general
-	                                             *   this should not be used. */
+	M_EVENT_FLAG_NON_SCALABLE         = 1 << 3  /*!< Utilize the 'non-scalable/small' event subsystem, generally
+	                                             *   implemented using poll() instead of the more scalable solution
+	                                             *   using kqueue() or epoll().  The main reason one might want to use
+	                                             *   this is if a large number of event loops are being created such
+	                                             *   as when using the blocking APIs, using the scalable solution
+	                                             *   generally consumes additional file descriptors which may not be
+	                                             *   desirable.  Not all systems have different subsystems, in which
+	                                             *   case this flag will be ignored.
+	                                             */
 };
 
 /*! Possible values to pass to M_event_get_statistic() */
@@ -485,6 +491,27 @@ M_API M_bool M_event_timer_stop(M_event_timer_t *timer);
 M_API M_bool M_event_timer_reset(M_event_timer_t *timer, M_uint64 interval_ms);
 
 
+/*! Adjust the timer interval_ms.
+ *
+ * \see M_event_timer_reset will stop the timer and schedule it to start again in
+ * interval_ms in the future. Adjusting the time does not stop the timer. It is
+ * used to prevent timers from not being run if the interval_ms is constancy
+ * being adjusted.
+ *
+ * If the remaining time on the timer is > the new interval_ms the timer will
+ * be reset to run after the new interval_ms. If the timer has less time
+ * remaining than the new interval_ms it will be allowed to trigger after the
+ * remaining time and then be scheduled to run using the new interval_ms.
+ *
+ *  \param[in] timer       Timer handle returned by M_event_timer_add()
+ *  \param[in] interval_ms Time in milliseconds before the timer will expire.
+ *                         0 is considered an error.
+ *
+ *  \return M_TRUE on success, M_FALSE on failure.
+ */
+M_API M_bool M_event_timer_adjust(M_event_timer_t *timer, M_uint64 interval_ms);
+
+
 /*! Set absolute time for first event to be fired.
  *
  *  This will not take effect until the next call to M_event_timer_start() or M_event_timer_reset().
@@ -563,6 +590,16 @@ M_API M_bool M_event_timer_set_mode(M_event_timer_t *timer, M_event_timer_mode_t
  *  \return Number of milliseconds remaining on timer, or 0 if stopped.
  */
 M_API M_uint64 M_event_timer_get_remaining_ms(M_event_timer_t *timer);
+
+
+/*! Retrieve the current millisecond interval the time is using.
+ *
+ *  \param[in] timer       Timer handle returned by M_event_timer_add()
+ *
+ *  \return Number of milliseconds the timer is configured to use.
+ *          Set from start, reset, or adjust.
+ */
+M_API M_uint64 M_event_timer_get_interval_ms(M_event_timer_t *timer);
 
 
 /*! Retrieves if the timer is active(started) or not.

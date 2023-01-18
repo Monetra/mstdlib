@@ -495,7 +495,17 @@ static void M_io_net_set_sockopts(M_io_handle_t *handle)
 	 * |         |          | specified in the l_linger member.                              |                |
 	 * |---------|----------|----------------------------------------------------------------|----------------|
 	 */
+#ifdef _WIN32
 	so_linger.l_onoff  = 1;
+#else
+	/* 20220720 -- Cirrus CI's FreeBSD needs SO_LINGER to be off.  When it is on, a client will initiate a
+	* disconnect sequence with shutdown() via M_io_disconnect() returning 0 errors.  The system will then
+	* flag an EV_EOF event indicating that a graceful shutdown sequence completed.  Then socket will close()
+	* via M_io_destroy().  If this happens when there is pending data (activating the SO_LINGER logic)
+	* the server will never receive an EV_EOF flagged event. I have many logs available if you want more
+	* information -- AK */
+	so_linger.l_onoff  = 0;
+#endif
 	so_linger.l_linger = 0;
 	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_LINGER, (const void *)&so_linger, sizeof(so_linger));
 	(void)rv; /* silence coverity */
@@ -533,7 +543,6 @@ static void M_io_net_set_fastpath(M_io_handle_t *handle)
 	(void)handle;
 #endif
 }
-
 
 static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 {
@@ -582,12 +591,16 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 					handle->data.net.last_error = M_io_net_resolve_error_sys(handle->data.net.last_error_sys);
 				}
 
-				if (*type == M_EVENT_TYPE_WRITE && handle->data.net.last_error_sys == 0) {
+				if ((*type == M_EVENT_TYPE_WRITE || *type == M_EVENT_TYPE_READ) && handle->data.net.last_error_sys == 0) {
 					handle->data.net.last_error = M_IO_ERROR_SUCCESS;
 					/* Remove write waiter, add read waiter */
 					M_event_handle_modify(event, M_EVENT_MODTYPE_DEL_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, M_EVENT_WAIT_WRITE, 0);
 					M_event_handle_modify(event, M_EVENT_MODTYPE_ADD_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, M_EVENT_WAIT_READ, 0);
 
+					if (*type == M_EVENT_TYPE_READ) {
+						/* Add another event for the read because this one is transformed to connect */
+						M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
+					}
 					/* Rewrite event to say connected */
 					*type         = M_EVENT_TYPE_CONNECTED;
 					handle->state = M_IO_NET_STATE_CONNECTED;
@@ -781,6 +794,37 @@ static M_bool M_io_net_IsWindowsVistaOrGreater(void)
 #endif
 
 
+static M_bool M_io_net_set_ephemeral_port(M_io_handle_t *handle)
+{
+#ifdef HAVE_SOCKADDR_STORAGE
+	struct sockaddr_storage sockaddr;
+#else
+	struct sockaddr         sockaddr;
+#endif
+	struct sockaddr        *sockaddr_ptr  = (struct sockaddr *)&sockaddr;
+	socklen_t               sockaddr_size = sizeof(sockaddr);
+
+	M_mem_set(sockaddr_ptr, 0, (size_t)sockaddr_size);
+
+	if (getsockname(handle->data.net.sock, sockaddr_ptr, &sockaddr_size) != 0)
+		return M_FALSE;
+
+	if (sockaddr_ptr->sa_family == AF_INET) {
+		struct sockaddr_in *sockaddr_in = (struct sockaddr_in *)((void *)sockaddr_ptr);
+		handle->data.net.eport = M_ntoh16(sockaddr_in->sin_port);
+#ifdef AF_INET6
+	} else if (sockaddr_ptr->sa_family == AF_INET6) {
+		struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)((void *)sockaddr_ptr);
+		handle->data.net.eport = M_ntoh16(sockaddr_in6->sin6_port);
+#endif
+	} else {
+		return M_FALSE;
+	}
+
+	return M_TRUE;
+}
+
+
 static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 {
 	struct sockaddr   *sa;
@@ -857,9 +901,20 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 #endif
 
 
-	/* NOTE: We don't ever want to set SO_REUSEPORT which would allow 'stealing' of our bind */
+#ifndef _WIN32
+	/* On Unix systems on an application restart you may get "Address already in use" errors because the prior
+	 * instance of the application had connections that are in TIME_WAIT status.  Setting SO_REUSEADDR
+	 * allows re-binding the same address and port as long as connections are in TIME_WAIT if it would
+	 * otherwise fail.  It does not allow 'stealing' of a bind (however SO_REUSEPORT does)
+	 *
+	 * On Windows, its braindead and allows 'stealing' as it doesn't have the defined TIME_WAIT check.
+	 * So there we just need to use SO_EXCLUSIVEADDRUSE to prevent 'stealing', we shouldn't ever get
+	 * the "Address already in use" errors on Windows.
+	 */
 	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&enable, sizeof(enable));
 	(void)rv; /* silence coverity */
+#endif
+
 #ifdef SO_EXCLUSIVEADDRUSE
 	/* Windows, prevent 'stealing' of bound ports, why would this be allowed by default? */
 	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const void *)&enable, sizeof(enable));
@@ -895,6 +950,9 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 		M_io_net_resolve_error(handle);
 #ifdef _WIN32
 		closesocket(handle->data.net.sock);
+		if (handle->data.net.last_error == M_IO_ERROR_NOTPERM) {
+			handle->data.net.last_error = M_IO_ERROR_ADDRINUSE;
+		}
 #else
 		close(handle->data.net.sock);
 #endif
@@ -902,6 +960,12 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 		return handle->data.net.last_error;
 	}
 	M_free(sa);
+
+	/* port of 0 means let the OS assign.  In this case, we need to fill in the port metadata */
+	if (handle->port == 0) {
+		M_io_net_set_ephemeral_port(handle);
+		handle->port = handle->data.net.eport;
+	}
 
 	M_io_net_set_fastpath(handle);
 
@@ -960,36 +1024,6 @@ static M_bool M_io_net_listen_init_cb(M_io_layer_t *layer)
 	return M_TRUE;
 }
 
-
-static M_bool M_io_net_set_ephemeral_port(M_io_handle_t *handle)
-{
-#ifdef HAVE_SOCKADDR_STORAGE
-	struct sockaddr_storage sockaddr;
-#else
-	struct sockaddr         sockaddr;
-#endif
-	struct sockaddr        *sockaddr_ptr  = (struct sockaddr *)&sockaddr;
-	socklen_t               sockaddr_size = sizeof(sockaddr);
-
-	M_mem_set(sockaddr_ptr, 0, (size_t)sockaddr_size);
-
-	if (getsockname(handle->data.net.sock, sockaddr_ptr, &sockaddr_size) != 0)
-		return M_FALSE;
-
-	if (sockaddr_ptr->sa_family == AF_INET) {
-		struct sockaddr_in *sockaddr_in = (struct sockaddr_in *)((void *)sockaddr_ptr);
-		handle->data.net.eport = sockaddr_in->sin_port;
-#ifdef AF_INET6
-	} else if (sockaddr_ptr->sa_family == AF_INET6) {
-		struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)((void *)sockaddr_ptr);
-		handle->data.net.eport = sockaddr_in6->sin6_port;
-#endif
-	} else {
-		return M_FALSE;
-	}
-
-	return M_TRUE;
-}
 
 static M_bool M_io_net_start_connect(M_io_layer_t *layer, struct sockaddr *peer, socklen_t peer_size, int type)
 {
@@ -1419,7 +1453,7 @@ M_io_error_t M_io_net_server_create(M_io_t **io_out, unsigned short port, const 
 	M_io_callbacks_t *callbacks;
 	M_io_error_t      err;
 
-	if (io_out == NULL || port == 0)
+	if (io_out == NULL)
 		return M_IO_ERROR_INVALID;
 
 	*io_out = NULL;

@@ -235,21 +235,19 @@ static M_bool check_netspeed_test(void)
 	//M_event_t         *event = M_event_create(M_EVENT_FLAG_EXITONEMPTY);
 	M_io_t            *netclient;
 	M_event_err_t      err;
-	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 50000);
+	M_uint16           port = 0;
 	M_io_error_t       ioerr;
 
 	runtime_ms = 4000;
 
-	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
-		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
-		event_debug("Port %d in use, switching to new port %d", (int)port, (int)newport);
-		port             = newport;
-	}
+	ioerr = M_io_net_server_create(&netserver, 0 /* any port */, NULL, M_IO_NET_ANY);
 
 	if (ioerr != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server");
 		return M_FALSE;
 	}
+
+	port = M_io_net_get_port(netserver);
 
 	if (M_io_add_bwshaping(netserver, &server_id) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to add bwshaping to server");

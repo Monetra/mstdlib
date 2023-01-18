@@ -486,19 +486,23 @@ M_io_ble_mac_powered_t _powered     = M_IO_BLE_MAC_POWERED_UNKNOWN;
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error
 {
 	const char *uuid;
+	const char *service_uuid;
+	const char *characteristic_uuid;
 	char        msg[256];
 
 	if (peripheral == nil || characteristic == nil)
 		return;
 
-	uuid = [[[peripheral identifier] UUIDString] UTF8String];
+	uuid                = [[[peripheral identifier] UUIDString] UTF8String];
+	service_uuid        = [[characteristic.service.UUID UUIDString] UTF8String];
+	characteristic_uuid = [[characteristic.UUID UUIDString] UTF8String];
 
 	if (error != nil) {
 		M_snprintf(msg, sizeof(msg), "Write failed: %s", [[error localizedDescription] UTF8String]);
 		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, msg);
 		return;
 	}
-	M_io_ble_device_write_complete(uuid);
+	M_io_ble_device_write_complete(uuid, service_uuid, characteristic_uuid);
 }
 
 - (void)peripheralDidUpdateName:(CBPeripheral *)peripheral

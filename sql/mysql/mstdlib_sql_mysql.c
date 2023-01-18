@@ -353,7 +353,9 @@ static M_sql_error_t mysql_cb_connect(M_sql_driver_conn_t **conn, M_sql_connpool
 	                         M_sql_driver_pool_get_username(pool),
 	                         M_sql_driver_pool_get_password(pool),
 	                         data->db, port,
-	                         socketpath, 0) == NULL) {
+	                         socketpath,
+	                         CLIENT_FOUND_ROWS /* makes mysql_affected_rows() return matched rows instead of changed, this is typically what people expect */
+	                       ) == NULL) {
 		err = M_SQL_ERROR_CONN_FAILED;
 		M_snprintf(error, error_size, "failed to connect: (%u) %s", mysql_errno((*conn)->conn), mysql_error((*conn)->conn));
 		goto done;

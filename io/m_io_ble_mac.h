@@ -56,7 +56,7 @@ M_bool M_io_ble_device_waiting_connect(const char *uuid, const M_list_str_t *ser
 M_io_error_t M_io_ble_device_write(const char *uuid, const char *service_uuid, const char *characteristic_uuid, const unsigned char *data, size_t data_len, M_bool blind);
 M_io_error_t M_io_ble_device_req_val(const char *uuid, const char *service_uuid, const char *characteristic_uuid);
 M_io_error_t M_io_ble_device_req_rssi(const char *uuid);
-void M_io_ble_device_write_complete(const char *uuid);
+void M_io_ble_device_write_complete(const char *uuid, const char *service_uuid, const char *characteristic_uuid);
 void M_io_ble_device_read_data(const char *uuid, const char *service_uuid, const char *characteristic_uuid, const unsigned char *data, size_t data_len);
 void M_io_ble_device_read_rssi(const char *uuid, M_int64 rssi);
 void M_io_ble_device_notify_done(const char *uuid, const char *service_uuid, const char *characteristic_uuid);

@@ -91,6 +91,12 @@ M_io_handle_t *M_io_ble_open(const char *uuid, M_io_error_t *ioerr, M_uint64 tim
 		NULL,
 		(M_llist_free_func)M_io_ble_rdata_destroy
 	};
+	struct M_list_callbacks lcbs = {
+		(M_sort_compar_t)M_io_ble_wcomplete_compar,
+		(M_list_duplicate_func)M_io_ble_wcomplete_duplicate,
+		(M_list_duplicate_func)M_io_ble_wcomplete_duplicate,
+		(M_list_free_func)M_io_ble_wcomplete_destroy
+	};
 
 	*ioerr = M_IO_ERROR_SUCCESS;
 
@@ -99,10 +105,11 @@ M_io_handle_t *M_io_ble_open(const char *uuid, M_io_error_t *ioerr, M_uint64 tim
 		return NULL;
 	}
 
-	handle             = M_malloc_zero(sizeof(*handle));
+	handle                   = M_malloc_zero(sizeof(*handle));
 	M_str_cpy(handle->uuid, sizeof(handle->uuid), uuid);
-	handle->timeout_ms = M_io_ble_validate_timeout(timeout_ms);
-	handle->read_queue = M_llist_create(&llcbs, M_LLIST_NONE);
+	handle->timeout_ms       = M_io_ble_validate_timeout(timeout_ms);
+	handle->read_queue       = M_llist_create(&llcbs, M_LLIST_NONE);
+	handle->wcomplete_queue  = M_list_create(&lcbs, M_LIST_SET_VAL);
 
 	return handle;
 }
@@ -161,6 +168,7 @@ void M_io_ble_destroy_cb(M_io_layer_t *layer)
 	handle->io = NULL;
 	M_io_ble_close(handle);
 	M_llist_destroy(handle->read_queue, M_TRUE);
+	M_list_destroy(handle->wcomplete_queue, M_TRUE);
 	M_free(handle);
 }
 
@@ -319,11 +327,17 @@ M_io_error_t M_io_ble_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 		case M_IO_BLE_RTYPE_RSSI:
 			/* Get the RSSI. */
 			M_hash_multi_u64_insert_int(mdata, M_IO_BLE_META_KEY_RSSI, rdata->d.rssi.val);
+			if (read_len != NULL) {
+				*read_len = 0;
+			}
 			M_llist_remove_node(node);
 			break;
 		case M_IO_BLE_RTYPE_NOTIFY:
 			M_hash_multi_u64_insert_str(mdata, M_IO_BLE_META_KEY_SERVICE_UUID, rdata->d.notify.service_uuid);
 			M_hash_multi_u64_insert_str(mdata, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, rdata->d.notify.characteristic_uuid);
+			if (read_len != NULL) {
+				*read_len = 0;
+			}
 			M_llist_remove_node(node);
 			break;
 	}

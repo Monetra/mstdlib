@@ -549,6 +549,18 @@ M_bool M_tls_serverctx_set_ciphers(M_tls_serverctx_t *ctx, const char *ciphers)
 	return retval;
 }
 
+M_bool M_tls_serverctx_set_server_preference(M_tls_serverctx_t *ctx, M_bool tf)
+{
+	if (ctx == NULL || ctx->ctx == NULL)
+		return M_FALSE;
+
+	if (tf) {
+		SSL_CTX_set_options(ctx->ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+	} else {
+		SSL_CTX_clear_options(ctx->ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+	}
+	return M_TRUE;
+}
 
 /* Client certificate validation */
 M_bool M_tls_serverctx_set_trust_ca(M_tls_serverctx_t *ctx, const unsigned char *ca, size_t len)

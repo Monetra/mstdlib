@@ -155,8 +155,6 @@ struct M_event_loop {
 	M_uint64            softevent_cnt;        /*!< Number of soft events */
 	M_uint64            timer_cnt;            /*!< Number of timer events */
 
-	M_event_impl_cbs_t *impl_large;           /*!< Implementation callbacks when the event list is large (required) */
-	M_event_impl_cbs_t *impl_short;           /*!< Implementation callbacks when the event list is short (optional) */
 	M_event_impl_cbs_t *impl;                 /*!< Which callback is currently in use */
 	M_event_data_t     *impl_data;            /*!< Implementation data used by the registered callbacks above */
 };

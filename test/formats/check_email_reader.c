@@ -5,6 +5,30 @@
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
 
+#define DEBUG 0
+
+#if defined(DEBUG) && DEBUG > 0
+#include <stdarg.h>
+
+static void event_debug(const char *fmt, ...)
+{
+	va_list     ap;
+	char        buf[1024];
+	M_timeval_t tv;
+
+	M_time_gettimeofday(&tv);
+	va_start(ap, fmt);
+	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+	M_vdprintf(1, buf, ap);
+	va_end(ap);
+}
+#else
+static void event_debug(const char *fmt, ...)
+{
+	(void)fmt;
+}
+#endif
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #define add_test(SUITENAME, TESTNAME)\
@@ -17,11 +41,9 @@ do {\
 
 
 typedef struct {
+	M_bool one_member;
 } emailr_test_t;
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-#define test_data "a"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -45,7 +67,7 @@ static M_email_error_t header_func(const char *key, const char *val, void *thunk
 {
 	(void)thunk;
 
-	M_printf("HEADER\t\t    '%s' : '%s'\n", key, val);
+	event_debug("HEADER\t\t    '%s' : '%s'\n", key, val);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -53,7 +75,7 @@ static M_email_error_t address_func(const char *group, const char *name, const c
 {
 	(void)thunk;
 
-	M_printf("ADDRESS\t\t    '%s', '%s', '%s'\n", group, name, address);
+	event_debug("ADDRESS\t\t    '%s', '%s', '%s'\n", group, name, address);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -61,7 +83,7 @@ static M_email_error_t subject_func(const char *subject, void *thunk)
 {
 	(void)thunk;
 
-	M_printf("SUBJECT\t\t    '%s'\n", subject);
+	event_debug("SUBJECT\t\t    '%s'\n", subject);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -69,7 +91,7 @@ static M_email_error_t header_done_func(M_email_data_format_t format, void *thun
 {
 	(void)thunk;
 
-	M_printf("HEADER DONE = format '%d'\n", format);
+	event_debug("HEADER DONE = format '%d'\n", format);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -77,7 +99,7 @@ static M_email_error_t body_func(const char *data, size_t len, void *thunk)
 {
 	(void)thunk;
 
-	M_printf("BODY = '%.*s\n", (int)len, data);
+	event_debug("BODY = '%.*s\n", (int)len, data);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -85,7 +107,7 @@ static M_email_error_t multipart_preamble_func(const char *data, size_t len, voi
 {
 	(void)thunk;
 
-	M_printf("M PREAMBLE = '%.*s'\n", (int)len, data);
+	event_debug("M PREAMBLE = '%.*s'\n", (int)len, data);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -93,7 +115,7 @@ static M_email_error_t multipart_preamble_done_func(void *thunk)
 {
 	(void)thunk;
 
-	M_printf("M PREAMBLE DONE!!!\n");
+	event_debug("M PREAMBLE DONE!!!\n");
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -101,7 +123,7 @@ static M_email_error_t multipart_header_func(const char *key, const char *val, s
 {
 	(void)thunk;
 
-	M_printf("M HEADER (%zu)\t\t    '%s' : '%s'\n", idx, key, val);
+	event_debug("M HEADER (%zu)\t\t    '%s' : '%s'\n", idx, key, val);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -109,7 +131,7 @@ static M_email_error_t multipart_header_attachment_func(const char *content_type
 {
 	(void)thunk;
 
-	M_printf("M (%zu) is ATTACHMENT:\t\t content type = '%s', transfer encoding = '%s', filename = '%s'\n", idx, content_type, transfer_encoding, filename);
+	event_debug("M (%zu) is ATTACHMENT:\t\t content type = '%s', transfer encoding = '%s', filename = '%s'\n", idx, content_type, transfer_encoding, filename);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -117,7 +139,7 @@ static M_email_error_t multipart_header_done_func(size_t idx, void *thunk)
 {
 	(void)thunk;
 
-	M_printf("M HEADER (%zu) DONE!!!\n", idx);
+	event_debug("M HEADER (%zu) DONE!!!\n", idx);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -125,7 +147,7 @@ static M_email_error_t multipart_data_func(const char *data, size_t len, size_t 
 {
 	(void)thunk;
 
-	M_printf("M BODY (%zu) = '%.*s'\n", idx, (int)len, data);
+	event_debug("M BODY (%zu) = '%.*s'\n", idx, (int)len, data);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -133,7 +155,7 @@ static M_email_error_t multipart_data_done_func(size_t idx, void *thunk)
 {
 	(void)thunk;
 
-	M_printf("M BODY (%zu) DONE!!!\n", idx);
+	event_debug("M BODY (%zu) DONE!!!\n", idx);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -141,7 +163,7 @@ static M_email_error_t multipart_data_finished_func(void *thunk)
 {
 	(void)thunk;
 
-	M_printf("M DATA FINISHED!!!\n");
+	event_debug("M DATA FINISHED!!!\n");
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -149,7 +171,7 @@ static M_email_error_t multipart_epilouge_func(const char *data, size_t len, voi
 {
 	(void)thunk;
 
-	M_printf("M EPILOUGE = '%.*s'\n", (int)len, data);
+	event_debug("M EPILOUGE = '%.*s'\n", (int)len, data);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -185,20 +207,64 @@ static M_email_reader_t *gen_reader(void *thunk)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-START_TEST(check_testing)
+static M_email_error_t email_test(const char *test_data)
 {
 	M_email_reader_t *er;
 	emailr_test_t    *et;
 	M_email_error_t   res;
-	size_t           len_read;
+	size_t            len_read;
 
 	et  = emailr_test_create();
 	er  = gen_reader(et);
 	res = M_email_reader_read(er, test_data, M_str_len(test_data), &len_read);
-	M_printf("res = %d\n", res);
 
 	emailr_test_destroy(et);
 	M_email_reader_destroy(er);
+
+	return res;
+}
+
+START_TEST(check_testing)
+{
+	M_email_error_t  eer;
+	const char      *test_data = "a";
+
+	eer = email_test(test_data);
+	ck_assert_msg(eer == M_EMAIL_ERROR_MOREDATA, "Should require more data");
+}
+END_TEST
+
+START_TEST(check_boundary)
+{
+	M_email_error_t   eer;
+	const char       *test_data =
+
+"Content-Type: multipart/alternative; boundary=\"A2DX_654FDAD-BSDA\"\r\n"
+"\r\n"
+"--A2DX_654FDAD-BSDA\r\n"
+"\r\n"
+"--A2DX_654FDAD-BSDA--\r\n"
+"\r\n";
+
+	eer = email_test(test_data);
+	ck_assert_msg(eer == M_EMAIL_ERROR_SUCCESS, "Should succeed at parsing message");
+}
+END_TEST
+
+START_TEST(check_Boundary)
+{
+	M_email_error_t   eer;
+	const char       *test_data =
+
+"Content-Type: multipart/alternative; Boundary=\"A2DX_654FDAD-BSDA\"\r\n"
+"\r\n"
+"--A2DX_654FDAD-BSDA\r\n"
+"\r\n"
+"--A2DX_654FDAD-BSDA--\r\n"
+"\r\n";
+
+	eer = email_test(test_data);
+	ck_assert_msg(eer == M_EMAIL_ERROR_SUCCESS, "Should succeed at parsing message");
 }
 END_TEST
 
@@ -213,6 +279,8 @@ int main(void)
 	suite = suite_create("email_reader");
 
 	add_test(suite, check_testing);
+	add_test(suite, check_boundary);
+	add_test(suite, check_Boundary);
 
 	sr = srunner_create(suite);
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_email_reader.log");

@@ -123,6 +123,12 @@ M_io_layer_t *M_io_layer_add(M_io_t *comm, const char *layer_name, M_io_handle_t
 
 	M_list_insert(comm->layer, layer);
 
+	/* If our immediate prior layer is in a connected state already, we need to send the new layer
+	 * a connect signal so it can bring up the new layer attached. */
+	if (M_io_get_layer_state(comm, layer->idx-1) == M_IO_STATE_CONNECTED) {
+		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
+	}
+
 	M_io_unlock(comm);
 	return layer;
 }

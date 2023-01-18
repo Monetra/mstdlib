@@ -89,8 +89,8 @@ if (MSTDLIB_BUILD_FORMATS)
 	list(APPEND tests
 		formats/check_conf.c
 		formats/check_csv.c
-		#formats/check_email.c
-		#formats/check_email_reader.c
+		formats/check_email.c
+		formats/check_email_reader.c
 		formats/check_ini.c
 		formats/check_json.c
 		formats/check_http_reader.c
@@ -99,6 +99,7 @@ if (MSTDLIB_BUILD_FORMATS)
 		formats/check_mtzfile.c
 		formats/check_settings.c
 		formats/check_table.c
+		formats/check_url.c
 		formats/check_xml.c
 		formats/check_xml_entities.c
 	)
@@ -128,6 +129,7 @@ if (MSTDLIB_BUILD_IO)
 		io/check_process.c
 		io/check_netspeed.c
 		io/check_event_bwshaping.c
+		io/check_iface_ips.c
 	)
 	list(APPEND slow_tests
 		io/check_event_interactions.c
@@ -164,6 +166,12 @@ if(MSTDLIB_BUILD_TEXT)
 		text/check_verify.c
 	)
 endif()
+# net
+if(MSTDLIB_BUILD_NET)
+	list(APPEND tests
+		net/check_smtp.c
+	)
+endif()
 
 # Include the slow tests in the list of tests we're going to run, if not explicitly disabled by the user.
 if (NOT MSTDLIB_SKIP_SLOW_TESTS)
@@ -191,6 +199,9 @@ endif ()
 if (TARGET Mstdlib::text)
 	list(APPEND test_deps Mstdlib::text)
 endif ()
+if (TARGET Mstdlib::net)
+	list(APPEND test_deps Mstdlib::net)
+endif()
 if (UNIX AND NOT APPLE)
 	list(APPEND test_deps m)
 endif ()
@@ -231,7 +242,6 @@ foreach (test_src ${tests})
 			NAME    ${test_prog}_memcheck
 			COMMAND Valgrind::valgrind "--leak-check=full"
 									   "--show-reachable=yes"
-									   "--trace-children=yes"
 									   "--num-callers=24"
 									   "--suppressions=${PROJECT_SOURCE_DIR}/valgrind/check.suppressions"
 									   $<TARGET_FILE:${test_prog}> "from_ctest"
@@ -243,6 +253,12 @@ foreach (test_src ${tests})
 		)
 	endif ()
 endforeach ()
+
+# Need helper program for smtp proceess tests
+if(MSTDLIB_BUILD_NET)
+	add_executable(sendmail_emu net/sendmail_emu.c)
+	target_link_libraries(sendmail_emu PRIVATE ${test_deps})
+endif()
 
 # Make Check target
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})

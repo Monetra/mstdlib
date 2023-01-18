@@ -8,12 +8,26 @@ set(PROJECT_SOVERSION ${MSTDLIB_SOVERSION_STRING})
 
 include(InstallDepLibs) # Provides copy_deplibs() and install_deplibs()
 
+find_package(OpenSSL REQUIRED)
+
 set(sources
 	m_net.c
 	m_net_http_simple.c
+	smtp/m_net_smtp.c
+	smtp/m_flow_process.c
+	smtp/m_flow_tcp.c
+	smtp/m_flow_tcp_sendmsg.c
+	smtp/m_flow_tcp_starttls.c
+	smtp/m_flow_tcp_auth.c
+	smtp/m_flow_tcp_ehlo.c
+	smtp/m_flow_tcp_smtp_response.c
+	smtp/m_net_smtp_endpoint.c
+	smtp/m_net_smtp_session.c
+	smtp/m_net_smtp_queue.c
 )
 
 set_source_files_properties(m_net_http_simple.c PROPERTIES COMPILE_DEFINITIONS NET_HTTP_VERSION="${MSTDLIB_VERSION_STRING}")
+set_source_files_properties(m_net_smtp.c PROPERTIES COMPILE_DEFINITIONS NET_SMTP_VERSION="${MSTDLIB_VERSION_STRING}")
 
 # Build the library.
 if (MSTDLIB_STATIC)
@@ -41,8 +55,15 @@ target_link_libraries(${PROJECT_NAME}
 	PUBLIC  Mstdlib::formats
 	        Mstdlib::io
 	        Mstdlib::tls
-	PRIVATE Mstdlib::config
+	PRIVATE OpenSSL::Crypto Mstdlib::config
 )
+
+# Link extra system libraries.
+if (WIN32 OR MINGW)
+	target_link_libraries(${PROJECT_NAME}
+		PRIVATE ws2_32.lib crypt32.lib iphlpapi.lib
+	)
+endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	find_library(SECURITY NAMES Security)
@@ -73,6 +94,14 @@ convert_mingw_implibs_to_vs(mstdlib_net)
 # Installation rules.
 if (MSTDLIB_INSTALL_LIBS)
 	install(TARGETS ${PROJECT_NAME} EXPORT Mstdlib ${lib_dest})
+
+	# If we're not being chain-built, install OpenSSL as dep libs.
+	if (CMAKE_SOURCE_DIR STREQUAL Mstdlib_SOURCE_DIR)
+		install_deplibs(${MSTDLIB_INSTALL_LOCATION_LIBS} bin
+			OpenSSL::Crypto
+		)
+	endif ()
+
 endif ()
 
 

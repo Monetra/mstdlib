@@ -5,6 +5,7 @@
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
+#include <mstdlib/io/m_io_layer.h> /* M_io_layer_softevent_add (STARTTLS) */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -37,6 +38,12 @@ static void event_debug(const char *fmt, ...)
 }
 #endif
 
+static void trigger_softevent(M_io_t *io, M_event_type_t etype)
+{
+	M_io_layer_t *layer = M_io_layer_acquire(io, 0, NULL);
+	M_io_layer_softevent_add(layer, M_FALSE, etype, M_IO_ERROR_SUCCESS);
+	M_io_layer_release(layer);
+}
 
 static const char *event_type_str(M_event_type_t type)
 {
@@ -102,14 +109,16 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 				M_io_write_from_buf(comm, data->buf);
 				event_debug("net client %p wrote %zu bytes (%llu Bps)", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT));
 			}
+			if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
+				event_debug("net client %p initiating disconnect", comm);
+				M_printf("Initiate disconnect %llu / %llu\n", M_time_elapsed(&data->starttv), runtime_ms);
+				M_io_disconnect(comm);
+				break;
+			}
 			if (M_buf_len(data->buf) == 0) {
-				if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
-					event_debug("net client %p initiating disconnect", comm);
-					M_io_disconnect(comm);
-					break;
-				}
 				/* Refill */
 				M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
+				trigger_softevent(comm, M_EVENT_TYPE_WRITE);
 			}
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
@@ -122,6 +131,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			event_debug("net client %p Freeing connection (%llu total bytes in %llu ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT), M_io_bwshaping_get_totalms(comm, client_id));
 			M_io_destroy(comm);
+			comm = NULL;
 			net_data_destroy(data);
 			if (M_event_num_objects(event) == 0)
 				M_event_done(event);
@@ -220,7 +230,7 @@ static M_bool check_event_bwshaping_test(void)
 	M_event_t     *event     = M_event_create(M_EVENT_FLAG_EXITONEMPTY);
 	M_io_t        *netclient = NULL;
 	M_event_err_t  err;
-	M_uint16       port = (M_uint16)M_rand_range(NULL, 10000, 50000);
+	M_uint16       port = 0;
 
 	runtime_ms = 4000;
 
@@ -228,6 +238,8 @@ static M_bool check_event_bwshaping_test(void)
 		event_debug("failed to create net server");
 		goto done_error;
 	}
+
+	port = M_io_net_get_port(netserver);
 
 	if (M_io_add_bwshaping(netserver, &server_id) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to add bwshaping to server");

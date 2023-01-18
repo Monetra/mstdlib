@@ -8,19 +8,23 @@ libmstdlib_io_la_DEPENDENCIES = @ADD_OBJECTS@
 libmstdlib_io_la_LIBADD = @ADD_OBJECTS@ $(top_builddir)/base/libmstdlib.la $(top_builddir)/thread/libmstdlib_thread.la $(top_builddir)/text/libmstdlib_text.la @C_ARES_LIBADD@
 
 libmstdlib_io_la_SOURCES = \
-	m_dns.c \
 	m_event.c \
 	m_event_timer.c \
 	m_event_trigger.c \
 	m_io.c \
 	m_io_block.c \
+	m_io_ble.c \
+	m_io_ble_rdata.c \
 	m_io_bluetooth.c \
-	m_io_bluetooth_notimpl.c \
 	m_io_bwshaping.c \
 	m_io_hid.c \
 	m_io_loopback.c \
-	m_io_net.c \
-	m_io_netdns.c \
+	m_io_meta.c \
+	m_io_mfi_notimpl.c \
+	net/m_dns.c \
+	net/m_io_net.c \
+	net/m_io_netdns.c \
+	net/m_io_net_iface_ips.c \
 	m_io_process.c \
 	m_io_serial.c \
 	m_io_trace.c
@@ -59,8 +63,7 @@ libmstdlib_io_la_SOURCES +=     \
 else
 if MACOSX
 libmstdlib_io_la_SOURCES +=     \
-	m_io_hid_mac.c          \
-        m_io_mac_runlooper.c
+	m_io_hid_mac.c
 else
 libmstdlib_io_la_SOURCES +=     \
 	m_io_hid_notimpl.c
@@ -68,7 +71,23 @@ endif
 endif
 
 if MACOSX
-libmstdlib_io_la_LDFLAGS += -framework CoreFoundation -framework IOKit
+libmstdlib_io_la_SOURCES +=     \
+	m_io_mac_common.c       \
+	m_io_mac_runlooper.c    \
+	m_io_ble_mac_cache.m    \
+	m_io_ble_mac_manager.m  \
+	m_io_ble_mac.m          \
+	m_io_bluetooth_mac.m    \
+	m_io_bluetooth_mac_rfcomm.m
+AM_CFLAGS += -fobjc-arc
+libmstdlib_io_la_LDFLAGS += -framework CoreFoundation -framework IOKit -framework IOBluetooth -framework Foundation -framework CoreBluetooth
+else
+libmstdlib_io_la_SOURCES +=      \
+	m_io_bluetooth_notimpl.c \
+	m_io_ble_notimpl.c
+endif
+
+if MACOSX
 endif
 
 

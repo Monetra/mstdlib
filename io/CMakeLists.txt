@@ -29,13 +29,14 @@ endif ()
 # E.g. HID, BLE, Bluetooth, serial.
 set(sources
 	# No OS specific implementations
-	m_dns.c
 	m_io.c
 	m_io_block.c
 	m_io_bwshaping.c
 	m_io_loopback.c
-	m_io_net.c
-	m_io_netdns.c
+	net/m_dns.c
+	net/m_io_net.c
+	net/m_io_netdns.c
+	net/m_io_net_iface_ips.c
 	m_io_meta.c
 	m_io_process.c
 	m_io_proxy_protocol.c
@@ -44,6 +45,7 @@ set(sources
 	# Stubs
 	m_io_ble.c
 	m_io_ble_rdata.c
+	m_io_ble_wcomplete.c
 	m_io_bluetooth.c
 	m_io_hid.c
 	m_io_serial.c
@@ -95,9 +97,13 @@ else ()
 	endif ()
 endif ()
 
-# JNI
 if (ANDROID)
 	list(APPEND sources m_io_jni.c)
+
+	# Replacement for getifaddrs() for Android API < 24
+	if (CMAKE_SYSTEM_VERSION LESS 24)
+		list(APPEND sources net/android_ifaddrs/ifaddrs.c)
+	endif ()
 endif ()
 
 # Bluetooth LE

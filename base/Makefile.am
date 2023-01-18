@@ -109,6 +109,13 @@ libmstdlib_la_SOURCES += \
 		\
 		time/m_time_tz_win.c
 else
+
+if MACOSX
+libmstdlib_la_SOURCES += \
+		fs/m_fs_mac.m
+libmstdlib_la_LDFLAGS += -framework Foundation
+endif
+
 libmstdlib_la_SOURCES += \
 		fs/m_fs_unx.c                  \
 		fs/m_fs_file_unx.c             \

@@ -357,6 +357,26 @@ M_bool M_event_timer_reset(M_event_timer_t *timer, M_uint64 interval_ms)
 }
 
 
+M_bool M_event_timer_adjust(M_event_timer_t *timer, M_uint64 interval_ms)
+{
+	if (timer == NULL || interval_ms == 0 || interval_ms > INTERVAL_MAX || timer->mode != M_EVENT_TIMER_MODE_RELATIVE)
+		return M_FALSE;
+
+	/* If the remaining time is > our interval, we need to reschedule
+	 * to run within the new interval. */
+	if (M_event_timer_get_status(timer) && M_event_timer_get_remaining_ms(timer) > interval_ms)
+		return M_event_timer_reset(timer, interval_ms);
+
+	/* Adjust the interval so the next time it's scheduled
+	 * it will run with the new interval. */
+	M_event_lock(timer->event);
+	timer->interval_ms = interval_ms;
+	M_event_unlock(timer->event);
+
+	return M_TRUE;
+}
+
+
 M_bool M_event_timer_set_starttv(M_event_timer_t *timer, M_timeval_t *start_tv)
 {
 	if (timer == NULL || timer->event == NULL || (start_tv != NULL && !M_event_timer_tvset(start_tv)))
@@ -435,6 +455,14 @@ M_uint64 M_event_timer_get_remaining_ms(M_event_timer_t *timer)
 		remaining_ms = 0;
 
 	return (M_uint64)remaining_ms;
+}
+
+
+M_uint64 M_event_timer_get_interval_ms(M_event_timer_t *timer)
+{
+	if (timer == NULL)
+		return 0;
+	return timer->interval_ms;
 }
 
 

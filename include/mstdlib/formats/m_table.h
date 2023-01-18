@@ -478,6 +478,9 @@ M_API M_bool M_table_load_json(M_table_t *table, const char *data, size_t len);
 
 /*! Write the table as JSON.
  *
+ * A NULL table poiner will return NULL.
+ * A table with 0 rows will output an empty JSON array (`[]`).
+ *
  * All columns must be named!
  *
  * \param[in] table Table.

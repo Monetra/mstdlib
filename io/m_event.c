@@ -122,15 +122,21 @@ static void M_event_loop_init(M_event_t *event, M_uint32 flags)
 	event->u.loop.soft_events   = M_llist_create(&softevent_cbs, M_LLIST_NONE);
 
 #if defined(_WIN32)
-	event->u.loop.impl_large    = &M_event_impl_win32;
+	event->u.loop.impl          = &M_event_impl_win32;
 #elif defined(HAVE_KQUEUE)
-	event->u.loop.impl_large    = &M_event_impl_kqueue;
-	event->u.loop.impl_short    = &M_event_impl_poll;
+	if (flags & M_EVENT_FLAG_NON_SCALABLE) {
+		event->u.loop.impl      = &M_event_impl_poll;
+	} else {
+		event->u.loop.impl      = &M_event_impl_kqueue;
+	}
 #elif defined(HAVE_EPOLL)
-	event->u.loop.impl_large    = &M_event_impl_epoll;
-	event->u.loop.impl_short    = &M_event_impl_poll;
+	if (flags & M_EVENT_FLAG_NON_SCALABLE) {
+		event->u.loop.impl      = &M_event_impl_poll;
+	} else {
+		event->u.loop.impl      = &M_event_impl_epoll;
+	}
 #else
-	event->u.loop.impl_large    = &M_event_impl_poll;
+	event->u.loop.impl          = &M_event_impl_poll;
 #endif
 
 	M_thread_active_model(&threadmodel, NULL);
@@ -138,17 +144,13 @@ static void M_event_loop_init(M_event_t *event, M_uint32 flags)
 #if !defined(_WIN32)
 	/* Coop threads always use poll, even if better alternatives are available */
 	if (threadmodel == M_THREAD_MODEL_COOP) {
-		event->u.loop.impl_large = &M_event_impl_poll;
+		event->u.loop.impl = &M_event_impl_poll;
 	}
 #endif
 
 	if (!(event->u.loop.flags & M_EVENT_FLAG_NOWAKE))
 		event->u.loop.parent_wake = M_io_osevent_create(event);
-
-	/* Only use the large event loop implemetnation if flag specifies. */
-	if (flags & M_EVENT_FLAG_SCALABLE_ONLY) {
-		event->u.loop.impl_short = event->u.loop.impl_large;
-	}
+	event->u.loop.status_change = 0;
 }
 
 
@@ -1252,11 +1254,10 @@ static M_event_err_t M_event_loop_loop(M_event_t *event, M_uint64 timeout_ms)
 	M_uint64        event_timeout_ms;
 	M_uint64        min_timer_ms;
 	M_bool          has_soft_events;
-	size_t          num_members;
 	size_t          num_objects;
 	M_event_err_t   retval = M_EVENT_ERR_TIMEOUT;
 
-	if (event == NULL || event->u.loop.impl_large == NULL)
+	if (event == NULL || event->u.loop.impl == NULL)
 		return M_EVENT_ERR_MISUSE;
 
 	M_event_lock(event);
@@ -1266,7 +1267,10 @@ static M_event_err_t M_event_loop_loop(M_event_t *event, M_uint64 timeout_ms)
 		return M_EVENT_ERR_MISUSE;
 	}
 	event->u.loop.status        = M_EVENT_STATUS_RUNNING;
-	event->u.loop.status_change = 0;
+	if (event->u.loop.status_change != M_EVENT_STATUS_DONE &&
+	    event->u.loop.status_change != M_EVENT_STATUS_RETURN) {
+		event->u.loop.status_change = 0;
+	}
 	event->u.loop.timeout_ms    = timeout_ms;
 	event->u.loop.threadid      = M_thread_self();
 
@@ -1291,27 +1295,6 @@ static M_event_err_t M_event_loop_loop(M_event_t *event, M_uint64 timeout_ms)
 				retval = M_EVENT_ERR_DONE;
 				break;
 			}
-		}
-
-		num_members = M_hash_u64vp_num_keys(event->u.loop.evhandles);
-
-		/* Choose event handling subsystem if one is not already chosen */
-		if (event->u.loop.impl == NULL) {
-			if (event->u.loop.impl_short != NULL && num_members < M_EVENT_LARGE_MEMBERS) {
-				event->u.loop.impl = event->u.loop.impl_short;
-			} else {
-				event->u.loop.impl = event->u.loop.impl_large;
-			}
-		}
-
-		/* Support escalating to event handler which better handles high member counts */
-		if (event->u.loop.impl == event->u.loop.impl_short && num_members >= M_EVENT_LARGE_MEMBERS) {
-			if (event->u.loop.impl_data != NULL) {
-				if (event->u.loop.impl != NULL /* appease clang, not possible */ && event->u.loop.impl->data_free != NULL)
-					event->u.loop.impl->data_free(event->u.loop.impl_data);
-				event->u.loop.impl_data = NULL;
-			}
-			event->u.loop.impl = event->u.loop.impl_large;
 		}
 
 		if (event->u.loop.impl != NULL /* appease clang, not possible */ && event->u.loop.impl->data_structure != NULL)

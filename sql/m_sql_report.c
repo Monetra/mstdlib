@@ -47,9 +47,11 @@ struct M_sql_report {
 	size_t                  field_escape_size;
 	M_sql_report_fetch_cb_t fetch_cb;        /*!< Callback to call after M_sql_stmt_fetch() */
 
-	M_llist_t           *add_cols;           /*!< Ordered list of columns to output */
-	M_hash_dict_t       *hide_cols_byname;   /*!< Dictionary of columns in server output to hide, only relevant if flags has M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED */
-	M_hash_u64str_t     *hide_cols_byidx;    /*!< Indexes to hide, only relevant if flags has M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED */
+	M_llist_t              *add_cols;           /*!< Ordered list of columns to output */
+	M_hash_dict_t          *hide_cols_byname;   /*!< Dictionary of columns in server output to hide, only relevant if flags has M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED */
+	M_hash_u64str_t        *hide_cols_byidx;    /*!< Indexes to hide, only relevant if flags has M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED */
+
+	M_sql_report_filter_t  *filter;             /*!< Filter object */
 };
 
 
@@ -106,6 +108,7 @@ void M_sql_report_destroy(M_sql_report_t *report)
 	M_llist_destroy(report->add_cols, M_TRUE);
 	M_hash_dict_destroy(report->hide_cols_byname);
 	M_hash_u64str_destroy(report->hide_cols_byidx);
+	M_sql_report_filter_destroy(report->filter);
 	M_free(report);
 }
 
@@ -356,7 +359,7 @@ M_bool M_sql_report_hide_column(M_sql_report_t *report, const char *sql_col_name
 }
 
 
-static M_sql_report_col_t *M_sql_report_addcol_get(const M_sql_report_t *report, const char *name, ssize_t idx)
+static M_sql_report_col_t *M_sql_report_addcol_get_by_sqlnameidx(const M_sql_report_t *report, const char *name, ssize_t idx)
 {
 	M_llist_node_t *node;
 
@@ -370,6 +373,16 @@ static M_sql_report_col_t *M_sql_report_addcol_get(const M_sql_report_t *report,
 	return NULL;
 }
 
+
+static M_bool M_sql_report_col_exists(const M_sql_report_col_t *cols, size_t num_cols, const char *name)
+{
+	size_t i;
+	for (i=0; i<num_cols; i++) {
+		if (M_str_caseeq(cols[i].name, name))
+			return M_TRUE;
+	}
+	return M_FALSE;
+}
 
 static M_sql_report_col_t *M_sql_report_create_cols_passthru(const M_sql_report_t *report, M_sql_stmt_t *stmt, size_t *out_cnt, char *error, size_t error_size)
 {
@@ -393,11 +406,14 @@ static M_sql_report_col_t *M_sql_report_create_cols_passthru(const M_sql_report_
 		}
 
 		/* Next see if this column has an override */
-		col = M_sql_report_addcol_get(report, name, (ssize_t)i);
+		col = M_sql_report_addcol_get_by_sqlnameidx(report, name, (ssize_t)i);
 		if (col != NULL) {
 			/* Duplicate data and set appropriate index */
 			M_mem_copy(&cols[num_cols], col, sizeof(*col));
 			cols[num_cols].sql_col_idx = (ssize_t)i;
+			/* Hide name since its remapped in case its specified again (such as for a tagged field) */
+			M_hash_u64str_insert(report->hide_cols_byidx, i, NULL);
+			M_hash_dict_insert(report->hide_cols_byname, name, NULL);
 		} else {
 			/* Create new column */
 			cols[num_cols].name        = M_CAST_OFF_CONST(char *, name); /* Won't ever free, this is safe */
@@ -420,10 +436,15 @@ static M_sql_report_col_t *M_sql_report_create_cols_passthru(const M_sql_report_
 		}
 
 		/* Skip one that has already been added */
-		if (col->sql_col_name != NULL || col->sql_col_idx >= 0)
+		if (M_sql_report_col_exists(cols, num_cols, col->name))
 			continue;
 
 		M_mem_copy(&cols[num_cols], col, sizeof(*col));
+
+		/* Get column index from name */
+		if (col->sql_col_name)
+			M_sql_stmt_result_col_idx(stmt, col->sql_col_name, (size_t *)&cols[num_cols].sql_col_idx);
+
 		num_cols++;
 	}
 
@@ -563,6 +584,7 @@ struct M_sql_report_state {
 	size_t              num_cols;
 	M_buf_t            *colbuf;
 	size_t              rowidx;
+	size_t              filter_matches;
 };
 
 void M_sql_report_state_cancel(M_sql_report_state_t *state)
@@ -573,6 +595,247 @@ void M_sql_report_state_cancel(M_sql_report_state_t *state)
 	M_buf_cancel(state->colbuf);
 	M_free(state);
 }
+
+typedef struct {
+	M_sql_report_filter_rule_t rule;
+	M_bool                     case_insensitive;
+	char                      *data;
+} M_sql_report_filter_rules_t;
+
+struct M_sql_report_filter {
+	M_sql_report_filter_type_t type;
+	size_t                     num_rules;
+	M_hash_strvp_t            *cols;  /*! strvp of column name to an M_list_t of M_sql_report_filter_rules_t objects */
+};
+
+/*! Filter object created by M_sql_report_filter_create() */
+typedef struct M_sql_report_filter M_sql_report_filter_t;
+
+static void M_sql_report_filter_col_destroy(void *arg)
+{
+	M_list_t *list = arg;
+	M_list_destroy(list, M_TRUE);
+}
+
+M_sql_report_filter_t *M_sql_report_filter_create(M_sql_report_filter_type_t type)
+{
+	M_sql_report_filter_t *filter = M_malloc_zero(sizeof(*filter));
+	filter->type = type;
+	filter->cols = M_hash_strvp_create(4, 75, M_HASH_STRVP_CASECMP, M_sql_report_filter_col_destroy);
+	return filter;
+}
+
+void M_sql_report_filter_destroy(M_sql_report_filter_t *filter)
+{
+	if (filter == NULL)
+		return;
+	M_hash_strvp_destroy(filter->cols, M_TRUE);
+	M_free(filter);
+}
+
+static void M_sql_report_filter_rule_free(void *arg)
+{
+	M_sql_report_filter_rules_t *rule = arg;
+	M_free(rule->data);
+	M_free(rule);
+}
+
+M_bool M_sql_report_filter_add_rule(M_sql_report_filter_t *filter, const char *column, M_sql_report_filter_rule_t rule, M_bool case_insensitive, const char *data)
+{
+	M_list_t                    *rules = NULL;
+	M_sql_report_filter_rules_t *rdata = NULL;
+
+	if (filter == NULL || M_str_isempty(column))
+		return M_FALSE;
+
+	if (rule != M_SQL_REPORT_FILTER_RULE_EMPTY && rule != M_SQL_REPORT_FILTER_RULE_NOT_EMPTY && M_str_isempty(data))
+		return M_FALSE;
+
+	rules = M_hash_strvp_get_direct(filter->cols, column);
+	if (rules == NULL) {
+		struct M_list_callbacks cb = { NULL, NULL, NULL, M_sql_report_filter_rule_free };
+		rules = M_list_create(&cb, M_LIST_NONE);
+		M_hash_strvp_insert(filter->cols, column, rules);
+	}
+
+	rdata                   = M_malloc_zero(sizeof(*rdata));
+	rdata->rule             = rule;
+	rdata->case_insensitive = case_insensitive;
+	rdata->data             = M_strdup(data);
+	M_list_insert(rules, rdata);
+
+	filter->num_rules++;
+	return M_TRUE;
+}
+
+M_bool M_sql_report_add_filter(M_sql_report_t *report, M_sql_report_filter_t *filter)
+{
+	if (report == NULL || filter == NULL || filter->num_rules == 0 || report->filter != NULL)
+		return M_FALSE;
+
+	report->filter = filter;
+	return M_TRUE;
+}
+
+
+static M_bool M_rule_match(const char *data, size_t data_len, const char *rule_data, size_t rule_data_len, M_bool case_insensitive)
+{
+	if (data_len != rule_data_len)
+		return M_FALSE;
+	if (case_insensitive && M_str_caseeq(data, rule_data))
+		return M_TRUE;
+	if (!case_insensitive && M_str_eq(data, rule_data))
+		return M_TRUE;
+	return M_FALSE;
+}
+
+static M_bool M_rule_not_match(const char *data, size_t data_len, const char *rule_data, size_t rule_data_len, M_bool case_insensitive)
+{
+	return M_rule_match(data, data_len, rule_data, rule_data_len, case_insensitive)?M_FALSE:M_TRUE;
+}
+
+static M_bool M_rule_contains(const char *data, size_t data_len, const char *rule_data, size_t rule_data_len, M_bool case_insensitive)
+{
+	if (data_len < rule_data_len)
+		return M_FALSE;
+	if (case_insensitive && M_str_casestr(data, rule_data) != NULL)
+		return M_TRUE;
+	if (!case_insensitive && M_str_str(data, rule_data) != NULL)
+		return M_TRUE;
+	return M_FALSE;
+}
+
+static M_bool M_rule_not_contains(const char *data, size_t data_len, const char *rule_data, size_t rule_data_len, M_bool case_insensitive)
+{
+	return M_rule_contains(data, data_len, rule_data, rule_data_len, case_insensitive)?M_FALSE:M_TRUE;
+}
+
+static M_bool M_rule_begins_with(const char *data, size_t data_len, const char *rule_data, size_t rule_data_len, M_bool case_insensitive)
+{
+	if (data_len < rule_data_len)
+		return M_FALSE;
+	if (case_insensitive && M_str_caseeq_max(data, rule_data, rule_data_len))
+		return M_TRUE;
+	if (!case_insensitive && M_str_eq_max(data, rule_data, rule_data_len))
+		return M_TRUE;
+	return M_FALSE;
+}
+
+static M_bool M_rule_not_begins_with(const char *data, size_t data_len, const char *rule_data, size_t rule_data_len, M_bool case_insensitive)
+{
+	return M_rule_begins_with(data, data_len, rule_data, rule_data_len, case_insensitive)?M_FALSE:M_TRUE;
+}
+
+static M_bool M_rule_ends_with(const char *data, size_t data_len, const char *rule_data, size_t rule_data_len, M_bool case_insensitive)
+{
+	if (data_len < rule_data_len)
+		return M_FALSE;
+	if (case_insensitive && M_str_caseeq_max(data+(data_len-rule_data_len), rule_data, rule_data_len))
+		return M_TRUE;
+	if (!case_insensitive && M_str_eq_max(data+(data_len-rule_data_len), rule_data, rule_data_len))
+		return M_TRUE;
+	return M_FALSE;
+}
+
+static M_bool M_rule_not_ends_with(const char *data, size_t data_len, const char *rule_data, size_t rule_data_len, M_bool case_insensitive)
+{
+	return M_rule_ends_with(data, data_len, rule_data, rule_data_len, case_insensitive)?M_FALSE:M_TRUE;
+}
+
+static M_bool M_rule_empty(const char *data, size_t data_len, const char *rule_data, size_t rule_data_len, M_bool case_insensitive)
+{
+	(void)rule_data;
+	(void)rule_data_len;
+	(void)case_insensitive;
+	(void)data;
+
+	if (data_len == 0)
+		return M_TRUE;
+
+	return M_FALSE;
+}
+
+static M_bool M_rule_not_empty(const char *data, size_t data_len, const char *rule_data, size_t rule_data_len, M_bool case_insensitive)
+{
+	return M_rule_empty(data, data_len, rule_data, rule_data_len, case_insensitive)?M_FALSE:M_TRUE;
+}
+
+static M_sql_report_cberror_t M_sql_report_filter_col(const M_sql_report_t *report, M_sql_report_state_t *state, const char *col_name, const char *data, size_t len)
+{
+	M_list_t *rules   = NULL;
+	size_t    i;
+	size_t    matches = 0;
+
+	if (report->filter == NULL)
+		return M_SQL_REPORT_SUCCESS;
+
+	rules = M_hash_strvp_get_direct(report->filter->cols, col_name);
+
+	if (rules == NULL)
+		return M_SQL_REPORT_SUCCESS;
+
+	/* If we're doing OR and we've already hit a match, no need to check on anything else as it just wastes cycles */
+	if (report->filter->type == M_SQL_REPORT_FILTER_TYPE_OR && state->filter_matches)
+		return M_SQL_REPORT_SUCCESS;
+
+	for (i=0; i<M_list_len(rules); i++) {
+		const M_sql_report_filter_rules_t *rule           = M_list_at(rules, i);
+		M_bool                           (*cb)(const char *data, size_t data_len, const char *rule_data, size_t rule_data_len, M_bool case_insensitive);
+		switch(rule->rule) {
+			case M_SQL_REPORT_FILTER_RULE_MATCHES:
+				cb = M_rule_match;
+				break;
+			case M_SQL_REPORT_FILTER_RULE_NOT_MATCHES:
+				cb = M_rule_not_match;
+				break;
+			case M_SQL_REPORT_FILTER_RULE_CONTAINS:
+				cb = M_rule_contains;
+				break;
+			case M_SQL_REPORT_FILTER_RULE_NOT_CONTAINS:
+				cb = M_rule_not_contains;
+				break;
+			case M_SQL_REPORT_FILTER_RULE_BEGINS_WITH:
+				cb = M_rule_begins_with;
+				break;
+			case M_SQL_REPORT_FILTER_RULE_NOT_BEGINS_WITH:
+				cb = M_rule_not_begins_with;
+				break;
+			case M_SQL_REPORT_FILTER_RULE_ENDS_WITH:
+				cb = M_rule_ends_with;
+				break;
+			case M_SQL_REPORT_FILTER_RULE_NOT_ENDS_WITH:
+				cb = M_rule_not_ends_with;
+				break;
+			case M_SQL_REPORT_FILTER_RULE_EMPTY:
+				cb = M_rule_empty;
+				break;
+			case M_SQL_REPORT_FILTER_RULE_NOT_EMPTY:
+				cb = M_rule_not_empty;
+				break;
+		}
+
+		if (cb(data, len, rule->data, M_str_len(rule->data), rule->case_insensitive))
+			matches++;
+	}
+
+	state->filter_matches += matches;
+
+	if (report->filter->type == M_SQL_REPORT_FILTER_TYPE_AND && matches != M_list_len(rules))
+		return M_SQL_REPORT_SKIP_ROW;
+	return M_SQL_REPORT_SUCCESS;
+}
+
+static M_sql_report_cberror_t M_sql_report_filter_row(const M_sql_report_t *report, M_sql_report_state_t *state)
+{
+	if (report->filter == NULL)
+		return M_SQL_REPORT_SUCCESS;
+	if (report->filter->type == M_SQL_REPORT_FILTER_TYPE_OR && state->filter_matches)
+		return M_SQL_REPORT_SUCCESS;
+	if (report->filter->type == M_SQL_REPORT_FILTER_TYPE_AND && state->filter_matches == report->filter->num_rules)
+		return M_SQL_REPORT_SUCCESS;
+	return M_SQL_REPORT_SKIP_ROW;
+}
+
 
 static M_sql_error_t M_sql_report_process_partial_int(const M_sql_report_t *report, M_sql_stmt_t *stmt, size_t max_rows, void *arg, M_buf_t *buf, M_json_node_t *json, M_sql_report_state_t **state, char *error, size_t error_size)
 {
@@ -660,6 +923,8 @@ static M_sql_error_t M_sql_report_process_partial_int(const M_sql_report_t *repo
 			M_sql_report_cberror_t cberr         = M_SQL_REPORT_SUCCESS;
 			M_json_node_t         *json_row      = NULL;
 
+			(*state)->filter_matches = 0;
+
 			if (json) {
 				json_row = M_json_node_create(M_JSON_TYPE_OBJECT);
 			}
@@ -677,7 +942,13 @@ static M_sql_error_t M_sql_report_process_partial_int(const M_sql_report_t *repo
 					err = M_SQL_ERROR_INVALID_USE;
 					M_json_node_destroy(json_row);
 					goto done;
-				} else if (cberr == M_SQL_REPORT_SKIP_ROW) {
+				}
+
+				if (cberr != M_SQL_REPORT_SKIP_ROW) {
+					cberr = M_sql_report_filter_col(report, (*state), (*state)->cols[j].name, M_buf_peek((*state)->colbuf), M_buf_len((*state)->colbuf));
+				}
+
+				if (cberr == M_SQL_REPORT_SKIP_ROW) {
 					if (buf) {
 						/* Kill anything already added to the buf, and stop processing columns for this row */
 						M_buf_truncate(buf, start_buf_len);
@@ -708,6 +979,20 @@ static M_sql_error_t M_sql_report_process_partial_int(const M_sql_report_t *repo
 			}
 
 			if (cberr == M_SQL_REPORT_SUCCESS) {
+				cberr = M_sql_report_filter_row(report, (*state));
+				if (cberr == M_SQL_REPORT_SKIP_ROW) {
+					if (buf) {
+						/* Kill anything already added to the buf, and stop processing columns for this row */
+						M_buf_truncate(buf, start_buf_len);
+					} else {
+						/* Kill JSON object, throwing away result. */
+						M_json_node_destroy(json_row);
+						json_row = NULL;
+					}
+				}
+			}
+
+			if (cberr == M_SQL_REPORT_SUCCESS) {
 				if (buf) {
 					M_buf_add_bytes(buf, report->row_delim, report->row_delim_size);
 				} else {
@@ -722,6 +1007,7 @@ static M_sql_error_t M_sql_report_process_partial_int(const M_sql_report_t *repo
 			if (max_rows != 0 && rows_output == max_rows)
 				break;
 		}
+
 
 		/* If we've output the max rows we're allowed to, exit out */
 		if (max_rows != 0 && rows_output == max_rows) {

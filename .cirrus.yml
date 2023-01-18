@@ -182,11 +182,11 @@ freebsd_template: &freebsd_template
 macos_template: &macos_template
   env:
     DIST: "MACOS"
-    SCAN_BUILD: "/usr/local/opt/llvm/bin/scan-build"
+    SCAN_BUILD: "/opt/homebrew/opt/llvm/bin/scan-build"
     MAKE: "make"
-    OPENSSL_ROOT_DIR: "/usr/local/opt/openssl@1.1"
-    PostgreSQL_DIR: "/usr/local/opt/libpq"
-    CONFIG_OPTS: "--with-openssl-dir=/usr/local/opt/openssl@1.1 --with-sqlite-dir=/usr/local/opt/sqlite --with-postgresql-dir=/usr/local/opt/libpq"
+    OPENSSL_ROOT_DIR: "/opt/homebrew/opt/openssl@3"
+    PostgreSQL_DIR: "/opt/homebrew/opt/libpq"
+    CONFIG_OPTS: "--with-openssl-dir=/opt/homebrew/opt/openssl@3 --with-sqlite-dir=/opt/homebrew/opt/sqlite3 --with-postgresql-dir=/opt/homebrew/opt/libpq --with-check-dir=/opt/homebrew/opt/check"
     CMAKE_OPTS: "-DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR -DPostgreSQL_DIR=$PostgreSQL_DIR"
   osdeps_install_script:
     - brew update &&
@@ -297,7 +297,7 @@ task:
 task:
   name: "FreeBSD x64 - CMake"
   freebsd_instance:
-    image_family: freebsd-13-0
+    image_family: freebsd-13-1
   << : *freebsd_template
   << : *fetch_thirdparty
   << : *cmake_build
@@ -306,7 +306,7 @@ task:
 task:
   name: "FreeBSD x64 - AutoTools"
   freebsd_instance:
-    image_family: freebsd-13-0
+    image_family: freebsd-13-1
   << : *freebsd_template
   << : *fetch_thirdparty
   << : *autotools_build
@@ -315,7 +315,7 @@ task:
 task:
   name: "FreeBSD x64 - Static Analysis"
   freebsd_instance:
-    image_family: freebsd-13-0
+    image_family: freebsd-13-1
   << : *freebsd_template
   << : *fetch_thirdparty
   << : *static_analysis_build
@@ -326,7 +326,7 @@ task:
 task:
   name: "MacOS - CMake"
   macos_instance:
-    image: big-sur-xcode
+    image: ghcr.io/cirruslabs/macos-monterey-xcode:13.4.1
   << : *macos_template
   << : *fetch_thirdparty
   << : *cmake_build
@@ -335,7 +335,7 @@ task:
 task:
   name: "MacOS - AutoTools"
   macos_instance:
-    image: big-sur-xcode
+    image: ghcr.io/cirruslabs/macos-monterey-xcode:13.4.1
   << : *macos_template
   << : *fetch_thirdparty
   << : *autotools_build
@@ -344,7 +344,7 @@ task:
 task:
   name: "MacOS - Static Analysis"
   macos_instance:
-    image: big-sur-xcode
+    image: ghcr.io/cirruslabs/macos-monterey-xcode:13.4.1
   << : *macos_template
   << : *fetch_thirdparty
   << : *static_analysis_build

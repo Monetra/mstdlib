@@ -52,8 +52,8 @@ struct M_email {
 	M_list_t                  *parts; /* List of M_email_part_t */
 	char                      *preamble;
 	char                      *epilogue;
-	M_email_address_t *reply_to;
-	M_email_address_t *from;
+	M_email_address_t         *reply_to;
+	M_email_address_t         *from;
 	char                      *subject;
 };
 
@@ -213,6 +213,7 @@ static M_bool parse_insert_attachment(M_email_t *email, const char *data, size_t
 	char       *content_type      = NULL;
 	char       *filename          = NULL;
 	char       *transfer_encoding = NULL;
+	M_bool      ret;
 
 	const_temp = M_hash_dict_get_direct(headers, "Content-Transfer-Encoding");
 	if (!M_str_isempty(const_temp))
@@ -235,7 +236,11 @@ static M_bool parse_insert_attachment(M_email_t *email, const char *data, size_t
 		}
 	}
 
-	return M_email_part_append_attachment(email, data, len, headers, content_type, transfer_encoding, filename, idx);
+	ret = M_email_part_append_attachment(email, data, len, headers, content_type, transfer_encoding, filename, idx);
+	M_free(content_type);
+	M_free(filename);
+	M_free(transfer_encoding);
+	return ret;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -677,6 +682,60 @@ const char *M_email_subject(const M_email_t *email)
 	return email->subject;
 }
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+void M_email_messageid(M_email_t *email, const char *prefix, const char *suffix)
+{
+	char     id_str[41] = { 0 };
+	M_buf_t *buf        = NULL;
+	char    *Message_ID = NULL;
+
+	if (email == NULL)
+		return;
+
+	M_rand_str(
+		NULL,
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		"abcdefghijklmnopqrstuvwxyz"
+		"0123456789",
+		id_str,
+		sizeof(id_str) - 1
+	);
+
+	buf = M_buf_create();
+	M_buf_add_str(buf, prefix);
+	M_buf_add_str(buf, id_str);
+	M_buf_add_str(buf, suffix);
+
+	Message_ID = M_buf_finish_str(buf, NULL);
+
+	M_email_headers_remove(email, "Message-ID");
+	M_email_headers_insert(email, "Message-ID", Message_ID);
+
+	M_free(Message_ID);
+
+}
+
+void M_email_date(M_email_t *email, const char *format)
+{
+	M_time_localtm_t  ltime;
+	char             *date_str;
+
+	if (email == NULL)
+		return;
+
+	if (format == NULL)
+		format = "%a, %d %b %Y %T %z";
+
+	M_time_tolocal(M_time(), &ltime, NULL);
+	date_str = M_time_to_str(format, &ltime);
+
+	M_email_headers_remove(email, "Date");
+	M_email_headers_insert(email, "Date", date_str);
+
+	M_free(date_str);
+
+}
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 

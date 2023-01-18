@@ -42,6 +42,9 @@ struct M_email_reader {
 	M_state_machine_t               *sm;
 	char                            *boundary;
 	size_t                           boundary_len;
+	char                            *sub_boundary;
+	size_t                           sub_boundary_len;
+	M_bool                           is_sub_boundary_match;
 	M_email_data_format_t            data_format;
 	size_t                           part_idx;
 	M_email_part_type_t              part_type;
@@ -200,26 +203,18 @@ static M_email_error_t M_email_reader_multipart_epilouge_func_default(const char
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-static M_email_error_t M_email_header_process_content_type(M_email_reader_t *emailr, const char *val)
+static char *M_email_header_process_content_type_boundary(const char *val, size_t *boundary_len)
 {
 	M_parser_t    *parser;
 	M_buf_t       *buf;
+	char          *boundary;
 	unsigned char  byte;
 
-	/* Format defaults to BODY.
- 	 * We only care about mulipart because data is handled differently. */
-	if (M_str_casestr(val, "multipart") == NULL)
-		return M_EMAIL_ERROR_SUCCESS;
-
-	emailr->data_format = M_EMAIL_DATA_FORMAT_MULTIPART;
-
 	parser = M_parser_create_const((const unsigned char *)val, M_str_len(val), M_PARSER_FLAG_NONE);
-	if (M_parser_consume_str_until(parser, "boundary=", M_FALSE) == 0) {
+	if (M_parser_consume_str_until(parser, "oundary=", M_TRUE) == 0) {
 		M_parser_destroy(parser);
-		return M_EMAIL_ERROR_MULTIPART_NOBOUNDARY;
+		return NULL;
 	}
-	M_parser_consume(parser, 9 /* "boundary=" */);
 
 	if (M_parser_peek_byte(parser, &byte) && byte == '"')
 		M_parser_consume(parser, 1);
@@ -229,11 +224,29 @@ static M_email_error_t M_email_header_process_content_type(M_email_reader_t *ema
 	buf = M_buf_create();
 	M_buf_add_str(buf, "--");
 	M_parser_read_buf_not_charset(parser, buf, (const unsigned char *)";\r\n\"", 4);
-	emailr->boundary = M_buf_finish_str(buf, &emailr->boundary_len);
+	boundary = M_buf_finish_str(buf, boundary_len);
 	M_parser_destroy(parser);
 
-	if (M_str_isempty(emailr->boundary))
+	if (M_str_isempty(boundary)) {
+		M_free(boundary);
+		return NULL;
+	}
+	return boundary;
+}
+
+static M_email_error_t M_email_header_process_content_type(M_email_reader_t *emailr, const char *val)
+{
+	/* Format defaults to BODY.
+ 	 * We only care about mulipart because data is handled differently. */
+	if (M_str_casestr(val, "multipart") == NULL)
+		return M_EMAIL_ERROR_SUCCESS;
+
+	emailr->data_format = M_EMAIL_DATA_FORMAT_MULTIPART;
+	emailr->boundary = M_email_header_process_content_type_boundary(val, &emailr->boundary_len);
+
+	if (emailr->boundary == NULL)
 		return M_EMAIL_ERROR_MULTIPART_NOBOUNDARY;
+
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -300,6 +313,9 @@ static M_bool M_email_header_process_multipart(M_email_reader_t *emailr, const c
 	} else if (M_str_caseeq(key, "Content-Type")) {
 		M_free(emailr->part_content_type);
 		emailr->part_content_type = M_email_attachment_parse_info_content_type(val, &myfilename);
+		if (emailr->part_idx == 0 && emailr->sub_boundary == NULL) {
+			emailr->sub_boundary = M_email_header_process_content_type_boundary(val, &emailr->sub_boundary_len);
+		}
 
 		if (M_str_isempty(emailr->part_filename)) {
 			emailr->part_filename = myfilename;
@@ -521,11 +537,12 @@ static M_state_machine_status_t state_multipart_header(void *data, M_uint64 *nex
 
 static M_state_machine_status_t state_multipart_data(void *data, M_uint64 *next)
 {
-	M_email_reader_t *emailr  = data;
+	M_email_reader_t *emailr       = data;
 	size_t            consume_len;
+	size_t            boundary_len;
 	size_t            data_len;
-	M_email_error_t   res     = M_EMAIL_ERROR_SUCCESS;
-	M_bool            found   = M_FALSE;
+	M_email_error_t   res          = M_EMAIL_ERROR_SUCCESS;
+	M_bool            found        = M_FALSE;
 
 	(void)next;
 
@@ -534,7 +551,22 @@ static M_state_machine_status_t state_multipart_data(void *data, M_uint64 *next)
 
 	/* Find all the data before the boundary. */
 	M_parser_mark(emailr->parser);
-	consume_len = M_parser_consume_boundary(emailr->parser, (unsigned char *)emailr->boundary, emailr->boundary_len, M_FALSE, &found); 
+	emailr->is_sub_boundary_match = M_FALSE;
+	if (emailr->sub_boundary != NULL) {
+		boundary_len = emailr->sub_boundary_len;
+		consume_len = M_parser_consume_boundary(emailr->parser, (unsigned char *)emailr->sub_boundary, boundary_len, M_FALSE, &found);
+		if (!found) {
+			M_parser_mark_rewind(emailr->parser);
+			M_parser_mark(emailr->parser);
+			boundary_len = emailr->boundary_len;
+			consume_len = M_parser_consume_boundary(emailr->parser, (unsigned char *)emailr->boundary, boundary_len, M_FALSE, &found);
+		} else {
+			emailr->is_sub_boundary_match = M_TRUE;
+		}
+	} else {
+		boundary_len = emailr->boundary_len;
+		consume_len = M_parser_consume_boundary(emailr->parser, (unsigned char *)emailr->boundary, boundary_len, M_FALSE, &found);
+	}
 	data_len    = consume_len;
 	M_parser_mark_rewind(emailr->parser);
 
@@ -561,7 +593,7 @@ static M_state_machine_status_t state_multipart_data(void *data, M_uint64 *next)
 
 	if (found) {
 		/* Eat the boundary. */
-		M_parser_consume(emailr->parser, emailr->boundary_len);
+		M_parser_consume(emailr->parser, boundary_len);
 
 		res = emailr->cbs.multipart_data_done_func(emailr->part_idx, emailr->thunk);
 		if (res != M_EMAIL_ERROR_SUCCESS) {
@@ -582,6 +614,16 @@ static M_state_machine_status_t state_multipart_check_end(void *data, M_uint64 *
 
 	if (M_parser_len(emailr->parser) < 2)
 		return M_STATE_MACHINE_STATUS_WAIT;
+
+	if (emailr->is_sub_boundary_match && M_parser_compare_str(emailr->parser, "--", 2, M_FALSE)) {
+		M_bool found;
+		emailr->is_sub_boundary_match = M_FALSE;
+		M_parser_consume_boundary(emailr->parser, (unsigned char *)emailr->boundary, emailr->boundary_len, M_TRUE, &found);
+		if (!found) {
+			emailr->res = M_EMAIL_ERROR_MULTIPART_INVALID;
+			return M_STATE_MACHINE_STATUS_ERROR_STATE;
+		}
+	}
 
 	if (M_parser_compare_str(emailr->parser, "--", 2, M_FALSE)) {
 		M_parser_consume(emailr->parser, 2);
@@ -726,6 +768,7 @@ void M_email_reader_destroy(M_email_reader_t *emailr)
 		return;
 	M_state_machine_destroy(emailr->sm);
 	M_free(emailr->boundary);
+	M_free(emailr->sub_boundary);
 	M_free(emailr->part_content_type);
 	M_free(emailr->part_transfer_encoding);
 	M_free(emailr->part_filename);

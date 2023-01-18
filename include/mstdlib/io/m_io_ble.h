@@ -109,7 +109,7 @@ __BEGIN_DECLS
  * time service might send an event every second or it might send an event every minute.
  *
  * Characteristics won't receive read events by default. They need to be subscribed to first.
- * Subscripts will not service a disconnect or destroy of an io object. Also, not all characteristics
+ * Subscriptions will not service a disconnect or destroy of an io object. Also, not all characteristics
  * support this property even if it supports read. Conversely some support notify/indicate but
  * not read.
  *
@@ -120,6 +120,38 @@ __BEGIN_DECLS
  * Write without response is a blind write. No result is requested from the OS. The state
  * of the write is not known after it is sent.
  *
+ * When subscribing to a notification a write must take place with no data in order for the
+ * even to be registered. Typically, you'll want to register for events after connect (since
+ * a write is needed to initiate the registration. Once the even it is registered a
+ * `M_EVENT_TYPE_READ` event will be generated with the `M_IO_BLE_RTYPE_NOTIFY`
+ * meta type set. There will be no data present. This is an indicator
+ * registration was successful.
+ *
+ * Register on connect event:
+ *
+ * \code{.c}
+ * meta = M_io_meta_create();
+ * M_io_ble_meta_set_write_type(dio, meta, M_IO_BLE_WTYPE_REQNOTIFY);
+ * M_io_ble_meta_set_service(dio, meta, "1111");
+ * M_io_ble_meta_set_characteristic(dio, meta, "2222");
+ * M_io_write_meta(dio, NULL, 0, NULL, meta);
+ * M_io_meta_destroy(meta);
+ * \endcode
+ *
+ * Check the BLE read type if notification registration was complete.
+ * While not pictured, you should also check the service and characteristic
+ * that generated the event if multiple notification events are being registered
+ * to determine which this belongs to.
+ *
+ * \code{.c}
+ * meta = M_io_meta_create();
+ * if (M_io_read_meta(dio, msg, sizeof(msg), &len, meta) == M_IO_ERROR_SUCCESS) {
+ *     if (M_io_ble_meta_get_read_type(dio, meta) == M_IO_BLE_RTYPE_NOTIFY) {
+ *         M_printf("Notify enabled\n");
+ *     }
+ * }
+ * M_io_meta_destroy(meta);
+ * \endcode
  *
  * ## macOS requirements
  *
@@ -820,6 +852,7 @@ __BEGIN_DECLS
  *         case M_EVENT_TYPE_READ:
  *             meta = M_io_meta_create();
  *
+ *             meta = M_io_meta_create();
  *             if (M_io_read_meta(dio, msg, sizeof(msg), &len, meta) != M_IO_ERROR_SUCCESS) {
  *                 M_io_meta_destroy(meta);
  *                 break;
@@ -1116,9 +1149,9 @@ typedef enum {
  * Specifies what type of read is being returned.
  */
 typedef enum {
-	M_IO_BLE_RTYPE_READ = 0, /*!< Regular read of data from service and characteristic. */
-	M_IO_BLE_RTYPE_RSSI,     /*!< RSSI data read. Use M_io_ble_meta_get_rssi. */
-	M_IO_BLE_RTYPE_NOTIFY    /*!< Notify state changed. */
+	M_IO_BLE_RTYPE_READ = 0, /*!< Regular read of data from service and characteristic. Read will return data. */
+	M_IO_BLE_RTYPE_RSSI,     /*!< RSSI data read. Use M_io_ble_meta_get_rssi. Read will not return data. All information should be access through meta methods. */
+	M_IO_BLE_RTYPE_NOTIFY    /*!< Notify state changed. There will be no data. This only  indicates something happened with a notification end point subscription. Read will not return data because this is an indicator. */
 } M_io_ble_rtype_t;
 
 
@@ -1337,6 +1370,34 @@ M_API M_io_ble_property_t M_io_ble_get_characteristic_properties(M_io_t *io, con
 M_API void M_io_ble_get_max_write_sizes(M_io_t *io, size_t *with_response, size_t *without_response);
 
 
+/*! Get the last service and characteristic uuids that generated a write event.
+ *
+ * Write with response will generate a write event when the data is written.
+ * This allows getting the last service and characteristic uuid that generated
+ * a write event in order to differentiate writes to multiple characteristics.
+ * Due to write events all being on the same event loop, calling this function
+ * in a write event will always correspond to the service and characteristic
+ * that generated the event.
+ *
+ * Once called the information will be removed so the next call will be
+ * information for the next write event. Calling multiple times or not calling
+ * in a write event can cause the event vs data from this function to become
+ * out of sync.
+ *
+ * Use of this function is optional and is not be necessary if only writing
+ * once service and one characteristic.
+ *
+ * \param[in]  io                  io object.
+ * \param[out] service_uuid        UUID of service.
+ * \param[out] characteristic_uuid UUID of characteristic.
+ *
+ * \return M_TRUE if service_uuid and characteristic_uuid was filled. M_FALSE if not filled due to error
+ *         or because there are no entries. Use M_TRUE to determine if service_uuid and characteristic_uuid
+ *         response parameters should be freed.
+ */
+M_API M_bool M_io_ble_get_last_write_characteristic(M_io_t *io, char **service_uuid, char **characteristic_uuid);
+
+
 /*! Get the service associated with a meta object.
  *
  * \param[in] io   io object.
@@ -1408,7 +1469,7 @@ M_API void M_io_ble_meta_set_service(M_io_t *io, M_io_meta_t *meta, const char *
 M_API void M_io_ble_meta_set_characteristic(M_io_t *io, M_io_meta_t *meta, const char *characteristic_uuid);
 
 
-/*! Set whether to receive notifications for characterisic data changes
+/*! Set whether to receive notifications for characteristic data changes
  *
  * If not called the default is to enable notifications.
  *
