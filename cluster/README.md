@@ -414,11 +414,11 @@ State of the node:
 ### Authenticate
 
 When a remote peer connects to the current node, BOTH nodes will immediately
-send out an Authenticate packet to the remote node to start mutual authentication.
-The request will identify the current node to the peer and provide a Nonce for
-finalizing authentication.
+send out an Authenticate packet to the remote node to start mutual
+authentication. The request will identify the current node to the peer and
+provide a Nonce for finalizing authentication.
 
-Required Request Tags: `RT` (Request Type), `CN` (Cluster Name), `NI` (Node ID),
+Required Request Tags: `RT` (RequestType), `CN` (ClusterName), `NI` (NodeID),
   `NO` (Nonce)
 
 Required Response Tags: `RT` (RequestType), `RC` (ResponseCode),
@@ -435,7 +435,8 @@ Can return one of these codes:
 #### Requestor Validations/Procedure
 - If receive a code other than `OK`, disconnect. Set self to `INIT`
   state otherwise remove.
-- If `OK`, validate HMAC.  On failure to validate HMAC, disconnect, set to `INIT`
+- If `OK`, validate HMAC.  On failure to validate HMAC, disconnect, set to
+  `INIT`
 
 #### Receiver Validations/Procedure
 - If node state not AUTH1, disconnect.
@@ -451,11 +452,11 @@ Can return one of these codes:
 
 Join or re-join the cluster. Sent only to Leader node.
 
-Required Request Tags: `RT` (Request Type), `NT` (Node Type)
+Required Request Tags: `RT` (RequestType), `NT` (NodeType)
 
-Optional Request Tags: `LT` (Log Term), `LI` (Log ID)
+Optional Request Tags: `LT` (LogTerm), `LI` (LogID)
 
-Required Response Tags: `RT` (Request Type), `RC` (Response Code),
+Required Response Tags: `RT` (RequestType), `RC` (ResponseCode),
   `LT` (LogTerm), `LI` (LogID), `LM` (LatencyMs), `NL` (NodeList)
 
 Can return one of these codes:
@@ -474,8 +475,8 @@ Can return one of these codes:
 - On `BAD_REQUEST` disconnect
 - On `MORE_DATA`, process payload data and retry request with zero LogTerm and
   LogID
-- On `OK`, process payload data (if any).  Record LogTerm and LogID in Node State.
-  Transition to `FOLLOWER` state.
+- On `OK`, process payload data (if any).  Record LogTerm and LogID in Node
+  State. Transition to `FOLLOWER` state.
 
 #### Respondor Validations/Procedure
 - On bad parse, disconnect
@@ -502,7 +503,7 @@ server will send AppendEntries for any data processed
 
 Required Request Tags: `RT` (RequestType)
 
-Required Response Tags: `RT` (Requesttype), `RC` (ResponseCode), `LT` (LogTerm),
+Required Response Tags: `RT` (RequestType), `RC` (ResponseCode), `LT` (LogTerm),
    `LI` (LogId), `SP` (SerializedPluginData)
 
 Can return one of these codes:
@@ -689,8 +690,8 @@ Optional Response Tags: `SR` (SerializedPluginResponeData)
 
 ## Connection Failed
 
-- If state in node list is NOT [INIT, CONN, FINISH, AUTH1, AUTH2, JOIN], then set isError to
-  true on node in node list.
+- If state in node list is NOT [INIT, CONN, FINISH, AUTH1, AUTH2, JOIN], then
+  set isError to true on node in node list.
 - If state in node list is NOT [FINISH], then set state to INIT.
 - Cleanup any session related data.
 - If isError in node list is false (and therefore not participating in quorum),
@@ -712,7 +713,8 @@ Optional Response Tags: `SR` (SerializedPluginResponeData)
 - Validate HMAC.  On failure to validate HMAC, disconnect.
 - If cluster id received and different than known cluster id, disconnect.
 - If Leader Address received and don't have a current leader, record.
-- If not currently joined to the cluster ourselves, but LatencyMs received, record.
+- If not currently joined to the cluster ourselves, but LatencyMs received,
+  record.
 - Transition to JOIN state
 
 
