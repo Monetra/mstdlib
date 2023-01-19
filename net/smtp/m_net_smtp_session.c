@@ -149,7 +149,7 @@ static session_status_t session_tcp_advance(M_event_t *el, M_event_type_t etype,
 						break;
 					}
 					session->tcp.net_error = M_NET_ERROR_TIMEOUT_STALL;
-					M_snprintf(session->errmsg, sizeof(session->errmsg), "Stall timeout");
+					M_snprintf(session->errmsg, sizeof(session->errmsg), "Stall timeout (message is %zu bytes)", M_str_len(session->msg));
 					break;
 				}
 				M_io_get_error_string(io, session->errmsg, sizeof(session->errmsg));
