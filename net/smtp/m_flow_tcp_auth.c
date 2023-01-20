@@ -522,23 +522,23 @@ M_state_machine_t * M_net_smtp_flow_tcp_auth(void)
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp-auth", M_STATE_MACHINE_NONE);
 
-	M_state_machine_insert_state(m, STATE_AUTH_START, 0, NULL, M_state_auth_start, NULL, NULL);
-	M_state_machine_insert_state(m, STATE_AUTH_PLAIN, 0, NULL, M_state_auth_plain, NULL, NULL);
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_PLAIN_RESPONSE, M_auth_final_response_post_cb);
+	M_state_machine_insert_state(m, STATE_AUTH_START, 0, "Auth start", M_state_auth_start, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_AUTH_PLAIN, 0, "Auth plain", M_state_auth_plain, NULL, NULL);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_PLAIN_RESPONSE, M_auth_final_response_post_cb, "Auth plain response");
 
-	M_state_machine_insert_state(m, STATE_AUTH_LOGIN, 0, NULL, M_state_auth_login, NULL, NULL);
-	M_state_machine_insert_state(m, STATE_AUTH_LOGIN_USERNAME, 0, NULL, M_state_auth_login_username, NULL, NULL);
-	M_state_machine_insert_state(m, STATE_AUTH_LOGIN_PASSWORD, 0, NULL, M_state_auth_login_password, NULL, NULL);
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_LOGIN_RESPONSE, M_auth_login_response_post_cb);
+	M_state_machine_insert_state(m, STATE_AUTH_LOGIN, 0, "Auth login", M_state_auth_login, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_AUTH_LOGIN_USERNAME, 0, "Auth login username", M_state_auth_login_username, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_AUTH_LOGIN_PASSWORD, 0, "Auth login password", M_state_auth_login_password, NULL, NULL);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_LOGIN_RESPONSE, M_auth_login_response_post_cb, "Auth login response");
 
-	M_state_machine_insert_state(m, STATE_AUTH_CRAM_MD5, 0, NULL, M_state_auth_cram_md5, NULL, NULL);
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_CRAM_MD5_SECRET_RESPONSE, M_auth_cram_md5_secret_response_post_cb);
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_CRAM_MD5_FINAL_RESPONSE, M_auth_final_response_post_cb);
+	M_state_machine_insert_state(m, STATE_AUTH_CRAM_MD5, 0, "Auth cram md5", M_state_auth_cram_md5, NULL, NULL);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_CRAM_MD5_SECRET_RESPONSE, M_auth_cram_md5_secret_response_post_cb, "Auth cram md5 secret response");
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_CRAM_MD5_FINAL_RESPONSE, M_auth_final_response_post_cb, "Auth cram md5 final response");
 
-	M_state_machine_insert_state(m, STATE_AUTH_DIGEST_MD5, 0, NULL, M_state_auth_digest_md5, NULL, NULL);
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_DIGEST_MD5_NONCE_RESPONSE, M_auth_digest_md5_nonce_response_post_cb);
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_DIGEST_MD5_ACK_RESPONSE, M_auth_digest_md5_ack_response_post_cb);
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_DIGEST_MD5_FINAL_RESPONSE, M_auth_final_response_post_cb);
+	M_state_machine_insert_state(m, STATE_AUTH_DIGEST_MD5, 0, "Auth digest md5", M_state_auth_digest_md5, NULL, NULL);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_DIGEST_MD5_NONCE_RESPONSE, M_auth_digest_md5_nonce_response_post_cb, "Auth digest md5 nonce response");
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_DIGEST_MD5_ACK_RESPONSE, M_auth_digest_md5_ack_response_post_cb, "Auth digest md5 ack response");
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_DIGEST_MD5_FINAL_RESPONSE, M_auth_final_response_post_cb, "Auth digest md5 final response");
 
 	return m;
 }

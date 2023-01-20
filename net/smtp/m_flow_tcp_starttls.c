@@ -58,8 +58,8 @@ M_state_machine_t * M_net_smtp_flow_tcp_starttls(void)
 	M_state_machine_t *m = NULL;
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp-sendmsg", M_STATE_MACHINE_NONE);
-	M_state_machine_insert_state(m, STATE_STARTTLS, 0, NULL, M_state_starttls, NULL, NULL);
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_STARTTLS_RESPONSE, M_starttls_response_post_cb);
+	M_state_machine_insert_state(m, STATE_STARTTLS, 0, "Start TLS", M_state_starttls, NULL, NULL);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_STARTTLS_RESPONSE, M_starttls_response_post_cb, "Start TLS response");
 
 	return m;
 }

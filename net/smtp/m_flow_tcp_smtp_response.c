@@ -135,15 +135,15 @@ M_state_machine_t * M_net_smtp_flow_tcp_smtp_response(void)
 {
 	M_state_machine_t *m;
 	m = M_state_machine_create(0, "SMTP-flow-tcp-smtp-response", M_STATE_MACHINE_CONTINUE_LOOP | M_STATE_MACHINE_SELF_CALL);
-	M_state_machine_insert_state(m, STATE_READ_LINE, 0, NULL, M_state_read_line, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_READ_LINE, 0, "Read line", M_state_read_line, NULL, NULL);
 	return m;
 }
 
 void M_net_smtp_flow_tcp_smtp_response_insert_subm(M_state_machine_t *m, M_uint64 id,
-		M_state_machine_post_cb post_cb)
+		M_state_machine_post_cb post_cb, const char *descr)
 {
 	M_state_machine_t *sub_m = M_net_smtp_flow_tcp_smtp_response();
-	M_state_machine_insert_sub_state_machine(m, id, 0, NULL, sub_m,
+	M_state_machine_insert_sub_state_machine(m, id, 0, descr, sub_m,
 			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 }
