@@ -2634,6 +2634,7 @@ START_TEST(endpoint_timeout)
 	args.el = el;
 	args.test_id = ENDPOINT_TIMEOUT;
 
+	M_net_smtp_setup_tcp_timeouts(sp, 1000, 1000, 1000);
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
 			"should succeed adding tcp after setting dns");
