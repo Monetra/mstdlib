@@ -15,6 +15,7 @@ libmstdlib_io_la_SOURCES = \
 	m_io_block.c \
 	m_io_ble.c \
 	m_io_ble_rdata.c \
+	m_io_ble_wcomplete.c \
 	m_io_bluetooth.c \
 	m_io_bwshaping.c \
 	m_io_hid.c \
