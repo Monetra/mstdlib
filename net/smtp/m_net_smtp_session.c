@@ -143,13 +143,16 @@ static session_status_t session_tcp_advance(M_event_t *el, M_event_type_t etype,
 			}
 			do {
 				if (etype == M_EVENT_TYPE_OTHER) {
+					char *descr;
 					if (session->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
 						session->tcp.net_error = M_NET_ERROR_TIMEOUT;
 						M_snprintf(session->errmsg, sizeof(session->errmsg), "Connection timeout");
 						break;
 					}
 					session->tcp.net_error = M_NET_ERROR_TIMEOUT_STALL;
-					M_snprintf(session->errmsg, sizeof(session->errmsg), "Stall timeout.  Message size: %zu, Remaining out buffer size: %zu, Current state is \"%s\".", M_str_len(session->msg), M_buf_len(session->out_buf), M_state_machine_descr_full(session->state_machine, M_FALSE));
+					descr = M_state_machine_descr_full(session->state_machine, M_FALSE);
+					M_snprintf(session->errmsg, sizeof(session->errmsg), "Stall timeout.  Message size: %zu, Remaining out buffer size: %zu, Current state: %s.", M_str_len(session->msg), M_buf_len(session->out_buf), descr);
+					M_free(descr);
 					if (session->ep->tcp.stall_retries < session->sp->max_stall_retries) {
 						goto destroy;
 					}
