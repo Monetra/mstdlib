@@ -67,6 +67,7 @@ typedef enum {
 	MULTITHREAD_INSERT_PROC = 37,
 	AUTH_NO_USER_PASS       = 38,
 	ENDPOINT_TIMEOUT        = 39,
+	STALL_TO_FAILURE        = 40,
 } test_id_t;
 
 #define TESTONLY 0
@@ -601,6 +602,10 @@ static M_uint64 connect_fail_cb(const char *address, M_uint16 port, M_net_error_
 	if (args->test_id == BAD_SERVER || args->test_id == BAD_AUTH) {
 		return 0;
 	}
+	if (args->test_id == STALL_TO_FAILURE)
+	{
+		return 0; /* Remove endpoint */
+	}
 	if (args->test_id == ENDPOINT_TIMEOUT) {
 		if (args->connect_fail_cb_call_count == 1)
 			return 2;
@@ -650,9 +655,13 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 	args->is_processing_halted_cb_called = M_TRUE;
 	args->processing_halted_cb_call_count++;
 	M_thread_mutex_unlock(mutex);
+	if (args->test_id == STALL_TO_FAILURE) {
+		M_event_done(args->el);
+		return 1; /* restart in 1s */
+	}
 	if (args->test_id == ENDPOINT_TIMEOUT) {
 		M_event_done(args->el);
-		return 1; /* restart in 2s */
+		return 1; /* restart in 1s */
 	}
 	if (args->test_id == NO_SERVER || args->test_id == TLS_UNSUPPORTING_SERVER) {
 		M_event_done(args->el);
@@ -1491,6 +1500,7 @@ START_TEST(timeouts)
 
 	args.test_id = TIMEOUTS;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
+	M_net_smtp_set_stall_retries(sp, 0); /* Don't retry on stalls */
 	M_net_smtp_setup_tcp_timeouts(sp, 500, 750, 1000);
 	M_net_smtp_load_balance(sp, M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport1, M_FALSE, "user", "pass", 1);
@@ -2659,6 +2669,47 @@ START_TEST(endpoint_timeout)
 }
 END_TEST
 
+START_TEST(stall_to_failure)
+{
+	M_uint16           testport;
+	args_t             args = { 0 };
+	M_event_t         *el   = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t   *emu  = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, TIMEOUT_STALL);
+	M_net_smtp_t      *sp   = M_net_smtp_create(el, &test_cbs, &args);
+	M_email_t         *e    = generate_email(1, test_address);
+	M_dns_t           *dns  = M_dns_create(el);
+
+	M_printf("START_TEST(stall_to_failure)\n");
+
+	args.el = el;
+	args.test_id = STALL_TO_FAILURE;
+
+	M_net_smtp_setup_tcp_timeouts(sp, 1000, 1000, 1000);
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 5) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
+
+	ck_assert_msg(args.send_failed_cb_call_count == 4, "Should have failed to send 4 times (%llu)", args.send_failed_cb_call_count);
+	ck_assert_msg(args.processing_halted_cb_call_count == 1, "Should have processing_halted_cb 1 time");
+
+	M_dns_destroy(dns);
+	M_email_destroy(e);
+	M_net_smtp_destroy(sp);
+	smtp_emulator_destroy(emu);
+	M_event_destroy(el);
+	cleanup();
+}
+END_TEST
+
 START_TEST(dummy_checks)
 {
 
@@ -3001,6 +3052,14 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 39
 	tc = tcase_create("endpoint_timeout");
 	tcase_add_test(tc, endpoint_timeout);
+	tcase_set_timeout(tc, 5);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*STALL_TO_FAILURE = 40, */
+#if TESTONLY == 0 || TESTONLY == 40
+	tc = tcase_create("stall_to_failure");
+	tcase_add_test(tc, stall_to_failure);
 	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
