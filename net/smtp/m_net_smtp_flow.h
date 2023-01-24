@@ -27,7 +27,7 @@
 M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_session_t *session, M_uint64 expected_code);
 
 void                       M_net_smtp_flow_tcp_smtp_response_insert_subm(
-		M_state_machine_t *m, M_uint64 id, M_state_machine_post_cb post_cb);
+		M_state_machine_t *m, M_uint64 id, M_state_machine_post_cb post_cb, const char *descr);
 M_state_machine_t         *M_net_smtp_flow_process(void);
 M_state_machine_cleanup_t *M_net_smtp_flow_tcp_smtp_response_cleanup(void);
 M_state_machine_t         *M_net_smtp_flow_tcp_smtp_response(void);

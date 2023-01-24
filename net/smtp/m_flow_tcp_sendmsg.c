@@ -248,20 +248,20 @@ M_state_machine_t * M_net_smtp_flow_tcp_sendmsg(void)
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp-sendmsg", M_STATE_MACHINE_NONE);
 
-	M_state_machine_insert_state(m, STATE_MAIL_FROM, 0, NULL, M_state_mail_from, NULL, NULL);
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_MAIL_FROM_RESPONSE, M_mail_from_response_post_cb);
+	M_state_machine_insert_state(m, STATE_MAIL_FROM, 0, "Mail from", M_state_mail_from, NULL, NULL);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_MAIL_FROM_RESPONSE, M_mail_from_response_post_cb, "Mail from response");
 
-	M_state_machine_insert_state(m, STATE_RCPT_TO, 0, NULL, M_state_rcpt_to, NULL, NULL);
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_RCPT_TO_RESPONSE, M_rcpt_to_response_post_cb);
+	M_state_machine_insert_state(m, STATE_RCPT_TO, 0, "Receipt to", M_state_rcpt_to, NULL, NULL);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_RCPT_TO_RESPONSE, M_rcpt_to_response_post_cb, "Receipt to response");
 
-	M_state_machine_insert_state(m, STATE_DATA, 0, NULL, M_state_data, NULL, NULL);
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_DATA_RESPONSE, M_data_response_post_cb);
+	M_state_machine_insert_state(m, STATE_DATA, 0, "Data", M_state_data, NULL, NULL);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_DATA_RESPONSE, M_data_response_post_cb, "Data response");
 
-	M_state_machine_insert_state(m, STATE_DATA_PAYLOAD_AND_STOP, 0, NULL, M_state_data_payload_and_stop, NULL, NULL);
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_DATA_STOP_RESPONSE, M_data_stop_response_post_cb);
+	M_state_machine_insert_state(m, STATE_DATA_PAYLOAD_AND_STOP, 0, "Data payload and stop", M_state_data_payload_and_stop, NULL, NULL);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_DATA_STOP_RESPONSE, M_data_stop_response_post_cb, "Data payload and stop response");
 
-	M_state_machine_insert_state(m, STATE_RSET, 0, NULL, M_state_rset, NULL, NULL);
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_RSET_RESPONSE, M_rset_response_post_cb);
+	M_state_machine_insert_state(m, STATE_RSET, 0, "Reset", M_state_rset, NULL, NULL);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_RSET_RESPONSE, M_rset_response_post_cb, "Reset response");
 
 	return m;
 }

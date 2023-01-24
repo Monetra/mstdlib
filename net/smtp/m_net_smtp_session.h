@@ -63,7 +63,7 @@ typedef struct {
 	M_buf_t                     *out_buf;
 	M_parser_t                  *in_parser;
 	M_event_timer_t             *event_timer;
-	char                         errmsg[128];
+	char                         errmsg[256];
 	union {
 		struct {
 			M_bool                  is_starttls_capable;

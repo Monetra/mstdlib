@@ -234,30 +234,30 @@ M_state_machine_t * M_net_smtp_flow_tcp(void)
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp", M_STATE_MACHINE_NONE);
 
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_OPENING_RESPONSE, M_opening_response_post_cb);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_OPENING_RESPONSE, M_opening_response_post_cb, "Opening response");
 
 	sub_m = M_net_smtp_flow_tcp_starttls();
-	M_state_machine_insert_sub_state_machine(m, STATE_STARTTLS, 0, NULL, sub_m,
+	M_state_machine_insert_sub_state_machine(m, STATE_STARTTLS, 0, "Start TLS", sub_m,
 			NULL, M_starttls_post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 
 	sub_m = M_net_smtp_flow_tcp_ehlo();
-	M_state_machine_insert_sub_state_machine(m, STATE_EHLO, 0, NULL, sub_m,
+	M_state_machine_insert_sub_state_machine(m, STATE_EHLO, 0, "Ehlo", sub_m,
 			NULL, M_ehlo_post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 
 	sub_m = M_net_smtp_flow_tcp_auth();
-	M_state_machine_insert_sub_state_machine(m, STATE_AUTH, 0, NULL, sub_m,
+	M_state_machine_insert_sub_state_machine(m, STATE_AUTH, 0, "Auth", sub_m,
 			NULL, M_auth_post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 
 	sub_m = M_net_smtp_flow_tcp_sendmsg();
-	M_state_machine_insert_sub_state_machine(m, STATE_SENDMSG, 0, NULL, sub_m,
+	M_state_machine_insert_sub_state_machine(m, STATE_SENDMSG, 0, "Send message", sub_m,
 			M_sendmsg_pre_cb, M_sendmsg_post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 
-	M_state_machine_insert_state(m, STATE_WAIT_FOR_NEXT_MSG, 0, NULL, M_state_wait_for_next_msg, NULL, NULL);
-	M_state_machine_insert_state(m, STATE_QUIT, 0, NULL, M_state_quit, NULL, NULL);
-	M_state_machine_insert_state(m, STATE_QUIT_ACK, 0, NULL, M_state_quit_ack, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_WAIT_FOR_NEXT_MSG, 0, "Wait for next message", M_state_wait_for_next_msg, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_QUIT, 0, "Quit", M_state_quit, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_QUIT_ACK, 0, "Quit Acknowledge", M_state_quit_ack, NULL, NULL);
 	return m;
 }

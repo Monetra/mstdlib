@@ -48,6 +48,7 @@ typedef struct {
 			M_bool         connect_tls;
 			char          *username;
 			char          *password;
+			size_t         stall_retries;
 		} tcp;
 		struct {
 			char          *command;
