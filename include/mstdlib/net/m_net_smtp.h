@@ -357,6 +357,13 @@ M_API M_bool M_net_smtp_load_balance(M_net_smtp_t *sp, M_net_smtp_load_balance_t
  */
 M_API void M_net_smtp_set_num_attempts(M_net_smtp_t *sp, size_t num);
 
+/*! Number of consecutive stall timeouts allowed per endpoint.
+ *
+ * \param[in] sp  SMTP pool.
+ * \param[in] num Number of stall retries per endpoint.  Can be 0 to fail endpoint on first stall.
+ */
+M_API void M_net_smtp_set_stall_retries(M_net_smtp_t *sp, size_t num);
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 

@@ -57,6 +57,7 @@ struct M_net_smtp {
 	size_t                             round_robin_idx;
 	M_event_timer_t                   *restart_processing_timer;
 	M_net_smtp_queue_t                *queue;
+	size_t                             max_stall_retries;
 };
 
 typedef struct {

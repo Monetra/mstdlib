@@ -128,9 +128,9 @@ M_state_machine_t * M_net_smtp_flow_tcp_ehlo(void)
 	M_state_machine_t *m = NULL;
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp-ehlo", M_STATE_MACHINE_NONE);
-	M_state_machine_insert_state(m, STATE_EHLO, 0, NULL, M_state_ehlo, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_EHLO, 0, "Ehlo", M_state_ehlo, NULL, NULL);
 
-	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_EHLO_RESPONSE, M_ehlo_response_post_cb);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_EHLO_RESPONSE, M_ehlo_response_post_cb, "Ehlo response");
 
 	return m;
 }

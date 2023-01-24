@@ -379,12 +379,13 @@ M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks
 		sp->cbs.reschedule_cb        = cbs->reschedule_cb        ? cbs->reschedule_cb        : nop_reschedule_cb;
 		sp->cbs.iocreate_cb          = cbs->iocreate_cb          ? cbs->iocreate_cb          : nop_iocreate_cb;
 	}
-	sp->el             = el;
-	sp->thunk          = thunk;
-	sp->status         = M_NET_SMTP_STATUS_NOENDPOINTS;
-	sp->tcp_connect_ms = 5000;
-	sp->tcp_stall_ms   = 5000;
-	sp->tcp_idle_ms    = 1000;
+	sp->el                = el;
+	sp->thunk             = thunk;
+	sp->status            = M_NET_SMTP_STATUS_NOENDPOINTS;
+	sp->tcp_connect_ms    = 5000;
+	sp->tcp_stall_ms      = 5000;
+	sp->tcp_idle_ms       = 1000;
+	sp->max_stall_retries = 4;
 
 	return sp;
 }
@@ -565,6 +566,13 @@ M_bool M_net_smtp_load_balance(M_net_smtp_t *sp, M_net_smtp_load_balance_t mode)
 
 	sp->load_balance_mode = mode;
 	return M_TRUE;
+}
+
+void M_net_smtp_set_stall_retries(M_net_smtp_t *sp, size_t num)
+{
+	if (sp == NULL)
+		return;
+	sp->max_stall_retries = num;
 }
 
 void M_net_smtp_set_num_attempts(M_net_smtp_t *sp, size_t num)
