@@ -112,6 +112,7 @@ typedef struct {
 	M_bool                                    supports_c_sbigint;     /*!< Whether or not the database supports the SQL_C_SBIGINT datatype or not.  Will use SQL_C_NUMERIC if not. */
 	M_bool                                    insert_conflict_rowcnt; /*!< If the number of rows requested doesn't match rows processed on insert, it means there was a conflict. */
 	M_bool                                    on_conflict_do_nothing; /*!< Prevent aborting the transaction if a conflict is detected on insert by appending ON CONFLICT DO NOTHING to the query */
+	M_bool                                    uniqueidx_needs_where;  /*!< Unique Index creation needs a WHERE clause to allow multiple NULL values */
 	size_t                                    max_insert_records;     /*!< Maximum number of records that can be inserted at once. 0=unlimited */
 	size_t                                    max_bind_params;        /*!< Maximum number of bind params in a query. 0=unlimited */
 	size_t                                    unknown_size_ind;       /*!< Some DBs (PostgreSQL) use a length value to indicate a max or unknown size for results like 255 */
@@ -164,6 +165,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		M_TRUE,                       /* SQL_C_SBIGINT          */
 		M_FALSE,                      /* insert_conflict_rowcnt */
 		M_FALSE,                      /* on_conflict_do_nothing */
+		M_TRUE,                       /* uniqueidx_needs_where  */
 		/* Docs used to mention a limit of 1000 rows but that reference has been
 		 * removed, but here is discussion:
 		 * https://social.msdn.microsoft.com/Forums/sqlserver/en-US/bff53b3d-bf50-413f-891e-75af427394e2/limit-to-number-of-insert-statements-or-values-clauses?forum=transactsql
@@ -194,6 +196,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		M_TRUE,                       /* SQL_C_SBIGINT          */
 		M_FALSE,                      /* insert_conflict_rowcnt */
 		M_FALSE,                      /* on_conflict_do_nothing */
+		M_FALSE,                      /* uniqueidx_needs_where  */
 		0,                            /* max_insert_records     */
 		0,                            /* max_bind_params        */
 		0,                            /* unknown_size_ind       */
@@ -212,6 +215,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		M_FALSE,                      /* SQL_C_SBIGINT          */
 		M_FALSE,                      /* insert_conflict_rowcnt */
 		M_FALSE,                      /* on_conflict_do_nothing */
+		M_FALSE,                      /* uniqueidx_needs_where  */
 		0,                            /* max_insert_records     */
 		0,                            /* max_bind_params        */
 		0,                            /* unknown_size_ind       */
@@ -230,6 +234,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		M_TRUE,                       /* SQL_C_SBIGINT          */
 		M_FALSE,                      /* insert_conflict_rowcnt */
 		M_FALSE,                      /* on_conflict_do_nothing */
+		M_FALSE,                      /* uniqueidx_needs_where  */
 		0,                            /* max_insert_records     */
 		M_UINT16_MAX,                 /* max_bind_params        */
 		0,                            /* unknown_size_ind       */
@@ -248,6 +253,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		M_TRUE,                       /* SQL_C_SBIGINT          */
 		M_FALSE,                      /* insert_conflict_rowcnt */
 		M_FALSE,                      /* on_conflict_do_nothing */
+		M_FALSE,                      /* uniqueidx_needs_where  */
 		0,                            /* max_insert_records     */
 		M_UINT16_MAX,                 /* max_bind_params        */
 		0,                            /* unknown_size_ind       */
@@ -266,6 +272,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		M_TRUE,                       /* SQL_C_SBIGINT          */
 		M_TRUE,                       /* insert_conflict_rowcnt */
 		M_TRUE,                       /* on_conflict_do_nothing */
+		M_FALSE,                      /* uniqueidx_needs_where  */
 		100,                          /* max_insert_records     */
 		0,                            /* max_bind_params        */
 		255,                          /* unknown_size_ind       */
@@ -278,7 +285,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		NULL                          /* cb_rewrite_indexname   */
 	},
 
-	{ NULL, M_FALSE, M_FALSE, M_FALSE, M_FALSE, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
+	{ NULL, M_FALSE, M_FALSE, M_FALSE, M_FALSE, M_FALSE, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 };
 
 
@@ -1947,12 +1954,22 @@ static char *odbc_cb_rewrite_indexname(M_sql_connpool_t *pool, const char *index
 }
 
 
+static M_sql_driver_flags_t odbc_cb_flags(M_sql_conn_t *conn)
+{
+	M_sql_driver_conn_t *dconn = M_sql_driver_conn_get_conn(conn);
+	M_sql_driver_flags_t flags = M_SQL_DRIVER_FLAG_UNIQUEINDEX_NOTNULL_WHERE;
+	if (dconn->pool_data->profile->uniqueidx_needs_where)
+		flags |= M_SQL_DRIVER_FLAG_UNIQUEINDEX_NOTNULL_WHERE;
+	return flags;
+}
+
 static M_sql_driver_t M_sql_odbc = {
 	M_SQL_DRIVER_VERSION,         /* Driver/Module subsystem version */
 	"odbc",                       /* Short name of module */
 	"ODBC driver for mstdlib",    /* Display name of module */
 	"1.0.0",                      /* Internal module version */
 
+	odbc_cb_flags,                /* Callback used for getting connection-specific flags */
 	odbc_cb_init,                 /* Callback used for module initialization. */
 	odbc_cb_destroy,              /* Callback used for module destruction/unloading. */
 	odbc_cb_createpool,           /* Callback used for pool creation */

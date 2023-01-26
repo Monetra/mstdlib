@@ -449,6 +449,21 @@ M_sql_error_t M_sql_table_execute(M_sql_connpool_t *pool, M_sql_table_t *table, 
 		}
 		M_buf_add_str(query, ")");
 
+		/* Some SQL servers treat multiple NULL values as conflict, which is against the SQL
+		 * standard on Unique indexes, but this can be solved by using a WHERE clause on the
+		 * index on some servers. */
+		if (idx->flags & M_SQL_INDEX_FLAG_UNIQUE &&
+		    M_sql_connpool_get_driver_flags(pool) & M_SQL_DRIVER_FLAG_UNIQUEINDEX_NOTNULL_WHERE) {
+			M_buf_add_str(query, " WHERE");
+			for (j=0; j<M_list_str_len(idx->cols); j++) {
+				if (j != 0)
+					M_buf_add_str(query, " AND");
+				M_buf_add_str(query, " \"");
+				M_buf_add_str(query, M_list_str_at(idx->cols, j));
+				M_buf_add_str(query, "\" IS NOT NULL");
+			}
+		}
+
 		stmt  = M_sql_stmt_create();
 		err   = M_sql_stmt_prepare_buf(stmt, query);
 		query = NULL;

@@ -1561,3 +1561,19 @@ done:
 	M_thread_mutex_unlock(stmt->group_lock);
 }
 
+M_sql_driver_flags_t M_sql_connpool_get_driver_flags(M_sql_connpool_t *pool)
+{
+	M_sql_conn_t         *conn   = M_sql_connpool_acquire_conn(pool, M_FALSE /* primary */, M_FALSE /* Not in a transaction */);
+	const M_sql_driver_t *driver = M_sql_conn_get_driver(conn);
+	M_sql_driver_flags_t  flags  = 0;
+
+	if (driver == NULL || driver->cb_flags == NULL)
+		goto done;
+
+	flags = driver->cb_flags(conn);
+
+done:
+	M_sql_connpool_release_conn(conn);
+	return flags;
+}
+

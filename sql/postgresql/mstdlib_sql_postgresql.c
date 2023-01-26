@@ -902,6 +902,7 @@ static M_sql_driver_t M_sql_postgresql = {
 	"PostgreSQL driver for mstdlib",  /* Display name of module */
 	"1.0.2",                      /* Internal module version */
 
+	NULL,                         /* Callback used for getting connection-specific flags */
 	pgsql_cb_init,                /* Callback used for module initialization. */
 	pgsql_cb_destroy,             /* Callback used for module destruction/unloading. */
 	pgsql_cb_createpool,          /* Callback used for pool creation */

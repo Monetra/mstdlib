@@ -1056,6 +1056,7 @@ static M_sql_driver_t M_sql_sqlite = {
 	"SQLite driver for mstdlib",  /* Display name of module */
 	"1.0.1",                      /* Internal module version */
 
+	NULL,                         /* Callback used for getting connection-specific flags */
 	sqlite_cb_init,               /* Callback used for module initialization. */
 	sqlite_cb_destroy,            /* Callback used for module destruction/unloading. */
 	sqlite_cb_createpool,         /* Callback used for pool creation */

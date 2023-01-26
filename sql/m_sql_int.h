@@ -54,6 +54,8 @@ M_sql_connpool_flags_t M_sql_connpool_flags(M_sql_connpool_t *pool);
 
 const M_sql_driver_t *M_sql_connpool_get_driver(M_sql_connpool_t *pool);
 
+M_sql_driver_flags_t M_sql_connpool_get_driver_flags(M_sql_connpool_t *pool);
+
 /*! Retrieve a handle to the driver structure from a connection.  This can be used
  *  to obtain the callbacks, etc.
  * 
