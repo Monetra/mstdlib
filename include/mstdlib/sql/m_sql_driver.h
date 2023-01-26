@@ -342,6 +342,19 @@ typedef M_bool (*M_sql_driver_cb_append_bitop_t)(M_sql_connpool_t *pool, M_buf_t
  */
 typedef char *(*M_sql_driver_cb_rewrite_indexname_t)(M_sql_connpool_t *pool, const char *index_name);
 
+/*! Flags advertised by SQL database (could be based on db version etc) */
+typedef enum {
+	M_SQL_DRIVER_FLAG_NONE                      = 0,       /*!< No flags */
+	M_SQL_DRIVER_FLAG_UNIQUEINDEX_NOTNULL_WHERE = 1 << 0   /*!< A unique index needs a WHERE clause to allow multiple NULL values */
+} M_sql_driver_flags_t;
+
+/*! Fetch current flags from driver for connection based
+ *
+ *  \param[in]  conn       Initialized connection object.
+ *  \return NULL if no change necessary, otherwise rewritten index name.
+ */
+typedef M_sql_driver_flags_t (*M_sql_driver_cb_flags_t)(M_sql_conn_t *conn);
+
 
 /*! Structure to be implemented by SQL drivers with information about the database in use */
 typedef struct  {
@@ -351,6 +364,7 @@ typedef struct  {
 	const char                   *version;            /*!< Internal module version */
 
 	/* NOTE: All callbacks are required to be registered by all drivers */
+	M_sql_driver_cb_flags_t              cb_flags;              /*!< Optional. Callback used to get db flags */
 	M_sql_driver_cb_init_t               cb_init;               /*!< Required. Callback used for module initialization. */
 	M_sql_driver_cb_destroy_t            cb_destroy;            /*!< Required. Callback used for module destruction/unloading. */
 	M_sql_driver_cb_createpool_t         cb_createpool;         /*!< Required. Callback used for pool creation */

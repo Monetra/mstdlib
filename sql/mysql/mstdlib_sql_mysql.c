@@ -1075,6 +1075,7 @@ static M_sql_driver_t M_sql_mysql = {
 	"MySQL/MariaDB driver for mstdlib",  /* Display name of module */
 	"1.0.0",                      /* Internal module version */
 
+	NULL,                         /* Callback used for getting connection-specific flags */
 	mysql_cb_init,                /* Callback used for module initialization. */
 	mysql_cb_destroy,             /* Callback used for module destruction/unloading. */
 	mysql_cb_createpool,          /* Callback used for pool creation */
