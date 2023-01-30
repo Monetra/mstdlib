@@ -747,6 +747,7 @@ static int M_tls_bio_read(BIO *b, char *buf, int len)
 
 	read_len = (size_t)len;
 	err      = M_io_layer_read(M_io_layer_get_io(layer), M_io_layer_get_index(layer)-1, (unsigned char *)buf, &read_len, NULL);
+//M_dprintf(1, "%s(): request size %zu, read %zu\n", __FUNCTION__, (size_t)len, (size_t)read_len);
 	handle->last_io_err = err;
 	BIO_clear_retry_flags(b);
 
@@ -802,6 +803,7 @@ static int M_tls_bio_write(BIO *b, const char *buf, int len)
 #else
 	write_len           = (size_t)len;
 	handle->last_io_err = M_io_layer_write(M_io_layer_get_io(layer), M_io_layer_get_index(layer)-1, (const unsigned char *)buf, &write_len, NULL);
+//M_dprintf(1, "%s(): request size %zu, write %zu\n", __FUNCTION__, (size_t)len, (size_t)write_len);
 
 	if (handle->last_io_err != M_IO_ERROR_SUCCESS) {
 		if (handle->last_io_err == M_IO_ERROR_WOULDBLOCK) {
@@ -1299,6 +1301,9 @@ M_io_error_t M_io_tls_client_add(M_io_t *io, M_tls_clientctx_t *ctx, const char 
 
 	handle->hostname = M_strdup(hostname);
 
+	/* Add buffer layer to improve performance */
+	M_io_add_buffer(io, NULL, 16 * 1024 * 1024, 16 * 1024 * 1024);
+
 	callbacks = M_io_callbacks_create();
 	M_io_callbacks_reg_init(callbacks, M_io_tls_init_cb);
 	M_io_callbacks_reg_read(callbacks, M_io_tls_read_cb);
@@ -1375,6 +1380,8 @@ M_io_error_t M_io_tls_server_add(M_io_t *io, M_tls_serverctx_t *ctx, size_t *lay
 	M_io_callbacks_reg_init(callbacks, M_io_tls_init_cb);
 	if (M_io_get_type(io) == M_IO_TYPE_LISTENER) {
 		M_io_callbacks_reg_accept(callbacks, M_io_tls_accept_cb);
+		/* Add buffer layer to improve performance */
+		M_io_add_buffer(io, NULL, 16 * 1024 * 1024, 16 * 1024 * 1024);
 	}
 	M_io_callbacks_reg_read(callbacks, M_io_tls_read_cb);
 	M_io_callbacks_reg_write(callbacks, M_io_tls_write_cb);

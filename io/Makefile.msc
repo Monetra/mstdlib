@@ -58,6 +58,7 @@ OBJS      = \
 	m_io_block.obj             \
 	m_io_bluetooth.obj         \
 	m_io_bluetooth_notimpl.obj \
+	m_io_buffer.obj            \
 	m_io_bwshaping.obj         \
 	m_io_loopback.obj          \
 	m_io_net.obj               \

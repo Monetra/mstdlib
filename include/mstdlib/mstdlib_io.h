@@ -89,5 +89,6 @@
 #include <mstdlib/io/m_io_hid.h>
 #include <mstdlib/io/m_io_mfi.h>
 #include <mstdlib/io/m_io_trace.h>
+#include <mstdlib/io/m_io_buffer.h>
 
 #endif /* __MSTDLIB_IO_H__ */

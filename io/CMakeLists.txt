@@ -31,6 +31,7 @@ set(sources
 	# No OS specific implementations
 	m_io.c
 	m_io_block.c
+	m_io_buffer.c
 	m_io_bwshaping.c
 	m_io_loopback.c
 	net/m_dns.c
