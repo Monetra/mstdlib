@@ -872,7 +872,7 @@ static void odbc_cb_prepare_destroy(M_sql_driver_stmt_t *dstmt)
 }
 
 
-static M_bool odbc_bind_set_type(M_sql_data_type_t type, M_bool use_numeric, SQLSMALLINT *ValueType, SQLSMALLINT *ParameterType)
+static M_bool odbc_bind_set_type(M_sql_data_type_t type, M_bool use_numeric, size_t column_size, SQLSMALLINT *ValueType, SQLSMALLINT *ParameterType)
 {
 	/* Uninitialized warning suppress (won't ever actually be used). */
 	*ValueType     = 0;
@@ -911,12 +911,20 @@ static M_bool odbc_bind_set_type(M_sql_data_type_t type, M_bool use_numeric, SQL
 
 		case M_SQL_DATA_TYPE_TEXT:
 			*ValueType                = SQL_C_CHAR;
-			*ParameterType            = SQL_VARCHAR;
+			if (column_size > 4000) {
+				*ParameterType        = SQL_LONGVARCHAR;
+			} else {
+				*ParameterType        = SQL_VARCHAR;
+			}
 			break;
 
 		case M_SQL_DATA_TYPE_BINARY:
 			*ValueType                = SQL_C_BINARY;
-			*ParameterType            = SQL_LONGVARBINARY;
+			if (column_size > 4000) {
+				*ParameterType        = SQL_LONGVARBINARY;
+			} else {
+				*ParameterType        = SQL_VARBINARY;
+			}
 			break;
 
 		case M_SQL_DATA_TYPE_UNKNOWN:
@@ -1097,7 +1105,7 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 				break;
 		}
 
-		if (!odbc_bind_set_type(type, use_numeric, &ValueType, &ParameterType)) {
+		if (!odbc_bind_set_type(type, use_numeric, ColumnSize, &ValueType, &ParameterType)) {
 			M_snprintf(error, error_size, "Failed to determine data type col %zu", i);
 			err = M_SQL_ERROR_QUERY_FAILURE;
 			goto done;
@@ -1110,14 +1118,6 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 		if (ColumnSize == 0) {
 			/* Some Microsoft SQL Server ODBC drivers do not like a ColumnSize of 0 on NULL columns.  So make it 1, which works */
 			ColumnSize = 1;
-		} else if (ColumnSize > 4000 && M_str_caseeq(dstmt->dconn->pool_data->profile->name, "Microsoft SQL Server")) {
-			/* Microsoft SQL Server doesn't appear to like to bind columns with a large ColumnSize.  It will return
-			 * HY104: [Microsoft][ODBC SQL Server Driver]Invalid precision value
-			 * Its not actually clear how ColumnSize is actually used in the first place or how it differs from
-			 * the length already provided.
-			 * NOTE: see how this contradicts with the above test though, so weird, I'd hate to see Microsoft's driver code,
-			 *       I really don't know how they could have so many issues. */
-			ColumnSize = 0;
 		}
 
 		rc = SQLBindParameter(
@@ -1244,14 +1244,6 @@ static void odbc_bind_set_value_flat(M_sql_driver_stmt_t *dstmt, M_sql_stmt_t *s
 	if (*ColumnSize == 0) {
 		/* Some Microsoft SQL Server ODBC drivers do not like a ColumnSize of 0 on NULL/blank columns.  So make it 1, which works */
 		*ColumnSize = 1;
-	} else if (*ColumnSize > 4000 && M_str_caseeq(dstmt->dconn->pool_data->profile->name, "Microsoft SQL Server")) {
-		/* Microsoft SQL Server doesn't appear to like to bind columns with a large ColumnSize.  It will return
-		 * HY104: [Microsoft][ODBC SQL Server Driver]Invalid precision value
-		 * Its not actually clear how ColumnSize is actually used in the first place or how it differs from
-		 * the length already provided.
-		 * NOTE: see how this contradicts with the above test though, so weird, I'd hate to see Microsoft's driver code,
-		 *       I really don't know how they could have so many issues. */
-		*ColumnSize = 0;
 	}
 }
 
@@ -1299,7 +1291,7 @@ static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stm
 			M_sql_data_type_t    type           = M_sql_driver_stmt_bind_get_type(stmt, row, i);
 			size_t               idx            = (row * num_cols) + i;
 
-			if (!odbc_bind_set_type(type, use_numeric, &ValueType, &ParameterType)) {
+			if (!odbc_bind_set_type(type, use_numeric, M_sql_driver_stmt_bind_get_curr_col_size(stmt, row, i), &ValueType, &ParameterType)) {
 				M_snprintf(error, error_size, "Failed to determine data type for rows %zu col %zu", row, i);
 				err = M_SQL_ERROR_QUERY_FAILURE;
 				goto done;
