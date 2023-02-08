@@ -1172,6 +1172,8 @@ static void odbc_bind_set_value_flat(M_sql_driver_stmt_t *dstmt, M_sql_stmt_t *s
 	M_sql_data_type_t type = M_sql_driver_stmt_bind_get_type(stmt, row, col);
 	const unsigned char *data;
 
+	(void)dstmt;
+
 	*len        = 0;
 	*value      = NULL;
 	*ColumnSize = M_sql_driver_stmt_bind_get_curr_col_size(stmt, row, col);
