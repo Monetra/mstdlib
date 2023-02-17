@@ -191,6 +191,9 @@ static size_t M_io_netdns_find_io(M_io_handle_t *handle, M_io_t *realio)
 {
 	size_t         i;
 
+	if (handle->data.netdns.io_try == NULL)
+		return 0;
+
 	for (i=0; i<=handle->data.netdns.io_try_idx; i++) {
 		if (handle->data.netdns.io_try[i] == realio)
 			return i;
@@ -374,6 +377,9 @@ static void M_io_netdns_dns_callback(const M_list_str_t *ips, void *cb_data, M_d
 	M_io_layer_t  *layer       = cb_data;
 	M_io_handle_t *handle      = M_io_layer_get_handle(layer);
 	size_t         i;
+
+	if (handle == NULL)
+		return;
 
 	handle->data.netdns.query_time = M_time_elapsed(&handle->data.netdns.query_start);
 	if (result != M_DNS_RESULT_SUCCESS && result != M_DNS_RESULT_SUCCESS_CACHE && result != M_DNS_RESULT_SUCCESS_CACHE_EVICT) {
