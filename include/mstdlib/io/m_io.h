@@ -393,8 +393,6 @@ M_API M_io_error_t M_io_get_error(M_io_t *io);
  *  \param[in]  io      io object.
  *  \param[out] error   Error buffer.
  *  \param[in]  err_len Size of error buffer.
- *
- *  \return Textual description of error.
  */
 M_API void M_io_get_error_string(M_io_t *io, char *error, size_t err_len);
 

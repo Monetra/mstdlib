@@ -398,8 +398,6 @@ M_API M_bool M_tls_serverctx_upref(M_tls_serverctx_t *ctx);
  * Server CTXs use reference counters, and will delay destruction until after last consumer is destroyed.
  *
  * \param[in] ctx Server context.
- *
- * \return M_TRUE on success, otherwise M_FALSE on error.
  */
 M_API void M_tls_serverctx_destroy(M_tls_serverctx_t *ctx);
 

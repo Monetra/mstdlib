@@ -147,8 +147,6 @@ M_API M_rand_t *M_rand_duplicate(M_rand_t *state);
  *
  * \param[in,out] state The state.
  *
- * \return Random state.
- *
  * \see M_rand_duplicate
  */
 M_API void M_rand_jump(M_rand_t *state);
