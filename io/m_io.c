@@ -99,7 +99,8 @@ M_io_layer_t *M_io_layer_add(M_io_t *comm, const char *layer_name, M_io_handle_t
 	}
 #endif
 
-	if (M_list_len(comm->layer) == M_IO_LAYERS_MAX-1 /* 1 reserved for user */ ) {
+	if (M_list_len(comm->layer) == M_IO_LAYERS_MAX-1 /* 1 reserved for user */ ||
+	    comm->flags & M_IO_FLAG_USER_DESTROY) {
 		M_io_unlock(comm);
 		return NULL;
 	}
@@ -138,7 +139,7 @@ M_io_layer_t *M_io_layer_at(M_io_t *io, size_t layer_id)
 {
 	const void   *ptr;
 
-	if (io == NULL)
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
 		return NULL;
 
 	if (layer_id == M_IO_LAYER_FIND_FIRST_ID)
@@ -156,7 +157,7 @@ M_io_layer_t *M_io_layer_acquire(M_io_t *io, size_t layer_id, const char *name)
 	M_io_layer_t *layer;
 	size_t        i;
 
-	if (io == NULL)
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
 		return NULL;
 
 	if (layer_id == M_IO_LAYER_FIND_FIRST_ID && M_str_isempty(name))
@@ -195,15 +196,6 @@ void M_io_layer_release(M_io_layer_t *layer)
 }
 
 
-static void M_io_destroy_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
-{
-	(void)event;
-	(void)type;
-	(void)io;
-	M_io_destroy(cb_arg);
-}
-
-
 M_bool M_io_reconnect(M_io_t *io)
 {
 	M_event_t         *event         = NULL;
@@ -213,7 +205,7 @@ M_bool M_io_reconnect(M_io_t *io)
 	M_event_callback_t cb            = NULL;
 	void              *cb_data       = NULL;
 
-	if (io == NULL)
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
 		return M_FALSE;
 
 	if (io->reg_event) {
@@ -258,7 +250,7 @@ M_bool M_io_close(M_io_t *io)
 	ssize_t            i;
 	size_t             num;
 
-	if (io == NULL)
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
 		return M_FALSE;
 
 	if (io->reg_event) {
@@ -284,71 +276,87 @@ M_bool M_io_close(M_io_t *io)
 	return M_TRUE;
 }
 
-
-void M_io_destroy(M_io_t *comm)
+static void M_io_destroy_full(M_io_t *io)
 {
 	ssize_t    i;
 	size_t     num;
-	M_event_t *event         = NULL;
+	M_event_t *event = NULL;
 	M_bool     destroy_event = M_FALSE;
 
-	if (comm == NULL)
+	if (io == NULL)
 		return;
 
-//M_printf("%s(): [%p] io %p event %p enter\n", __FUNCTION__, (void *)M_thread_self(), comm, comm->reg_event);
+	M_io_lock(io);
 
-	if (comm->reg_event) {
-		M_io_lock(comm);
-
-		event = comm->reg_event;
-
-		/* If we are executing this from a separate thread than is running the event loop, we need to
-		 * delay the cleanup process and actually have it run within the assigned event loop instead */
-		if (!comm->private_event && event->u.loop.threadid != 0 && event->u.loop.threadid != M_thread_self()) {
-			M_event_remove(comm);
-			/* Queue a destroy task to run for this */
-			M_event_queue_task(event, M_io_destroy_cb, comm);
-
-			/* IO objects dont have their own locks, they rely on the event subsystem lock,
-			 * but M_event_remove() removes the ->reg_event pointer, therefore we cannot use
-			 * M_io_unlock(). */
-			M_event_unlock(event);
-			return;
-		}
-
-		M_event_remove(comm);
-
-		/* Unlock the lock since we are no longer bound to an event object */
-		comm->reg_event = event;
-		M_io_unlock(comm);
-		comm->reg_event = NULL;
-
-		if (comm->private_event) {
-			destroy_event = M_TRUE;
-		}
+	event = io->reg_event;
+	if (event && io->private_event) {
+		destroy_event = M_TRUE;
 	}
+	M_event_remove(io);
 
-	M_io_block_data_free(comm);
+	/* Alright, right now locking uses the event registration, rehook and unhook */
+	io->reg_event = event;
+	M_io_unlock(io);
+	io->reg_event = NULL;
 
-	num = M_list_len(comm->layer);
+	M_io_block_data_free(io);
+
+	num = M_list_len(io->layer);
 	for (i=(ssize_t)num - 1; i >= 0; i--) {
-		M_io_layer_t *layer = M_io_layer_at(comm, (size_t)i);
+		M_io_layer_t *layer = M_io_layer_at(io, (size_t)i);
 		if (layer->cb.cb_reset != NULL)
 			layer->cb.cb_reset(layer);
 		if (layer->cb.cb_destroy != NULL)
 			layer->cb.cb_destroy(layer);
 		layer->handle = NULL;
 	}
-	M_list_destroy(comm->layer, M_TRUE);
-	comm->layer = NULL;
+	M_list_destroy(io->layer, M_TRUE);
+	io->layer = NULL;
 
-//M_printf("%s(): [%p] io %p event %p exit\n", __FUNCTION__, (void *)M_thread_self(), comm, event);
-
-	M_free(comm);
+	M_free(io);
 
 	/* Delay cleaning up event until last possible time */
 	if (event && destroy_event)
 		M_event_destroy(event);
+}
+
+static void M_io_destroy_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
+{
+	(void)event;
+	(void)type;
+	(void)io;
+	M_io_destroy_full(cb_arg);
+}
+
+
+void M_io_destroy(M_io_t *io)
+{
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
+		return;
+
+//M_printf("%s(): [%p] io %p event %p enter\n", __FUNCTION__, (void *)M_thread_self(), io, io->reg_event);
+
+	M_io_lock(io);
+	if (io->flags & M_IO_FLAG_USER_DESTROY) {
+		M_io_unlock(io);
+		return;
+	}
+
+	/* If we are executing this from a separate thread than is running the event loop, we need to
+	 * delay the cleanup process and actually have it run within the assigned event loop instead */
+	if (!io->private_event                   &&
+	     io->reg_event != NULL               &&
+	     io->reg_event->u.loop.threadid != 0 &&
+	     io->reg_event->u.loop.threadid != M_thread_self()) {
+		/* Queue a destroy task to run for this on the owning event loop */
+		M_event_queue_task(io->reg_event, M_io_destroy_cb, io);
+		M_io_unlock(io);
+		return;
+	}
+
+	/* Ok, looks like we're good to actually clean up */
+	M_io_unlock(io);
+	M_io_destroy_full(io);
 }
 
 
@@ -358,7 +366,7 @@ void M_io_disconnect(M_io_t *comm)
 	size_t  num;
 	M_bool  cont = M_TRUE;
 
-	if (comm == NULL)
+	if (comm == NULL || comm->flags & M_IO_FLAG_USER_DESTROY)
 		return;
 
 	M_io_lock(comm);
@@ -388,7 +396,7 @@ M_bool M_io_is_user_initiated_disconnect(M_io_t *io)
 {
 	M_bool is_user_initiated_disconnect = M_FALSE;
 
-	if (io == NULL)
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
 		return M_FALSE;
 
 	M_io_lock(io);
@@ -407,7 +415,7 @@ M_io_error_t M_io_layer_read(M_io_t *io, size_t layer_id, unsigned char *buf, si
 	M_io_error_t  err   = M_IO_ERROR_ERROR;
 	M_io_layer_t *layer = NULL;
 
-	if (io == NULL) {
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY) {
 		err = M_IO_ERROR_INVALID;
 		goto fail;
 	}
@@ -453,7 +461,7 @@ M_io_error_t M_io_read_meta(M_io_t *io, unsigned char *buf, size_t buf_len, size
 	if (len_read == NULL)
 		len_read = &mylen_read;
 
-	if (io == NULL) {
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY) {
 		err = M_IO_ERROR_INVALID;
 		goto fail;
 	}
@@ -601,7 +609,7 @@ M_io_error_t M_io_layer_write(M_io_t *io, size_t layer_id, const unsigned char *
 	M_io_error_t  err   = M_IO_ERROR_ERROR;
 	M_io_layer_t *layer = NULL;
 
-	if (io == NULL)
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
 		return M_IO_ERROR_INVALID;
 
 	if (layer_id >= M_list_len(io->layer))
@@ -641,7 +649,7 @@ M_io_error_t M_io_write_meta(M_io_t *comm, const unsigned char *buf, size_t buf_
 	if (len_written == NULL)
 		len_written = &mylen_written;
 
-	if (comm == NULL) {
+	if (comm == NULL || comm->flags & M_IO_FLAG_USER_DESTROY) {
 		err = M_IO_ERROR_INVALID;
 		goto fail;
 	}
@@ -703,7 +711,7 @@ M_io_error_t M_io_accept(M_io_t **io_out, M_io_t *server_io)
 	size_t       num;
 	M_io_error_t err;
 
-	if (io_out == NULL || server_io == NULL) {
+	if (io_out == NULL || server_io == NULL || server_io->flags & M_IO_FLAG_USER_DESTROY) {
 		return M_IO_ERROR_INVALID;
 	}
 
@@ -736,21 +744,21 @@ fail:
 
 M_io_type_t M_io_get_type(M_io_t *io)
 {
-	if (io == NULL)
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
 		return 0;
 	return io->type;
 }
 
 M_event_t *M_io_get_event(M_io_t *io)
 {
-	if (io == NULL)
-		return 0;
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
+		return NULL;
 	return io->reg_event;
 }
 
 M_io_t *M_io_layer_get_io(M_io_layer_t *layer)
 {
-	if (layer == NULL)
+	if (layer == NULL || layer->comm == NULL || layer->comm->flags & M_IO_FLAG_USER_DESTROY)
 		return NULL;
 	return layer->comm;
 }
@@ -768,7 +776,7 @@ const char *M_io_layer_name(M_io_t *io, size_t idx)
 	const M_io_layer_t *layer;
 	const char         *name = NULL;
 
-	if (io == NULL)
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
 		return NULL;
 
 	M_io_lock(io);
@@ -915,7 +923,7 @@ M_io_state_t M_io_get_state(M_io_t *io)
 	size_t       num;
 	size_t       i;
 
-	if (io == NULL)
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
 		return M_IO_STATE_ERROR;
 
 	M_io_lock(io);
@@ -949,7 +957,7 @@ M_io_state_t M_io_get_layer_state(M_io_t *io, size_t id)
 	M_io_state_t state = M_IO_STATE_INIT;
 	size_t       num;
 
-	if (io == NULL)
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
 		return M_IO_STATE_ERROR;
 
 	M_io_lock(io);
@@ -1019,12 +1027,14 @@ const char *M_io_error_string(M_io_error_t error)
 
 M_io_error_t M_io_get_error(M_io_t *io)
 {
-	M_io_error_t err = M_IO_ERROR_INVALID;
-	if (io) {
-		M_io_lock(io);
-		err = io->last_error;
-		M_io_unlock(io);
-	}
+	M_io_error_t err;
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
+		return M_IO_ERROR_INVALID;
+
+	M_io_lock(io);
+	err = io->last_error;
+	M_io_unlock(io);
+
 	return err;
 }
 
@@ -1035,7 +1045,7 @@ void M_io_get_error_string(M_io_t *io, char *error, size_t err_len)
 	size_t       i;
 	M_bool       done = M_FALSE;
 
-	if (io == NULL || error == NULL || err_len == 0)
+	if (io == NULL || error == NULL || err_len == 0 || io->flags & M_IO_FLAG_USER_DESTROY)
 		return;
 
 	M_mem_set(error, 0, err_len);

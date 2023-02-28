@@ -98,7 +98,11 @@ typedef struct M_io_block_data M_io_block_data_t;
 /*! State flags for io object */
 typedef enum {
 	M_IO_FLAG_NONE            = 0,      /*!< no flags */
-	M_IO_FLAG_USER_DISCONNECT = 1 << 0  /*!< User requested disconnect.  Will persist until user receives disconnect or error event. */
+	M_IO_FLAG_USER_DISCONNECT = 1 << 0, /*!< User requested disconnect.  Will persist until user receives disconnect or error event. */
+	M_IO_FLAG_USER_DESTROY    = 1 << 1  /*!< User requested destroy. This marks the object as effectively destroyed so nothing else
+	                                     *   Can take place on the object (no events, etc).  This is used mostly for cross-eventloop
+	                                     *   destroys, where the owning event loop should perform the actual destruction to prevent
+	                                     *   any sort of thread syncronization issues */
 } M_io_flags_t;
 
 

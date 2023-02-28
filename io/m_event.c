@@ -294,7 +294,7 @@ void M_io_softevent_add(M_io_t *io, size_t layer_id, M_event_type_t type, M_io_e
 
 	/* Its possible someone could try to reference an io object that is not currently
 	 * associated with an event object.  In which case, we just ignore this request */
-	if (event == NULL || event->type != M_EVENT_BASE_TYPE_LOOP)
+	if (event == NULL || event->type != M_EVENT_BASE_TYPE_LOOP || io == NULL)
 		return;
 
 	M_event_lock(event);
@@ -302,6 +302,8 @@ void M_io_softevent_add(M_io_t *io, size_t layer_id, M_event_type_t type, M_io_e
 	if (layer_id >= M_io_layer_count(io) + 1 /* User layer */)
 		goto done;
 
+	if (io->flags & M_IO_FLAG_USER_DESTROY)
+		goto done;
 
 	if (M_hashtable_get(event->u.loop.reg_ios, io, (void **)&ioev)) {
 		M_uint16 ev;
@@ -686,7 +688,7 @@ M_bool M_event_edit_io_cb(M_io_t *io, M_event_callback_t callback, void *cb_data
 	M_event_io_t  *ioev  = NULL;
 	M_bool         rv    = M_FALSE;
 
-	if (io == NULL)
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
 		return M_FALSE;
 
 	M_io_lock(io);
@@ -721,7 +723,7 @@ M_event_callback_t M_event_get_io_cb(M_io_t *io, void **cb_data_out)
 
 	(*cb_data_out) = NULL;
 
-	if (io == NULL)
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
 		return NULL;
 
 	M_io_lock(io);
@@ -873,6 +875,9 @@ static void M_event_deliver(M_event_t *event, M_io_t *io, size_t layer_id, M_eve
 	void                *cb_data   = NULL;
 	M_event_io_t        *ioev      = NULL;
 
+	if (io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
+		return;
+
 	/* IO object has been removed */
 	if (!M_hashtable_get(event->u.loop.reg_ios, io, (void **)&ioev))
 		return;
@@ -938,6 +943,9 @@ static void M_event_queue_deliver(M_event_t *event)
 
 		io = M_CAST_OFF_CONST(M_io_t *, key);
 
+		if (io->flags & M_IO_FLAG_USER_DESTROY)
+			continue;
+
 		/* Process all events, even if there are no events for this layer, the high
 		 * bit is set if there are events for a higher layer */
 		for (j=0; entry->events[j] != 0; j++) {
@@ -959,7 +967,7 @@ done:
 
 void M_event_deliver_io(M_event_t *event, M_io_t *io, M_event_type_t type)
 {
-	if (event == NULL || event->type != M_EVENT_BASE_TYPE_LOOP || io == NULL)
+	if (event == NULL || event->type != M_EVENT_BASE_TYPE_LOOP || io == NULL || io->flags & M_IO_FLAG_USER_DESTROY)
 		return;
 
 	event->u.loop.osevent_cnt++;
@@ -984,6 +992,10 @@ static void M_event_softevent_process(M_event_t *event)
 		size_t               num_layers;
 
 		softevent  = M_llist_take_node(node);
+
+		if (softevent->io->flags & M_IO_FLAG_USER_DESTROY)
+			continue;
+
 		num_layers = M_io_layer_count(softevent->io) + 1 /* User layer */;
 
 		/* Enqueue all events */
@@ -1047,8 +1059,11 @@ static void M_event_done_with_disconnect_cb(M_event_t *event, M_event_type_t typ
 		M_io_t *io;
 		key = M_list_at(ios, i);
 		io  = M_CAST_OFF_CONST(M_io_t *, key);
+
 		/* Make sure io object pointer is still valid */
 		if (M_hashtable_get(event->u.loop.reg_ios, key, NULL)) {
+			if (io->flags & M_IO_FLAG_USER_DESTROY)
+				continue;
 			M_io_disconnect(io);
 		}
 	}
