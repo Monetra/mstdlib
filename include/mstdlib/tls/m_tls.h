@@ -363,7 +363,7 @@ M_API M_io_error_t M_io_tls_client_add(M_io_t *io, M_tls_clientctx_t *ctx, const
  * \param[in] key_len          Length of private key.
  * \param[in] crt              Certificate.
  * \param[in] crt_len          Length of certificate.
- * \param[in] intermediate     Intermediate certificate chain.
+ * \param[in] intermediate     Intermediate certificate chain.  Can be NULL.
  * \param[in] intermediate_len Length of intermediate certificate chain.
  *
  * \return Server context.
@@ -375,7 +375,7 @@ M_API M_tls_serverctx_t *M_tls_serverctx_create(const unsigned char *key, size_t
  *
  * \param[in] keypath          Path to key file.
  * \param[in] crtpath          Path to certificate file.
- * \param[in] intermediatepath Path to intermediate certificate file.
+ * \param[in] intermediatepath Path to intermediate certificate file.  Can be NULL.
  *
  * \return Server context.
  */
