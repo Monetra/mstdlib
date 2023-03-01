@@ -492,6 +492,9 @@ static void M_tls_serverctx_destroy_real(M_tls_serverctx_t *ctx)
 
 void M_tls_serverctx_destroy(M_tls_serverctx_t *ctx)
 {
+	if (ctx == NULL)
+		return;
+
 	M_thread_mutex_lock(ctx->lock);
 
 	if (ctx->ref_cnt == 1 && ctx->parent) {
