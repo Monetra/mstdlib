@@ -47,6 +47,7 @@ struct M_net_http_simple {
 	M_buf_t           *header_buf;
 
 	char              *proxy_server;
+	char              *proxy_auth;
 
 	M_http_simple_read_t *simple;
 
@@ -114,6 +115,7 @@ static void M_net_http_simple_destroy(M_net_http_simple_t *hs)
 	M_hash_dict_destroy(hs->headers);
 	M_free(hs->message);
 	M_free(hs->proxy_server);
+	M_free(hs->proxy_auth);
 
 	M_free(hs);
 }
@@ -534,6 +536,24 @@ void M_net_http_simple_cancel(M_net_http_simple_t *hs)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+void M_net_http_simple_set_proxy_authentication(M_net_http_simple_t *hs, const char *user, const char *pass)
+{
+	char *userpass;
+	char *userpass_b64;
+
+	if (hs == NULL || user == NULL || pass == NULL)
+		return;
+
+	M_free(hs->proxy_auth);
+
+	M_asprintf(&userpass, "%s:%s", user, pass);
+	userpass_b64 = M_bincodec_encode_alloc((M_uint8*)userpass, M_str_len(userpass), 0, M_BINCODEC_BASE64);
+	M_asprintf(&hs->proxy_auth, "Basic %s", userpass_b64);
+
+	M_free(userpass_b64);
+	M_free(userpass);
+}
+
 void M_net_http_simple_set_proxy(M_net_http_simple_t *hs, const char *proxy_server)
 {
 	if (hs == NULL)
@@ -655,6 +675,9 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 	split_url(url, &host, &port, &uri);
 	if (hs->proxy_server != NULL) {
 		request_url = url;
+		if (hs->proxy_auth != NULL) {
+			M_hash_dict_insert(hs->headers, "Proxy-Authenticate", hs->proxy_auth);
+		}
 	} else {
 		request_url = uri;
 	}
