@@ -676,7 +676,9 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 	if (hs->proxy_server != NULL) {
 		request_url = url;
 		if (hs->proxy_auth != NULL) {
-			M_hash_dict_insert(hs->headers, "Proxy-Authenticate", hs->proxy_auth);
+			if (hs->headders == NULL)
+				hs->headers = M_hash_dict_create(8, 75, M_HASH_DICT_NONE);
+			M_hash_dict_insert(hs->headers, "Proxy-Authorization", hs->proxy_auth);
 		}
 	} else {
 		request_url = uri;
