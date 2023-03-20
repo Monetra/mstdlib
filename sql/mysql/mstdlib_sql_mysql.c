@@ -28,6 +28,11 @@ M_BEGIN_IGNORE_REDECLARATIONS
 #include <mysql.h>
 M_END_IGNORE_REDECLARATIONS
 
+#ifndef HAVE_MY_BOOL
+#  include <stdbool.h>
+typedef bool my_bool;
+#endif
+
 #include "mysql_shared.h"
 
 /* Don't use m_defs_int.h, since we need to be able to build this as an external plugin. */

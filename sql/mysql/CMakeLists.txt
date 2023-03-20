@@ -64,7 +64,6 @@ if (WIN32 AND CMAKE_HOST_SYSTEM_NAME MATCHES "CYGWIN")
 	endif ()
 endif ()
 
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Build and install module.
 if (WIN32)
@@ -111,6 +110,15 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	PREFIX        ""
 	IMPORT_PREFIX ""
 )
+
+# MySQL v8 removed my_bool as a type, but older versions and MariaDB still have it.
+Set(SAVE_CMAKE_REQUIRED_INCLUDES "${CMAKE_REQUIRED_INCLUDES}")
+Set(CMAKE_REQUIRED_INCLUDES "${MySQL_INCLUDE_DIR}")
+mstdlib_type_exists(my_bool "mysql.h" HAVE_MY_BOOL)
+Set(CMAKE_REQUIRED_INCLUDES "${SAVE_CMAKE_REQUIRED_INCLUDES}")
+if (${HAVE_MY_BOOL})
+	set_target_properties(${PROJECT_NAME} PROPERTIES DEFINE_SYMBOL HAVE_MY_BOOL)
+endif()
 
 # Installation rules.
 if (MSTDLIB_INSTALL_LIBS)
