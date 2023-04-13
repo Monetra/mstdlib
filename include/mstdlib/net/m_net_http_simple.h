@@ -262,6 +262,23 @@ M_API M_net_http_simple_t *M_net_http_simple_create(M_event_t *el, M_dns_t *dns,
  */
 M_API void M_net_http_simple_cancel(M_net_http_simple_t *hs);
 
+/*! Set proxy server authentication.
+ *
+ * \param[in] hs           HTTP simple network object.
+ * \param[in] user         For use in basic credential user:pass
+ * \param[in] pass         For use in basic credential user:pass
+ *
+ */
+M_API void M_net_http_simple_set_proxy_authentication(M_net_http_simple_t *hs, const char *user, const char *pass);
+
+/*! Set proxy server.
+ *
+ * \param[in] hs           HTTP simple network object.
+ * \param[in] proxy_server URL to proxy request through.
+ *
+ */
+M_API void M_net_http_simple_set_proxy(M_net_http_simple_t *hs, const char *proxy_server);
+
 
 /*! Set operation timeouts.
  *

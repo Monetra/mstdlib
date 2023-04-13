@@ -46,6 +46,9 @@ struct M_net_http_simple {
 	M_parser_t        *read_parser;
 	M_buf_t           *header_buf;
 
+	char              *proxy_server;
+	char              *proxy_auth;
+
 	M_http_simple_read_t *simple;
 
 	M_http_method_t  method;
@@ -111,6 +114,8 @@ static void M_net_http_simple_destroy(M_net_http_simple_t *hs)
 	M_http_simple_read_destroy(hs->simple);
 	M_hash_dict_destroy(hs->headers);
 	M_free(hs->message);
+	M_free(hs->proxy_server);
+	M_free(hs->proxy_auth);
 
 	M_free(hs);
 }
@@ -284,7 +289,11 @@ static M_bool setup_io(M_net_http_simple_t *hs, const char *url)
 	M_io_error_t  ioerr;
 	size_t        lid;
 
-	split_url(url, &hostname, &port, NULL);
+	if (hs->proxy_server == NULL) {
+		split_url(url, &hostname, &port, NULL);
+	} else {
+		split_url(hs->proxy_server, &hostname, &port, NULL);
+	}
 	ioerr = M_io_net_client_create(&hs->io, hs->dns, hostname, port, M_IO_NET_ANY);
 	M_free(hostname);
 	if (ioerr != M_IO_ERROR_SUCCESS) {
@@ -527,6 +536,32 @@ void M_net_http_simple_cancel(M_net_http_simple_t *hs)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+void M_net_http_simple_set_proxy_authentication(M_net_http_simple_t *hs, const char *user, const char *pass)
+{
+	char *userpass;
+	char *userpass_b64;
+
+	if (hs == NULL || user == NULL || pass == NULL)
+		return;
+
+	M_free(hs->proxy_auth);
+
+	M_asprintf(&userpass, "%s:%s", user, pass);
+	userpass_b64 = M_bincodec_encode_alloc((M_uint8*)userpass, M_str_len(userpass), 0, M_BINCODEC_BASE64);
+	M_asprintf(&hs->proxy_auth, "Basic %s", userpass_b64);
+
+	M_free(userpass_b64);
+	M_free(userpass);
+}
+
+void M_net_http_simple_set_proxy(M_net_http_simple_t *hs, const char *proxy_server)
+{
+	if (hs == NULL)
+		return;
+	M_free(hs->proxy_server);
+	hs->proxy_server = M_strdup(proxy_server);
+}
+
 void M_net_http_simple_set_timeouts(M_net_http_simple_t *hs, M_uint64 connect_ms, M_uint64 stall_ms, M_uint64 overall_ms)
 {
 	if (hs == NULL)
@@ -615,9 +650,10 @@ void M_net_http_simple_set_message(M_net_http_simple_t *hs, M_http_method_t meth
 
 M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *thunk)
 {
-	char     *host;
-	char     *uri;
-	M_uint16  port;
+	const char *request_url;
+	char       *host;
+	char       *uri;
+	M_uint16    port;
 
 	if (hs == NULL || M_str_isempty(url) || (!M_str_caseeq_start(url, "http://") && !M_str_caseeq_start(url, "https://")))
 		return M_FALSE;
@@ -637,8 +673,19 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 
 	/* Add the data to the write buf. */
 	split_url(url, &host, &port, &uri);
+	if (hs->proxy_server != NULL) {
+		request_url = url;
+		if (hs->proxy_auth != NULL) {
+			if (hs->headers == NULL) {
+				hs->headers = M_hash_dict_create(8, 75, M_HASH_DICT_NONE);
+		}
+			M_hash_dict_insert(hs->headers, "Proxy-Authorization", hs->proxy_auth);
+		}
+	} else {
+		request_url = uri;
+	}
 	M_http_simple_write_request_buf(hs->header_buf, hs->method,
-		host, port, uri,
+		host, port, request_url,
 		hs->user_agent, hs->content_type, hs->headers,
 		NULL, hs->message_len, hs->charset);
 	M_free(host);
