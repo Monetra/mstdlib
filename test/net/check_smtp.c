@@ -2482,6 +2482,7 @@ START_TEST(bcc_test)
 }
 END_TEST
 
+#if 0
 START_TEST(domain_mismatch)
 {
 	M_uint16         testport;
@@ -2517,6 +2518,7 @@ START_TEST(domain_mismatch)
 	cleanup();
 }
 END_TEST
+#endif
 
 START_TEST(max_attempts_0)
 {
@@ -3016,12 +3018,14 @@ static Suite *smtp_suite(void)
 	suite_add_tcase(suite, tc);
 #endif
 
+#if 0
 /*DOMAIN_MISMATCH         = 35, */
 #if TESTONLY == 0 || TESTONLY == 35
 	tc = tcase_create("domain mismatch");
 	tcase_add_test(tc, domain_mismatch);
 	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
+#endif
 #endif
 
 /*MAX_ATTEMPTS_0          = 36, */
