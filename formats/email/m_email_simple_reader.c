@@ -94,6 +94,10 @@ static M_email_error_t M_email_simple_read_multipart_header_cb(const char *key, 
 
 	/* Collect the headers. */
 	M_hash_dict_insert(simple->headers, key, val);
+
+	if (M_str_caseeq(key, "Content-Type") && M_str_str(val, "oundary"))
+		M_email_set_mixed_multipart(simple->email, M_TRUE);
+
 	return M_EMAIL_ERROR_SUCCESS;
 }
 

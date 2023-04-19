@@ -202,6 +202,8 @@ M_API void M_email_set_preamble(M_email_t *email, const char *data, size_t len);
 M_API const char *M_email_epilouge(const M_email_t *email);
 M_API void M_email_set_epilouge(M_email_t *email, const char *data, size_t len);
 
+M_API void M_email_set_mixed_multipart(M_email_t *email, M_bool is_mixed_multipart);
+M_API M_bool M_email_is_mixed_multipart(const M_email_t *email);
 M_API M_bool M_email_part_append(M_email_t *email, const char *data, size_t len, const M_hash_dict_t *headers, size_t *idx);
 /* Headers exclude Content-Type, Content-Disposition, Content-Transfer-Encoding.
  * If need to be parsed instead of being set directly use part_append which
