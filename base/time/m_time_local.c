@@ -254,7 +254,7 @@ static void M_time_tolocal_sys(M_time_t t, M_time_localtm_t *ltime)
 	t = M_time_from_filetime(&fto);
 	M_time_togm(t, ltime);
 
-	GetTimeZoneInformationForYear((M_uint16)ltime.year, NULL, &info);
+	GetTimeZoneInformationForYear((M_uint16)ltime->year, NULL, &info);
 
 	if (M_time_win_is_dst(&info.StandardDate, &info.DaylightDate, ltime)) {
 		abbr = M_win32_wchar_to_char(info.DaylightName);

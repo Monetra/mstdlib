@@ -106,8 +106,8 @@ if (WIN32)
 		# Leave out little-used parts of windows.h (can still get them by including the specific headers you need).
 		WIN32_LEAN_AND_MEAN
 		NOMINMAX
-		# Explicitly request Windows Vista or newer feature level.
-		_WIN32_WINNT=0x0600
+		# Explicitly request Windows Vista SP1 or newer feature level.
+		_WIN32_WINNT=0x0601
 	)
 endif ()
 # Add alias for this target, for consumption by the different modules.
