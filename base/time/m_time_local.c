@@ -189,6 +189,43 @@ static void M_time_tolocal_tz(M_time_t t, M_time_localtm_t *ltime, const M_time_
 }
 
 #ifdef _WIN32
+
+static M_uint64 M_time_win_to_int(M_uint64 month, M_uint64 day, M_uint64 hour, M_uint64 minute)
+{
+	return (month * 1000000) + (day * 10000) + (hour * 100) + minute;
+}
+
+static M_bool M_time_win_is_dst(SYSTEMTIME *StandardDate, SYSTEMTIME *DaylightDate, M_time_localtm_t *currtime)
+{
+	M_uint64 stime = M_time_win_to_int(StandardDate->wMonth, StandardDate->wDay, StandardDate->wHour, StandardDate->wMinute);
+	M_uint64 dtime = M_time_win_to_int(DaylightDate->wMonth, DaylightDate->wDay, DaylightDate->wHour, DaylightDate->wMinute);
+	M_uint64 ctime = M_time_win_to_int(currtime->month, currtime->day, currtime->hour, currtime->min);
+
+	/* https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/ns-timezoneapi-time_zone_information
+	 * If the time zone does not support daylight saving time or if the caller needs to disable daylight saving time,
+	 * the wMonth member in the SYSTEMTIME structure must be zero. If this date is specified, the DaylightDate member
+	 * of this structure must also be specified. */
+	if (StandardDate->wMonth == 0)
+		return M_FALSE;
+
+	if (stime > dtime) {
+		/* switch to standard time at end of year, daylight at beginning */
+		if (ctime >= stime)
+			return M_FALSE;
+
+		if (ctime < dtime)
+			return M_FALSE;
+		return M_TRUE;
+	}
+
+	/* switch to daylight time at end of year, standard at end */
+	if (ctime >= dtime)
+		return M_TRUE;
+	if (ctime < stime)
+		return M_TRUE;
+	return M_FALSE;
+}
+
 static void M_time_tolocal_sys(M_time_t t, M_time_localtm_t *ltime)
 {
 	char                  *abbr;
@@ -197,13 +234,14 @@ static void M_time_tolocal_sys(M_time_t t, M_time_localtm_t *ltime)
 	SYSTEMTIME             st;
 	SYSTEMTIME             lt;
 	TIME_ZONE_INFORMATION  info;
-	
+
+	M_mem_set(&info, 0, sizeof(info));
 	M_mem_set(&ft, 0, sizeof(ft));
 	M_mem_set(&fto, 0, sizeof(fto));
 	M_mem_set(&st, 0, sizeof(st));
 	M_mem_set(&lt, 0, sizeof(lt));
 	M_mem_set(ltime, 0, sizeof(*ltime));
-	
+
 	M_time_to_filetime(t, &ft);
 
 	/* It would be great if we could use FileTimeToLocalFileTime
@@ -215,25 +253,21 @@ static void M_time_tolocal_sys(M_time_t t, M_time_localtm_t *ltime)
 
 	t = M_time_from_filetime(&fto);
 	M_time_togm(t, ltime);
-	
-	switch (GetTimeZoneInformation(&info)) {
-		case 1:
-			abbr = M_win32_wchar_to_char(info.StandardName);
-			M_snprintf(ltime->abbr, sizeof(ltime->abbr), "%s", abbr);
-			M_free(abbr);
-			ltime->gmtoff = (info.Bias*-60)+(info.StandardBias*-60);
-			ltime->isdst = 0;
-			break;
-		case 2:
-			abbr = M_win32_wchar_to_char(info.DaylightName);
-			M_snprintf(ltime->abbr, sizeof(ltime->abbr), "%s", abbr);
-			M_free(abbr);
-			ltime->gmtoff = (info.Bias*-60)+(info.DaylightBias*-60);
-			ltime->isdst = 1;
-			break;
-		default:
-			ltime->isdst = -1;
-			break;
+
+	GetTimeZoneInformationForYear((M_uint16)ltime.year, NULL, &info);
+
+	if (M_time_win_is_dst(&info.StandardDate, &info.DaylightDate, ltime)) {
+		abbr = M_win32_wchar_to_char(info.DaylightName);
+		M_snprintf(ltime->abbr, sizeof(ltime->abbr), "%s", abbr);
+		M_free(abbr);
+		ltime->gmtoff = (info.Bias*-60)+(info.DaylightBias*-60);
+		ltime->isdst = 1;
+	} else {
+		abbr = M_win32_wchar_to_char(info.StandardName);
+		M_snprintf(ltime->abbr, sizeof(ltime->abbr), "%s", abbr);
+		M_free(abbr);
+		ltime->gmtoff = (info.Bias*-60)+(info.StandardBias*-60);
+		ltime->isdst = 0;
 	}
 
 	M_time_normalize_tm(ltime);
