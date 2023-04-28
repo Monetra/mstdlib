@@ -35,6 +35,10 @@ static const size_t LINE_LEN = 78;
 static M_bool M_email_has_attachment(const M_email_t *email)
 {
 	size_t i;
+
+	if (M_email_is_mixed_multipart(email))
+		return M_TRUE;
+
 	for (i=0; i<M_email_parts_len(email); i++) {
 		if (M_email_part_is_attachmenet(email, i))
 			return M_TRUE;

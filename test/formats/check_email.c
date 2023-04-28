@@ -334,6 +334,48 @@ START_TEST(check_bcc_scrubbed)
 }
 END_TEST
 
+START_TEST(check_complex_emailaddr)
+{
+	M_email_error_t   eer;
+	M_email_t        *e;
+	const char       *test_data = \
+"Subject: Subject\r\n" \
+"MIME-Version: 1.0\r\n" \
+"Content-Type: multipart/mixed; boundary=\"A2DX_654FDAD-BSDA\"\r\n" \
+"From: a@localhost\r\n" \
+"To: a@localhost\r\n" \
+"\r\n" \
+"--A2DX_654FDAD-BSDA\r\n" \
+"Content-Type: multipart/alternative; boundary=\"DTGHJ678IJDA-242_S124\"\r\n" \
+"\r\n" \
+"--DTGHJ678IJDA-242_S124\r\n" \
+"Content-Type: text/plain; charset=\"utf-8\"\r\n" \
+"Content-Transfer-Encoding: 7bit\r\n" \
+"\r\n" \
+"0 batches to be settled\r\n" \
+"\r\n" \
+"--DTGHJ678IJDA-242_S124\r\n" \
+"Content-type: text/html; charset=\"us-ascii\"\r\n" \
+"Content-Transfer-Encoding: 7bit\r\n" \
+"\r\n" \
+"<html>\r\n" \
+"<head></head>\r\n" \
+"<body>\r\n" \
+" <b>0 batches to be settled\r\n" \
+"<br />\r\n" \
+"</body>\r\n" \
+"</html>\r\n" \
+"\r\n"
+"--DTGHJ678IJDA-242_S124--\r\n" \
+"\r\n" \
+"--A2DX_654FDAD-BSDA--\r\n";
+	eer = M_email_simple_read(&e, test_data, M_str_len(test_data), M_EMAIL_SIMPLE_READ_NONE, NULL);
+	ck_assert_msg(eer == M_EMAIL_ERROR_SUCCESS, "Should successfully read test data");
+	ck_assert_msg(M_email_is_mixed_multipart(e), "Should be set as mixed multipart");
+	M_email_destroy(e);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 int main(void)
@@ -353,6 +395,7 @@ int main(void)
 	add_test(suite, check_messageid);
 	add_test(suite, check_unecessary_first_multipart);
 	add_test(suite, check_bcc_scrubbed);
+	add_test(suite, check_complex_emailaddr);
 
 	sr = srunner_create(suite);
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_email.log");
