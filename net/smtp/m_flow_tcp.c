@@ -53,7 +53,6 @@ static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_m
 		M_uint64 *next)
 {
 	M_net_smtp_session_t *session = data;
-	const char           *line    = NULL;
 
 	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
@@ -61,16 +60,6 @@ static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_m
 	if (!M_net_smtp_flow_tcp_check_smtp_response_code(session, 220))
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
-	if (!M_str_caseeq(session->ep->tcp.address, "localhost")) {
-		line = M_list_str_first(session->tcp.smtp_response);
-		if (!M_str_caseeq_max(session->ep->tcp.address, line, M_str_len(session->ep->tcp.address))) {
-			session->tcp.is_connect_fail = M_TRUE;
-			session->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
-			M_snprintf(session->errmsg, sizeof(session->errmsg), "Domain mismatch \"%s\" != \"%s\"",
-					session->ep->tcp.address, line);
-			return M_STATE_MACHINE_STATUS_ERROR_STATE;
-		}
-	}
 	*next = STATE_EHLO;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }

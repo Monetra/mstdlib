@@ -55,6 +55,7 @@ struct M_email {
 	M_email_address_t         *reply_to;
 	M_email_address_t         *from;
 	char                      *subject;
+	M_bool                     is_mixed_multipart;
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -974,4 +975,18 @@ void M_email_part_remove(M_email_t *email, size_t idx)
 		return;
 
 	M_list_remove_at(email->parts, idx);
+}
+
+void M_email_set_mixed_multipart(M_email_t *email, M_bool is_mixed_multipart)
+{
+	if (email == NULL)
+		return;
+	email->is_mixed_multipart = is_mixed_multipart;
+}
+
+M_bool M_email_is_mixed_multipart(const M_email_t *email)
+{
+	if (email == NULL)
+		return M_FALSE;
+	return email->is_mixed_multipart;
 }
