@@ -17,6 +17,12 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v1
+      - name: fetch_thirdparty
+        run: |
+          mkdir -p thirdparty thirdparty/sqlite-amalgamation
+          git clone --depth=1 https://github.com/c-ares/c-ares.git thirdparty/c-ares
+          wget https://sqlite.org/2022/sqlite-amalgamation-3380500.zip -O thirdparty/sqlite-amalgamation.zip
+          unzip -j thirdparty/sqlite-amalgamation.zip -d thirdparty/sqlite-amalgamation
       - name: Run build-wrapper
         run: |
           mkdir build
