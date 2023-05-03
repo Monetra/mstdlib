@@ -363,7 +363,7 @@ size_t M_thread_num_cpu_cores(void)
 #ifdef __linux__
 void M_thread_linux_cpu_set(cpu_set_t *set, int cpu)
 {
-	cpu_set_t real_cpu = (cpu_set_t)M_list_u64_at(thread_cpus, (size_t)cpu);
+	int real_cpu = (int)M_list_u64_at(thread_cpus, (size_t)cpu);
 	CPU_SET(real_cpu, set);
 }
 #endif
