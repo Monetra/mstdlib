@@ -44,6 +44,7 @@ M_uint16                  _mtu     = 0;
 - (id)init:(NSString *)mac uuid:(NSString *)uuid
 {
 	const char *cuuid;
+	NSArray    *srs;
 	M_bool      found = M_FALSE;
 
 	if (mac == nil)
@@ -65,8 +66,10 @@ M_uint16                  _mtu     = 0;
 	/* Get the rfcomm channel id for the uuid.
 	 * We need to go through all of the services and match against
 	 * the uuid until we find the right one, or run out. */
-	NSArray *srs = _dev.services;
+	srs = _dev.services;
 	for (IOBluetoothSDPServiceRecord *sr in srs) {
+		NSDictionary *di;
+
 		/* Get the channel id for the service. If we can't get the
 		 * channel id, that means it's not an rfcomm service. In
 		 * which case, skip it. */
@@ -75,16 +78,18 @@ M_uint16                  _mtu     = 0;
 		}
 
 		/* Get the uuid for the service and check if it's ours. */
-		NSDictionary *di = sr.attributes;
+		di = sr.attributes;
 		for (NSString *k in di) {
 			IOBluetoothSDPDataElement *e = [di objectForKey:k];
 			NSArray *iea = [e getArrayValue];
 
 			for (IOBluetoothSDPDataElement *ie in iea) {
+				char suuid[64];
+
 				if ([ie getTypeDescriptor] != kBluetoothSDPDataElementTypeUUID) {
 					continue;
 				}
-				char suuid[64];
+
 				M_io_bluetooth_mac_uuid_to_str([ie getUUIDValue], suuid, sizeof(suuid));
 
 				if (M_str_caseeq(cuuid, suuid)) {

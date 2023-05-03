@@ -69,29 +69,33 @@ M_io_bluetooth_enum_t *M_io_bluetooth_enum(void)
 
 		NSArray *srs = d.services;
 		for (IOBluetoothSDPServiceRecord *sr in srs) {
-			BluetoothRFCOMMChannelID rfid;
+			BluetoothRFCOMMChannelID  rfid;
+			NSString                 *sn;
+			NSDictionary             *di;
+
 			/* Filter out anything that's not an rfcomm service. */
 			if ([sr getRFCOMMChannelID:&rfid] != kIOReturnSuccess) {
 				continue;
 			}
 
-			NSString *sn = [sr getServiceName];
+			sn = [sr getServiceName];
 			if (sn != nil) {
 				sname = [sn UTF8String];
 			}
 
-			NSDictionary *di = sr.attributes;
+			di = sr.attributes;
 			for (NSString *k in di) {
 				IOBluetoothSDPDataElement *e = [di objectForKey:k];
 				NSArray *iea = [e getArrayValue];
 
 				for (IOBluetoothSDPDataElement *ie in iea) {
+					char uuid[64];
+
 					if ([ie getTypeDescriptor] != kBluetoothSDPDataElementTypeUUID) {
 						continue;
 					}
-					char uuid[64];
-					M_io_bluetooth_mac_uuid_to_str([ie getUUIDValue], uuid, sizeof(uuid));
 
+					M_io_bluetooth_mac_uuid_to_str([ie getUUIDValue], uuid, sizeof(uuid));
 					M_io_bluetooth_enum_add(btenum, name, mac, sname, uuid, connected);
 				}
 			}

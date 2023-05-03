@@ -1189,7 +1189,7 @@ END_TEST
 
 START_TEST(check_body_len)
 {
-	httpr_test_t    *ht       = httpr_test_create();;
+	httpr_test_t    *ht       = httpr_test_create();
 	M_http_reader_t *hr       = gen_reader(ht);
 	size_t           len_read;
 	M_http_error_t   res      = M_http_reader_read(hr, (const unsigned char *)http_body_len, M_str_len(http_body_len), &len_read);

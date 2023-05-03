@@ -363,7 +363,7 @@ size_t M_thread_num_cpu_cores(void)
 #ifdef __linux__
 void M_thread_linux_cpu_set(cpu_set_t *set, int cpu)
 {
-	int real_cpu = (int)M_list_u64_at(thread_cpus, (size_t)cpu);
+	cpu_set_t real_cpu = (cpu_set_t)M_list_u64_at(thread_cpus, (size_t)cpu);
 	CPU_SET(real_cpu, set);
 }
 #endif
@@ -422,7 +422,7 @@ static void M_thread_spinlock_lock_int(M_thread_spinlock_t *spinlock, M_bool ato
 			/* Back off based on slot, cap at 13 -- 8ms sleep */
 			if (myqueue > current) {
 				/* Handle wrap */
-				diff = (M_UINT32_MAX - myqueue) + current;
+				diff = (M_uint32)((M_UINT32_MAX - myqueue) + current);
 			} else {
 				diff = myqueue - current;
 			}

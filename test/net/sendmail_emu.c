@@ -12,7 +12,6 @@ int main(int argc, char **argv)
 	bool    is_ignore_fullstop = false;
 	FILE   *outfile            = NULL;
 	int     fullstop_state     = 0;
-	int     nbytes             = 0;
 	int     i;
 	int     c;
 
@@ -63,7 +62,6 @@ int main(int argc, char **argv)
 				case 4: if (c == '\n') { return 0; } else { fullstop_state = 0; } break;
 			}
 		}
-		nbytes++;
 	}
 	if (outfile) {
 		fclose(outfile);

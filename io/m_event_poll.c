@@ -121,7 +121,6 @@ static void M_event_impl_poll_process(M_event_t *event)
 {
 	size_t i;
 	size_t processed = 0;
-	size_t cnt       = 0;
 
 	if (event->u.loop.impl_data->retval <= 0)
 		return;
@@ -138,7 +137,6 @@ static void M_event_impl_poll_process(M_event_t *event)
 			if (event->u.loop.impl_data->fds[i].revents & (POLLPRI|POLLIN)) {
 				if (member->caps & M_EVENT_CAPS_READ) {
 					M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
-					cnt++;
 				}
 			}
 
@@ -150,7 +148,6 @@ static void M_event_impl_poll_process(M_event_t *event)
 				 *       possible pending data is flushed. */
 				if (member->waittype & M_EVENT_WAIT_READ) {
 					M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
-					cnt++;
 				}
 
 				/* Enqueue a softevent for a READ on a disconnect or ERROR as otherwise
@@ -160,7 +157,6 @@ static void M_event_impl_poll_process(M_event_t *event)
 				 * reproduce outside of a PRODUCTION environment!
 				 * NOTE: if not waiting on a READ event, deliver the real error */
 				M_event_deliver_io(event, member->io, M_EVENT_TYPE_ERROR);
-				cnt++;
 			}
 
 			/* Disconnect */
@@ -175,7 +171,6 @@ static void M_event_impl_poll_process(M_event_t *event)
 				 *       possible pending data is flushed. */
 				if (member->waittype & M_EVENT_WAIT_READ) {
 					M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
-					cnt++;
 				}
 
 				/* Enqueue a softevent for a READ on a disconnect or ERROR as otherwise
@@ -185,13 +180,11 @@ static void M_event_impl_poll_process(M_event_t *event)
 				 * reproduce outside of a PRODUCTION environment!
 				 * NOTE: if not waiting on a READ event, deliver the real error */
 				M_event_deliver_io(event, member->io, M_EVENT_TYPE_DISCONNECTED);
-				cnt++;
 			}
 
 			/* Write */
 			if (event->u.loop.impl_data->fds[i].revents & (POLLOUT|POLLWRBAND) && !stop_writing) {
 				M_event_deliver_io(event, member->io, M_EVENT_TYPE_WRITE);
-				cnt++;
 			}
 			event->u.loop.impl_data->fds[i].revents = 0;
 			processed++;
@@ -201,7 +194,6 @@ static void M_event_impl_poll_process(M_event_t *event)
 		if (processed == (size_t)event->u.loop.impl_data->retval)
 			break;
 	}
-//M_printf("%s(): delivered %zu events\n", __FUNCTION__, cnt);
 }
 
 

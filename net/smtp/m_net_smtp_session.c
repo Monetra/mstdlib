@@ -501,13 +501,22 @@ void M_net_smtp_session_clean(M_net_smtp_session_t *session)
 		return;
 
 	if (session->is_backout || !session->is_successfully_sent) {
+		M_net_smtp_queue_reschedule_msg_args_t args = {
+			session->sp,
+			session->msg,
+			session->headers,
+			session->is_backout,
+			session->number_of_tries + 1,
+			session->errmsg,
+			session->retry_ms
+		};
+
 		if (session->tcp.net_error == M_NET_ERROR_TIMEOUT_STALL && session->ep->tcp.stall_retries < (session->sp->max_stall_retries)) {
 			M_CAST_OFF_CONST(M_net_smtp_endpoint_t*, session->ep)->tcp.stall_retries++;
 		} else {
 			M_CAST_OFF_CONST(M_net_smtp_endpoint_t*, session->ep)->tcp.stall_retries = 0;
 		}
-		M_net_smtp_queue_reschedule_msg_args_t args = { session->sp, session->msg, session->headers, session->is_backout,
-			session->number_of_tries + 1, session->errmsg, session->retry_ms };
+
 		M_net_smtp_queue_reschedule_msg(&args);
 	} else {
 		M_CAST_OFF_CONST(M_net_smtp_endpoint_t*, session->ep)->tcp.stall_retries = 0;

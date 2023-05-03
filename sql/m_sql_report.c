@@ -780,7 +780,7 @@ static M_sql_report_cberror_t M_sql_report_filter_col(const M_sql_report_t *repo
 
 	for (i=0; i<M_list_len(rules); i++) {
 		const M_sql_report_filter_rules_t *rule           = M_list_at(rules, i);
-		M_bool                           (*cb)(const char *data, size_t data_len, const char *rule_data, size_t rule_data_len, M_bool case_insensitive);
+		M_bool                           (*cb)(const char *data, size_t data_len, const char *rule_data, size_t rule_data_len, M_bool case_insensitive) = NULL;
 		switch(rule->rule) {
 			case M_SQL_REPORT_FILTER_RULE_MATCHES:
 				cb = M_rule_match;
@@ -814,7 +814,7 @@ static M_sql_report_cberror_t M_sql_report_filter_col(const M_sql_report_t *repo
 				break;
 		}
 
-		if (cb(data, len, rule->data, M_str_len(rule->data), rule->case_insensitive))
+		if (cb != NULL && cb(data, len, rule->data, M_str_len(rule->data), rule->case_insensitive))
 			matches++;
 	}
 
