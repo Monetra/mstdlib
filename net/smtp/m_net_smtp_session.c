@@ -394,11 +394,20 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 	return SESSION_PROCESSING;
 destroy:
 	switch (connection_mask) {
-		case M_NET_SMTP_CONNECTION_MASK_IO:        session_io = &session->io;                break;
-		case M_NET_SMTP_CONNECTION_MASK_IO_STDIN:  session_io = &session->process.io_stdin;  break;
-		case M_NET_SMTP_CONNECTION_MASK_IO_STDOUT: session_io = &session->process.io_stdout; break;
-		case M_NET_SMTP_CONNECTION_MASK_IO_STDERR: session_io = &session->process.io_stderr; break;
+		case M_NET_SMTP_CONNECTION_MASK_IO:
+			session_io = &session->io;
+			break;
+		case M_NET_SMTP_CONNECTION_MASK_IO_STDIN:
+			session_io = &session->process.io_stdin;
+			break;
+		case M_NET_SMTP_CONNECTION_MASK_IO_STDOUT:
+			session_io = &session->process.io_stdout;
+			break;
+		case M_NET_SMTP_CONNECTION_MASK_IO_STDERR:
+			session_io = &session->process.io_stderr;
+			break;
 	}
+
 	if (*session_io != NULL) {
 		M_io_destroy(*session_io);
 		*session_io = NULL;
