@@ -45,7 +45,7 @@ typedef struct {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_cache_value_t *M_cache_value_create(M_cache_t *c, const void *key, const void *value)
+static M_cache_value_t *M_cache_value_create(const M_cache_t *c, const void *key, const void *value)
 {
 	M_cache_value_t *cval;
 
@@ -66,7 +66,7 @@ static M_cache_value_t *M_cache_value_create(M_cache_t *c, const void *key, cons
 	return cval;
 }
 
-static void M_cache_value_destroy(M_cache_t *c, M_cache_value_t *cval, M_bool destroy_container)
+static void M_cache_value_destroy(const M_cache_t *c, M_cache_value_t *cval, M_bool destroy_container)
 {
 	if (c->key_free != NULL)
 		c->key_free(cval->key);
