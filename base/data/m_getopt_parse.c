@@ -28,7 +28,7 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_bool M_getopt_parse_option_value_integer(M_getopt_option_t *opt, const char *val, void *thunk)
+static M_bool M_getopt_parse_option_value_integer(const M_getopt_option_t *opt, const char *val, void *thunk)
 {
 	M_int64            val_int = 0;
 	M_str_int_retval_t ret_int;
@@ -42,7 +42,7 @@ static M_bool M_getopt_parse_option_value_integer(M_getopt_option_t *opt, const 
 	return opt->cb.integer_cb(opt->short_opt, opt->long_opt, val==NULL?NULL:&val_int, thunk);
 }
 
-static M_bool M_getopt_parse_option_value_decimal(M_getopt_option_t *opt, const char *val, void *thunk)
+static M_bool M_getopt_parse_option_value_decimal(const M_getopt_option_t *opt, const char *val, void *thunk)
 {
 	M_decimal_t           val_dec;
 	enum M_DECIMAL_RETVAL ret_dec;
@@ -57,7 +57,7 @@ static M_bool M_getopt_parse_option_value_decimal(M_getopt_option_t *opt, const 
 	return opt->cb.decimal_cb(opt->short_opt, opt->long_opt, val==NULL?NULL:&val_dec, thunk);
 }
 
-static M_bool M_getopt_parse_option_value(M_getopt_option_t *opt, const char *val, void *thunk)
+static M_bool M_getopt_parse_option_value(const M_getopt_option_t *opt, const char *val, void *thunk)
 {
 	switch (opt->type) {
 		case M_GETOPT_TYPE_INTEGER:
@@ -74,7 +74,7 @@ static M_bool M_getopt_parse_option_value(M_getopt_option_t *opt, const char *va
 	return M_FALSE;
 }
 
-static M_getopt_error_t M_getopt_parse_option_verify_value(M_getopt_option_t *opt, const char **val, M_bool opt_isval, int *idx)
+static M_getopt_error_t M_getopt_parse_option_verify_value(const M_getopt_option_t *opt, const char **val, M_bool opt_isval, int *idx)
 {
 	if (opt->val_required && (val == NULL || *val == NULL))
 		return M_GETOPT_ERROR_MISSINGVALUE;
@@ -92,10 +92,10 @@ static M_getopt_error_t M_getopt_parse_option_verify_value(M_getopt_option_t *op
 	return M_GETOPT_ERROR_SUCCESS;
 }
 
-static M_getopt_error_t M_getopt_parse_option_long(M_getopt_t *g, const char *option, const char *val, M_bool opt_isval, int *idx, void *thunk)
+static M_getopt_error_t M_getopt_parse_option_long(const M_getopt_t *g, const char *option, const char *val, M_bool opt_isval, int *idx, void *thunk)
 {
-	M_getopt_option_t *opt;
-	M_getopt_error_t   ret;
+	const M_getopt_option_t *opt;
+	M_getopt_error_t         ret;
 
 	opt = M_hash_strvp_get_direct(g->long_opts, option);
 	if (opt == NULL)
@@ -111,15 +111,15 @@ static M_getopt_error_t M_getopt_parse_option_long(M_getopt_t *g, const char *op
 	return M_GETOPT_ERROR_SUCCESS;
 }
 
-static M_getopt_error_t M_getopt_parse_option_short(M_getopt_t *g, const char *option, const char *val, M_bool opt_isval, int *idx, void *thunk)
+static M_getopt_error_t M_getopt_parse_option_short(const M_getopt_t *g, const char *option, const char *val, M_bool opt_isval, int *idx, void *thunk)
 {
-	M_getopt_option_t *opt;
-	M_getopt_error_t   ret;
-	size_t             len;
-	size_t             i;
-	char               opt_opt[2];
-	const char        *opt_val= NULL;
-	M_bool             opt_isval_opt = M_FALSE;
+	const M_getopt_option_t *opt;
+	M_getopt_error_t         ret;
+	size_t                   len;
+	size_t                   i;
+	char                     opt_opt[2];
+	const char              *opt_val= NULL;
+	M_bool                   opt_isval_opt = M_FALSE;
 
 	/* If we have multiple short options together we need to parse out each one. */
 	len = M_str_len(option);
@@ -154,7 +154,7 @@ static M_getopt_error_t M_getopt_parse_option_short(M_getopt_t *g, const char *o
 	return M_GETOPT_ERROR_SUCCESS;
 }
 
-static M_getopt_error_t M_getopt_parse_option(M_getopt_t *g, const char *option, const char *val, M_bool opt_isval, int *idx, void *thunk)
+static M_getopt_error_t M_getopt_parse_option(const M_getopt_t *g, const char *option, const char *val, M_bool opt_isval, int *idx, void *thunk)
 {
 	/* Carbon apps launched form the GUI have a special arugment added by OS X.
  	 * It takes the form: -psn_0_1950172. The numbers at the end are unique per application

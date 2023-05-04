@@ -202,6 +202,9 @@ static M_bool is_escaped(const char *str, const char *str_pos, char escape)
 	 *     \\"  --> " is not escaped
 	 *     \"   --> " is escaped by \
 	 */
+
+	if (str == NULL || str_pos == NULL || str == str_pos)
+		return M_FALSE;
 	
 	/* Count the number of escapes before the current character. */
 	escape_count = 0;

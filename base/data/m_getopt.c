@@ -97,7 +97,7 @@ static void M_getopt_destroy_option(M_getopt_option_t *opt)
 static M_bool M_getopt_append_option(M_getopt_t *g, M_getopt_option_t *opt)
 {
 	if (g == NULL || opt == NULL)
-		return M_FALSE;;
+		return M_FALSE;
 
 	/* Check if this option has already been added. */
 	if ((opt->short_opt != 0 && M_hash_u64vp_get(g->short_opts, (M_uint64)opt->short_opt, NULL)) || (g->long_opts != NULL && M_hash_strvp_get(g->long_opts, opt->long_opt, NULL)))
