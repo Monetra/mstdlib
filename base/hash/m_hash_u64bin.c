@@ -106,7 +106,8 @@ M_bool M_hash_u64bin_get(const M_hash_u64bin_t *h, M_uint64 key, const M_uint8 *
 	if (!M_hashtable_get((const M_hashtable_t *)h, &key, (void **)&outval))
 		return M_FALSE;
 
-	*value = M_bin_unwrap(outval, value_len);
+	if (value != NULL)
+		*value = M_bin_unwrap(outval, value_len);
 	return M_TRUE;
 }
 
@@ -144,7 +145,8 @@ M_bool M_hash_u64bin_multi_get(const M_hash_u64bin_t *h, M_uint64 key, size_t id
 	if (!M_hashtable_multi_get((const M_hashtable_t *)h, &key, idx, (void **)&outval))
 		return M_FALSE;
 
-	*value = M_bin_unwrap(outval, value_len);
+	if (value != NULL)
+		*value = M_bin_unwrap(outval, value_len);
 	return M_TRUE;
 }
 
