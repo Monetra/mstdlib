@@ -39,7 +39,7 @@ struct M_bit_parser {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_uint8 peek_next_bit(M_bit_parser_t *bparser)
+static M_uint8 peek_next_bit(const M_bit_parser_t *bparser)
 {
 	size_t  byte_idx    = bparser->offset / 8;
 	size_t  pos_in_byte = 7 - (bparser->offset % 8);
@@ -56,7 +56,7 @@ static M_uint8 peek_next_bit(M_bit_parser_t *bparser)
 
 
 /* Return number of bytes written. */
-static size_t peek_next_bytes(M_bit_parser_t *bparser, M_uint8 *dest, size_t destlen, size_t nbits, M_bool strict_pad)
+static size_t peek_next_bytes(const M_bit_parser_t *bparser, M_uint8 *dest, size_t destlen, size_t nbits, M_bool strict_pad)
 {
 	size_t         byteidx;
 	size_t         bitskip;
@@ -95,6 +95,7 @@ static size_t peek_next_bytes(M_bit_parser_t *bparser, M_uint8 *dest, size_t des
 		size_t pad = nbits % 8;
 		if (pad > 0) {
 			pad = 8 - pad;
+			/* nbytes is guarenteed to always be at least 1. */
 			dest[nbytes - 1] = (M_uint8)(dest[nbytes - 1] & ~(M_uint8)((1 << pad) - 1));
 		}
 	}
@@ -232,7 +233,7 @@ void M_bit_parser_destroy(M_bit_parser_t *bparser)
 }
 
 
-size_t M_bit_parser_len(M_bit_parser_t *bparser)
+size_t M_bit_parser_len(const M_bit_parser_t *bparser)
 {
 	if (bparser == NULL || bparser->offset >= bparser->nbits) {
 		return 0;
@@ -242,7 +243,7 @@ size_t M_bit_parser_len(M_bit_parser_t *bparser)
 }
 
 
-size_t M_bit_parser_current_offset(M_bit_parser_t *bparser)
+size_t M_bit_parser_current_offset(const M_bit_parser_t *bparser)
 {
 	if (bparser == NULL) {
 		return 0;
@@ -252,7 +253,7 @@ size_t M_bit_parser_current_offset(M_bit_parser_t *bparser)
 }
 
 
-size_t M_bit_parser_count(M_bit_parser_t *bparser, M_uint8 bit)
+size_t M_bit_parser_count(const M_bit_parser_t *bparser, M_uint8 bit)
 {
 	size_t count         = 0;
 	size_t byte_idx;
@@ -310,7 +311,7 @@ void M_bit_parser_mark(M_bit_parser_t *bparser)
 }
 
 
-size_t M_bit_parser_mark_len(M_bit_parser_t *bparser)
+size_t M_bit_parser_mark_len(const M_bit_parser_t *bparser)
 {
 	if (bparser == NULL) {
 		return 0;
@@ -350,7 +351,7 @@ M_bool M_bit_parser_consume(M_bit_parser_t *bparser, size_t nbits)
 }
 
 
-M_bool M_bit_parser_peek_bit(M_bit_parser_t *bparser, M_uint8 *bit)
+M_bool M_bit_parser_peek_bit(const M_bit_parser_t *bparser, M_uint8 *bit)
 {
 	if (bparser == NULL || bit == NULL || bparser->offset >= bparser->nbits) {
 		return M_FALSE;

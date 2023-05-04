@@ -187,7 +187,7 @@ M_API void M_bit_parser_destroy(M_bit_parser_t *bparser) M_FREE(1);
  * \param[in] bparser bit parser object
  * \return            number of bits left that haven't been read yet
  */
-M_API size_t M_bit_parser_len(M_bit_parser_t *bparser);
+M_API size_t M_bit_parser_len(const M_bit_parser_t *bparser);
 
 
 /*! Retrieve the current position of the parser (number of bits read).
@@ -195,7 +195,7 @@ M_API size_t M_bit_parser_len(M_bit_parser_t *bparser);
  * \param[in] bparser bit parser object
  * \return            current parser position, relative to start of data (in bits)
  */
-M_API size_t M_bit_parser_current_offset(M_bit_parser_t *bparser);
+M_API size_t M_bit_parser_current_offset(const M_bit_parser_t *bparser);
 
 
 /*! Count the number of bits left in the parser that have the given value.
@@ -207,7 +207,7 @@ M_API size_t M_bit_parser_current_offset(M_bit_parser_t *bparser);
  * \param[in] bit     bit value to count
  * \return            number of bits left in parser with the given value
  */
-M_API size_t M_bit_parser_count(M_bit_parser_t *bparser, M_uint8 bit);
+M_API size_t M_bit_parser_count(const M_bit_parser_t *bparser, M_uint8 bit);
 
 
 /*! Rewind parser (and any mark) back to start of data.
@@ -241,7 +241,7 @@ M_API void M_bit_parser_mark(M_bit_parser_t *bparser);
  *
  * \see M_bit_parser_mark
  */
-M_API size_t M_bit_parser_mark_len(M_bit_parser_t *bparser);
+M_API size_t M_bit_parser_mark_len(const M_bit_parser_t *bparser);
 
 
 /*! Rewind parser back to the marked position.
@@ -274,7 +274,7 @@ M_API M_bool M_bit_parser_consume(M_bit_parser_t *bparser, size_t nbits);
  * \param[out] bit     0 or 1
  * \return             M_TRUE on success, M_FALSE if there are no bits left to read
  */
-M_API M_bool M_bit_parser_peek_bit(M_bit_parser_t *bparser, M_uint8 *bit);
+M_API M_bool M_bit_parser_peek_bit(const M_bit_parser_t *bparser, M_uint8 *bit);
 
 
 /*! Read a single bit at the parser's current position and advance.
