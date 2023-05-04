@@ -83,7 +83,7 @@ M_buf_t *M_bit_buf_finish_buf(M_bit_buf_t *bbuf)
 }
 
 
-size_t M_bit_buf_len(M_bit_buf_t *bbuf)
+size_t M_bit_buf_len(const M_bit_buf_t *bbuf)
 {
 	if (bbuf == NULL) {
 		return 0;
@@ -92,7 +92,7 @@ size_t M_bit_buf_len(M_bit_buf_t *bbuf)
 }
 
 
-size_t M_bit_buf_len_bytes(M_bit_buf_t *bbuf)
+size_t M_bit_buf_len_bytes(const M_bit_buf_t *bbuf)
 {
 	if (bbuf == NULL) {
 		return 0;
@@ -101,7 +101,7 @@ size_t M_bit_buf_len_bytes(M_bit_buf_t *bbuf)
 }
 
 
-const M_uint8 *M_bit_buf_peek(M_bit_buf_t *bbuf)
+const M_uint8 *M_bit_buf_peek(const M_bit_buf_t *bbuf)
 {
 	return (const M_uint8 *)M_buf_peek(bbuf->bits);
 }

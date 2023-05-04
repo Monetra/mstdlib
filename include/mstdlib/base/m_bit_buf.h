@@ -130,7 +130,7 @@ M_API M_buf_t *M_bit_buf_finish_buf(M_bit_buf_t *bbuf) M_FREE(1) M_WARN_UNUSED_R
  * \param[in] bbuf Bit buffer
  * \return         Data length (in bits)
  */
-M_API size_t M_bit_buf_len(M_bit_buf_t *bbuf);
+M_API size_t M_bit_buf_len(const M_bit_buf_t *bbuf);
 
 
 /*! Return the length of the data held by a buffer, in bytes.
@@ -140,7 +140,7 @@ M_API size_t M_bit_buf_len(M_bit_buf_t *bbuf);
  * \param[in] bbuf Bit buffer
  * \return         Data length (in bytes)
  */
-M_API size_t M_bit_buf_len_bytes(M_bit_buf_t *bbuf);
+M_API size_t M_bit_buf_len_bytes(const M_bit_buf_t *bbuf);
 
 
 /*! Return pointer to internal buffer data.
@@ -157,7 +157,7 @@ M_API size_t M_bit_buf_len_bytes(M_bit_buf_t *bbuf);
  * \param[in] bbuf Bit buffer
  * \return         pointer to current internal buffer data
  */
-M_API const M_uint8 *M_bit_buf_peek(M_bit_buf_t *bbuf);
+M_API const M_uint8 *M_bit_buf_peek(const M_bit_buf_t *bbuf);
 
 
 /*! Truncate the length of the data to the specified size (in bits).
