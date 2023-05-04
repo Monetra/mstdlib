@@ -660,7 +660,7 @@ static size_t M_xml_read_text(M_xml_node_t *node, const char *data, size_t data_
 	}
 
 	/* Trim off trailing whitespace */
-	for ( ; M_chr_isspace(data[text_len-1]) && text_len > 0; text_len--)
+	for ( ; text_len > 0 && M_chr_isspace(data[text_len-1]); text_len--)
 		;
 
 	branch_data = M_malloc(text_len + 1);
