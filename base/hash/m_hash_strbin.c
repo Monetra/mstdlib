@@ -172,7 +172,8 @@ M_bool M_hash_strbin_multi_get(const M_hash_strbin_t *h, const char *key, size_t
 	if (!M_hashtable_multi_get((const M_hashtable_t *)h, key, idx, (void **)&outval))
 		return M_FALSE;
 
-	*value = M_bin_unwrap(outval, value_len);
+	if (value != NULL)
+		*value = M_bin_unwrap(outval, value_len);
 	return M_TRUE;
 }
 
