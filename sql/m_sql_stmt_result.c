@@ -213,7 +213,7 @@ M_sql_error_t M_sql_stmt_result_bool(M_sql_stmt_t *stmt, size_t row, size_t col,
 	if (!M_str_caseeq(text, "1") && !M_str_caseeq(text, "0") &&
 	    !M_str_caseeq(text, "y") && !M_str_caseeq(text, "n") &&
 	    !M_str_caseeq(text, "yes") && !M_str_caseeq(text, "no") &&
-	    !M_str_caseeq(text, "true") && !M_str_caseeq(text, "true") &&
+	    !M_str_caseeq(text, "true") && !M_str_caseeq(text, "false") &&
 	    !M_str_caseeq(text, "on") && !M_str_caseeq(text, "off")) {
 		return M_SQL_ERROR_INVALID_TYPE;
 	}
