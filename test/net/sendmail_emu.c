@@ -2,10 +2,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #ifdef _WIN32
+#include <windows.h>
 #include <fcntl.h>
 #include <io.h>
+#define sleep(x) Sleep(1000*x)
+#else
+#include <unistd.h>
 #endif
 
 int main(int argc, char **argv)
