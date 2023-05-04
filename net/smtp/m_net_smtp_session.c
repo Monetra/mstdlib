@@ -354,6 +354,9 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 			}
 			if (etype == M_EVENT_TYPE_ERROR && io == session->io && M_io_get_error(io) == M_IO_ERROR_TIMEDOUT) {
 				session->connection_mask &= ~connection_mask;
+				M_snprintf(session->errmsg, sizeof(session->errmsg), "Timed out");
+				session->is_successfully_sent = M_FALSE;
+				goto destroy;
 				break;
 			}
 			session->is_successfully_sent = M_FALSE;

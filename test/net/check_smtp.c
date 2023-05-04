@@ -68,6 +68,7 @@ typedef enum {
 	AUTH_NO_USER_PASS       = 38,
 	ENDPOINT_TIMEOUT        = 39,
 	STALL_TO_FAILURE        = 40,
+	PROC_TIMEOUT            = 41,
 } test_id_t;
 
 #define TESTONLY 0
@@ -774,6 +775,11 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 	call_count = args->send_failed_cb_call_count;
 	sent_call_count = args->sent_cb_call_count;
 	M_thread_mutex_unlock(mutex);
+
+	if (args->test_id == PROC_TIMEOUT) {
+		M_event_done(args->el);
+	}
+
 	if (args->test_id == BCC_TEST) {
 		if (call_count == 4) {
 			M_event_done(args->el);
@@ -2760,6 +2766,41 @@ START_TEST(dummy_checks)
 }
 END_TEST
 
+START_TEST(proc_timeout)
+{
+	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
+	args_t             args        = { 0 };
+	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
+	M_email_t         *e1          = generate_email(1, test_address);
+
+	args.test_id = PROC_TIMEOUT;
+
+	M_printf("START_TEST(proc_timeout)\n");
+
+	M_net_smtp_queue_smtp(sp, e1);
+
+	M_list_str_insert(cmd_args, "-s");
+	M_printf("%s\n", sendmail_emu);
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 500, 1), "Couldn't add endpoint_process");
+
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_PROCESSING, "Should start processing as soon as endpoint added");
+
+	args.el = el;
+	args.sp = sp;
+
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
+
+	ck_assert_msg(args.send_failed_cb_call_count == 1, "1 Message should have failed to send");
+	M_email_destroy(e1);
+	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+	M_list_str_destroy(cmd_args);
+	cleanup();
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *smtp_suite(void)
@@ -3064,6 +3105,14 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 40
 	tc = tcase_create("stall_to_failure");
 	tcase_add_test(tc, stall_to_failure);
+	tcase_set_timeout(tc, 5);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*PROC_TIMEOUT = 41, */
+#if TESTONLY == 0 || TESTONLY == 41
+	tc = tcase_create("proc_timeout");
+	tcase_add_test(tc, proc_timeout);
 	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
