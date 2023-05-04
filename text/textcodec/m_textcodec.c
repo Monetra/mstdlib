@@ -535,7 +535,7 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 		return M_TEXTCODEC_ISO8859_8;
 	}
 
-	if (M_str_caseeq(s, "latin-5")        || 
+	if (M_str_caseeq(s, "latin_5")        || 
 			M_str_caseeq(s, "latin-5")    || 
 			M_str_caseeq(s, "latin5")     || 
 			M_str_caseeq(s, "latin 5")    || 
@@ -549,7 +549,7 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 		return M_TEXTCODEC_ISO8859_9;
 	}
 
-	if (M_str_caseeq(s, "latin-6")         || 
+	if (M_str_caseeq(s, "latin_6")         || 
 			M_str_caseeq(s, "latin-6")     || 
 			M_str_caseeq(s, "latin6")      || 
 			M_str_caseeq(s, "latin 6")     || 
@@ -573,7 +573,7 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 		return M_TEXTCODEC_ISO8859_11;
 	}
 
-	if (M_str_caseeq(s, "latin-7")         || 
+	if (M_str_caseeq(s, "latin_7")         || 
 			M_str_caseeq(s, "latin-7")     || 
 			M_str_caseeq(s, "latin7")      || 
 			M_str_caseeq(s, "latin 7")     || 
@@ -587,7 +587,7 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 		return M_TEXTCODEC_ISO8859_13;
 	}
 
-	if (M_str_caseeq(s, "latin-8")         || 
+	if (M_str_caseeq(s, "latin_8")         || 
 			M_str_caseeq(s, "latin-8")     || 
 			M_str_caseeq(s, "latin8")      || 
 			M_str_caseeq(s, "latin 8")     || 
@@ -601,7 +601,7 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 		return M_TEXTCODEC_ISO8859_14;
 	}
 
-	if (M_str_caseeq(s, "latin-9")         || 
+	if (M_str_caseeq(s, "latin_9")         || 
 			M_str_caseeq(s, "latin-9")     || 
 			M_str_caseeq(s, "latin9")      || 
 			M_str_caseeq(s, "latin 9")     || 
@@ -615,7 +615,7 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 		return M_TEXTCODEC_ISO8859_15;
 	}
 
-	if (M_str_caseeq(s, "latin-10")         || 
+	if (M_str_caseeq(s, "latin_10")         || 
 			M_str_caseeq(s, "latin-10")     || 
 			M_str_caseeq(s, "latin10")      || 
 			M_str_caseeq(s, "latin 10")     || 
