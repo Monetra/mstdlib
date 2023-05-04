@@ -3,13 +3,18 @@
 #include <stdlib.h>
 #include <string.h>
 #ifdef _WIN32
+#include <windows.h>
 #include <fcntl.h>
 #include <io.h>
+#define sleep(x) Sleep(1000*x)
+#else
+#include <unistd.h>
 #endif
 
 int main(int argc, char **argv)
 {
 	bool    is_ignore_fullstop = false;
+	bool    is_stall           = false;
 	FILE   *outfile            = NULL;
 	int     fullstop_state     = 0;
 	int     i;
@@ -39,6 +44,10 @@ int main(int argc, char **argv)
 				if (i == argc) { return 0; }
 				outfile = fopen(argv[i], "ab");
 			}
+			if (argv[i][1] == 's') {
+				is_stall = true;
+				continue;
+			}
 		}
 	}
 
@@ -61,6 +70,9 @@ int main(int argc, char **argv)
 				case 3: if (c == '\r') { fullstop_state = 4; } else { fullstop_state = 0; } break;
 				case 4: if (c == '\n') { return 0; } else { fullstop_state = 0; } break;
 			}
+		}
+		if (is_stall) {
+			sleep(1);
 		}
 	}
 	if (outfile) {
