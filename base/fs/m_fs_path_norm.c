@@ -211,7 +211,7 @@ static M_bool M_fs_path_norm_home(M_list_str_t **dirs, M_fs_system_t sys_type)
 	char          *home = NULL;
 	M_list_str_t  *temp;
 #if !defined(_WIN32) && !defined(__APPLE__)
-	struct passwd *pwd_result;
+	struct passwd *pwd_result = NULL;
 	struct passwd  pwd;
 	char          *env_home;
 	char          *pbuf;

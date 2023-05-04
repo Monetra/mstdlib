@@ -79,7 +79,7 @@ static M_fs_error_t M_fs_info_int(M_fs_info_t **info, struct stat *stbuf, M_uint
 {
 	M_fs_perms_t  *perms;
 	struct passwd  pwd;
-	struct passwd *pwd_result;
+	struct passwd *pwd_result = NULL;
 	struct group   grp;
 	struct group  *grp_result;
 	char          *pg_buf;

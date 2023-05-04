@@ -327,7 +327,7 @@ M_fs_error_t M_fs_perms_can_access(const char *path, M_uint32 mode)
 M_fs_error_t M_fs_perms_set_user(M_fs_perms_t *perms, const char *user)
 {
 	struct passwd  p;
-	struct passwd *p_result;
+	struct passwd *p_result = NULL;
 	char          *buf;
 	size_t         buf_len;
 	M_fs_error_t   res;
@@ -383,7 +383,7 @@ M_fs_error_t M_fs_perms_set_user(M_fs_perms_t *perms, const char *user)
 M_fs_error_t M_fs_perms_set_group(M_fs_perms_t *perms, const char *group)
 {
 	struct group  g;
-	struct group *g_result;
+	struct group *g_result = NULL;
 	char          *buf;
 	size_t         buf_len;
 	M_fs_error_t   res;
