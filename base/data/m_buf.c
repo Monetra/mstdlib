@@ -1200,10 +1200,10 @@ void M_buf_add_str_quoted(M_buf_t *buf, char quote_char, char escape_char, const
 
 void M_buf_trim(M_buf_t *buf)
 {
-	char   *start;
-	char   *curr;
-	size_t  drop_num;
-	size_t  trunc_num;
+	const char *start;
+	const char *curr;
+	size_t      drop_num;
+	size_t      trunc_num;
 
 	if (buf == NULL || buf->data == NULL || buf->data_length == 0) {
 		return;
