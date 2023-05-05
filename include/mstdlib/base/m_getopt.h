@@ -275,7 +275,7 @@ M_API M_bool M_getopt_addboolean(M_getopt_t *g, char short_opt, const char *long
  *
  * \return Result.
  */
-M_API M_getopt_error_t M_getopt_parse(M_getopt_t *g, const char * const *argv, int argc, const char **opt_fail, void *thunk);
+M_API M_getopt_error_t M_getopt_parse(const M_getopt_t *g, const char * const *argv, int argc, const char **opt_fail, void *thunk);
 
 /*! @} */
 

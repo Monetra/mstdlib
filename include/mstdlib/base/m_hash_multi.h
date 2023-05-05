@@ -167,13 +167,13 @@ M_API M_bool M_hash_multi_u64_insert_vp(M_hash_multi_t *h, M_uint64 key, void *v
 
 /*! Get a bool value with a string key.
  *
- * \param[in,out] h   Hashtable.
+ * \param[in]     h   Hashtable.
  * \param[in]     key Integer key.
  * \param[in,out] val The value to get.
  *
  * \return M_TRUE if insert was successful. Otherwise M_FALSE.
  */
-M_API M_bool M_hash_multi_u64_get_bool(M_hash_multi_t *h, M_uint64 key, M_bool *val);
+M_API M_bool M_hash_multi_u64_get_bool(const M_hash_multi_t *h, M_uint64 key, M_bool *val);
 
 
 /*! Get a signed integer value with an integer key.
@@ -184,52 +184,52 @@ M_API M_bool M_hash_multi_u64_get_bool(M_hash_multi_t *h, M_uint64 key, M_bool *
  *
  * \return M_TRUE if insert was successful. Otherwise M_FALSE.
  */
-M_API M_bool M_hash_multi_u64_get_int(M_hash_multi_t *h, M_uint64 key, M_int64 *val);
+M_API M_bool M_hash_multi_u64_get_int(const M_hash_multi_t *h, M_uint64 key, M_int64 *val);
 
 
 /*! Get an unsigned integer value with an integer key.
  *
- * \param[in,out] h   Hashtable.
+ * \param[in]     h   Hashtable.
  * \param[in]     key Integer key.
  * \param[in,out] val The value to get.
  *
  * \return M_TRUE if insert was successful. Otherwise M_FALSE.
  */
-M_API M_bool M_hash_multi_u64_get_uint(M_hash_multi_t *h, M_uint64 key, M_uint64 *val);
+M_API M_bool M_hash_multi_u64_get_uint(const M_hash_multi_t *h, M_uint64 key, M_uint64 *val);
 
 
 /*! Get a string value with an integer key.
  *
- * \param[in,out] h   Hashtable.
+ * \param[in]     h   Hashtable.
  * \param[in]     key Integer key.
  * \param[in,out] val The value to get.
  *
  * \return M_TRUE if insert was successful. Otherwise M_FALSE.
  */
-M_API M_bool M_hash_multi_u64_get_str(M_hash_multi_t *h, M_uint64 key, const char **val);
+M_API M_bool M_hash_multi_u64_get_str(const M_hash_multi_t *h, M_uint64 key, const char **val);
 
 
 /*! Get binary data with an integer key.
  *
- * \param[in,out] h   Hashtable.
+ * \param[in]     h   Hashtable.
  * \param[in]     key Integer key.
  * \param[in,out] val The value to get.
  * \param[in,out] len The value length.
  *
  * \return M_TRUE if insert was successful. Otherwise M_FALSE.
  */
-M_API M_bool M_hash_multi_u64_get_bin(M_hash_multi_t *h, M_uint64 key, const unsigned char **val, size_t *len);
+M_API M_bool M_hash_multi_u64_get_bin(const M_hash_multi_t *h, M_uint64 key, const unsigned char **val, size_t *len);
 
 
 /*! Get a void pointer value with an integer key.
  *
- * \param[in,out] h   Hashtable.
+ * \param[in]     h   Hashtable.
  * \param[in]     key Integer key.
  * \param[in,out] val The value to get.
  *
  * \return M_TRUE if insert was successful. Otherwise M_FALSE.
  */
-M_API M_bool M_hash_multi_u64_get_vp(M_hash_multi_t *h, M_uint64 key, void **val);
+M_API M_bool M_hash_multi_u64_get_vp(const M_hash_multi_t *h, M_uint64 key, void **val);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -340,7 +340,7 @@ M_API M_bool M_hash_multi_str_insert_vp(M_hash_multi_t *h, const char *key, void
  *
  * \return M_TRUE if insert was successful. Otherwise M_FALSE.
  */
-M_API M_bool M_hash_multi_str_get_bool(M_hash_multi_t *h, const char *key, M_bool *val);
+M_API M_bool M_hash_multi_str_get_bool(const M_hash_multi_t *h, const char *key, M_bool *val);
 
 
 /*! Get a signed integer value with a string key.
@@ -351,7 +351,7 @@ M_API M_bool M_hash_multi_str_get_bool(M_hash_multi_t *h, const char *key, M_boo
  *
  * \return M_TRUE if insert was successful. Otherwise M_FALSE.
  */
-M_API M_bool M_hash_multi_str_get_int(M_hash_multi_t *h, const char *key, M_int64 *val);
+M_API M_bool M_hash_multi_str_get_int(const M_hash_multi_t *h, const char *key, M_int64 *val);
 
 
 /*! Get an unsigned integer value with a string key.
@@ -362,7 +362,7 @@ M_API M_bool M_hash_multi_str_get_int(M_hash_multi_t *h, const char *key, M_int6
  *
  * \return M_TRUE if insert was successful. Otherwise M_FALSE.
  */
-M_API M_bool M_hash_multi_str_get_uint(M_hash_multi_t *h, const char *key, M_uint64 *val);
+M_API M_bool M_hash_multi_str_get_uint(const M_hash_multi_t *h, const char *key, M_uint64 *val);
 
 
 /*! Get a string value with a string key.
@@ -373,7 +373,7 @@ M_API M_bool M_hash_multi_str_get_uint(M_hash_multi_t *h, const char *key, M_uin
  *
  * \return M_TRUE if insert was successful. Otherwise M_FALSE.
  */
-M_API M_bool M_hash_multi_str_get_str(M_hash_multi_t *h, const char *key, const char **val);
+M_API M_bool M_hash_multi_str_get_str(const M_hash_multi_t *h, const char *key, const char **val);
 
 
 /*! Get binary data with a string key.
@@ -385,7 +385,7 @@ M_API M_bool M_hash_multi_str_get_str(M_hash_multi_t *h, const char *key, const 
  *
  * \return M_TRUE if insert was successful. Otherwise M_FALSE.
  */
-M_API M_bool M_hash_multi_str_get_bin(M_hash_multi_t *h, const char *key, const unsigned char **val, size_t *len);
+M_API M_bool M_hash_multi_str_get_bin(const M_hash_multi_t *h, const char *key, const unsigned char **val, size_t *len);
 
 
 /*! Get a void pointer value with a string key.
@@ -396,7 +396,7 @@ M_API M_bool M_hash_multi_str_get_bin(M_hash_multi_t *h, const char *key, const 
  *
  * \return M_TRUE if insert was successful. Otherwise M_FALSE.
  */
-M_API M_bool M_hash_multi_str_get_vp(M_hash_multi_t *h, const char *key, void **val);
+M_API M_bool M_hash_multi_str_get_vp(const M_hash_multi_t *h, const char *key, void **val);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

@@ -37,7 +37,7 @@ enum M_PARSER_MARKED_TYPE {
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Return the minimum marked position start, or current buffer position if no mark */
-static const unsigned char *M_parser_marked_buffer_start(M_parser_t *parser, enum M_PARSER_MARKED_TYPE type, size_t *len_marked)
+static const unsigned char *M_parser_marked_buffer_start(const M_parser_t *parser, enum M_PARSER_MARKED_TYPE type, size_t *len_marked)
 {
 	ssize_t              min_mark = -1;
 	const unsigned char *ptr;
@@ -509,7 +509,7 @@ void M_parser_direct_write_end(M_parser_t *parser, size_t len)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-size_t M_parser_len(M_parser_t *parser)
+size_t M_parser_len(const M_parser_t *parser)
 {
 	if (parser == NULL)
 		return 0;
@@ -517,7 +517,7 @@ size_t M_parser_len(M_parser_t *parser)
 }
 
 
-size_t M_parser_current_offset(M_parser_t *parser)
+size_t M_parser_current_offset(const M_parser_t *parser)
 {
 	if (parser == NULL)
 		return 0;
@@ -525,7 +525,7 @@ size_t M_parser_current_offset(M_parser_t *parser)
 }
 
 
-size_t M_parser_current_line(M_parser_t *parser)
+size_t M_parser_current_line(const M_parser_t *parser)
 {
 	if (parser == NULL || !(parser->flags & M_PARSER_FLAG_TRACKLINES))
 		return 0;
@@ -533,7 +533,7 @@ size_t M_parser_current_line(M_parser_t *parser)
 }
 
 
-size_t M_parser_current_column(M_parser_t *parser)
+size_t M_parser_current_column(const M_parser_t *parser)
 {
 	if (parser == NULL || !(parser->flags & M_PARSER_FLAG_TRACKLINES))
 		return 0;
@@ -543,7 +543,7 @@ size_t M_parser_current_column(M_parser_t *parser)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_parser_compare(M_parser_t *parser, const unsigned char *data, size_t data_len)
+M_bool M_parser_compare(const M_parser_t *parser, const unsigned char *data, size_t data_len)
 {
 	if (parser == NULL || data == NULL || data_len == 0 || data_len > parser->data_len)
 		return M_FALSE;
@@ -552,7 +552,7 @@ M_bool M_parser_compare(M_parser_t *parser, const unsigned char *data, size_t da
 }
 
 
-M_bool M_parser_compare_str(M_parser_t *parser, const char *str, size_t max_len, M_bool casecmp)
+M_bool M_parser_compare_str(const M_parser_t *parser, const char *str, size_t max_len, M_bool casecmp)
 {
 	size_t str_len;
 	size_t cmp_len;
@@ -703,7 +703,7 @@ size_t M_parser_reset(M_parser_t *parser)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-const unsigned char *M_parser_peek(M_parser_t *parser)
+const unsigned char *M_parser_peek(const M_parser_t *parser)
 {
 	if (parser == NULL)
 		return NULL;
@@ -712,7 +712,7 @@ const unsigned char *M_parser_peek(M_parser_t *parser)
 }
 
 
-const unsigned char *M_parser_peek_mark(M_parser_t *parser, size_t *len)
+const unsigned char *M_parser_peek_mark(const M_parser_t *parser, size_t *len)
 {
 	if (parser == NULL || len == NULL)
 		return NULL;
@@ -721,7 +721,7 @@ const unsigned char *M_parser_peek_mark(M_parser_t *parser, size_t *len)
 }
 
 
-M_bool M_parser_peek_byte(M_parser_t *parser, unsigned char *byte)
+M_bool M_parser_peek_byte(const M_parser_t *parser, unsigned char *byte)
 {
 	if (parser == NULL || byte == NULL || parser->data_len < 1)
 		return M_FALSE;
@@ -2034,7 +2034,7 @@ size_t M_parser_read_buf_mark(M_parser_t *parser, M_buf_t *buf)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_parser_is_predicate(M_parser_t *parser, size_t len, M_parser_predicate_func func)
+M_bool M_parser_is_predicate(const M_parser_t *parser, size_t len, M_parser_predicate_func func)
 {
 	size_t i;
 
@@ -2053,12 +2053,12 @@ M_bool M_parser_is_predicate(M_parser_t *parser, size_t len, M_parser_predicate_
 	return M_TRUE;
 }
 
-M_bool M_parser_is_chr_predicate(M_parser_t *parser, size_t len, M_chr_predicate_func func)
+M_bool M_parser_is_chr_predicate(const M_parser_t *parser, size_t len, M_chr_predicate_func func)
 {
 	return M_parser_is_predicate(parser, len, (M_parser_predicate_func)func);
 }
 
-M_bool M_parser_is_charset(M_parser_t *parser, size_t len, const unsigned char *charset, size_t charset_len)
+M_bool M_parser_is_charset(const M_parser_t *parser, size_t len, const unsigned char *charset, size_t charset_len)
 {
 	size_t i;
 	size_t j;
@@ -2083,27 +2083,27 @@ M_bool M_parser_is_charset(M_parser_t *parser, size_t len, const unsigned char *
 	return M_TRUE;
 }
 
-M_bool M_parser_is_str_charset(M_parser_t *parser, size_t len, const char *charset)
+M_bool M_parser_is_str_charset(const M_parser_t *parser, size_t len, const char *charset)
 {
 	return M_parser_is_charset(parser, len, (const unsigned char *)charset, M_str_len(charset));
 }
 
-M_bool M_parser_is_not_predicate(M_parser_t *parser, size_t len, M_parser_predicate_func func)
+M_bool M_parser_is_not_predicate(const M_parser_t *parser, size_t len, M_parser_predicate_func func)
 {
 	return !M_parser_is_predicate(parser, len, func);
 }
 
-M_bool M_parser_is_not_chr_predicate(M_parser_t *parser, size_t len, M_chr_predicate_func func)
+M_bool M_parser_is_not_chr_predicate(const M_parser_t *parser, size_t len, M_chr_predicate_func func)
 {
 	return !M_parser_is_chr_predicate(parser, len, func);
 }
 
-M_bool M_parser_is_not_charset(M_parser_t *parser, size_t len, const unsigned char *charset, size_t charset_len)
+M_bool M_parser_is_not_charset(const M_parser_t *parser, size_t len, const unsigned char *charset, size_t charset_len)
 {
 	return !M_parser_is_charset(parser, len, charset, charset_len);
 }
 
-M_bool M_parser_is_not_str_charset(M_parser_t *parser, size_t len, const char *charset)
+M_bool M_parser_is_not_str_charset(const M_parser_t *parser, size_t len, const char *charset)
 {
 	return !M_parser_is_str_charset(parser, len, charset);
 }

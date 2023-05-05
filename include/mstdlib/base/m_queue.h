@@ -113,7 +113,7 @@ M_API M_bool M_queue_insert(M_queue_t *queue, void *member);
  * \param member User-supplied queue object (pointer) to remove.
  * \return M_TRUE on success, M_FALSE on failure such as object not found.
  */
-M_API M_bool M_queue_remove(M_queue_t *queue, void *member);
+M_API M_bool M_queue_remove(M_queue_t *queue, const void *member);
 
 
 /*! See if queue member still exists.
@@ -121,7 +121,7 @@ M_API M_bool M_queue_remove(M_queue_t *queue, void *member);
  * \param member User-supplied queue object (pointer) to find.
  * \return M_TRUE if member exists, M_FALSE otherwise.
  */
-M_API M_bool M_queue_exists(M_queue_t *queue, void *member);
+M_API M_bool M_queue_exists(const M_queue_t *queue, const void *member);
 
 
 /*! Take control of a user-supplied queue object (pointer).  This will remove the
@@ -132,7 +132,7 @@ M_API M_bool M_queue_exists(M_queue_t *queue, void *member);
  * \param member User-supplied queue object (pointer) to take ownership of.
  * \return M_TRUE on success, M_FALSE on failure such as object not found.
  */
-M_API M_bool M_queue_take(M_queue_t *queue, void *member);
+M_API M_bool M_queue_take(M_queue_t *queue, const void *member);
 
 
 /*! Take control of the first queue member.  This will remove the object
@@ -148,7 +148,7 @@ M_API void *M_queue_take_first(M_queue_t *queue);
  * \param queue  Initialized queue object returned by M_queue_create()
  * \return count of items in the queue.
  */
-M_API size_t M_queue_len(M_queue_t *queue);
+M_API size_t M_queue_len(const M_queue_t *queue);
 
 
 /*! Retrieve the first queue entry in the specified queue.
@@ -187,7 +187,7 @@ M_API void *M_queue_last(M_queue_t *queue);
  * \return M_TRUE if there are more members to enumerate, M_FALSE if no more members and no
  *         result was returned.
  */
-M_API M_bool M_queue_foreach(M_queue_t *queue, M_queue_foreach_t **q_foreach, void **member);
+M_API M_bool M_queue_foreach(const M_queue_t *queue, M_queue_foreach_t **q_foreach, void **member);
 
 
 /*! Free's the M_queue_foreach_t * filled in by M_queue_foreach.  This only needs to be

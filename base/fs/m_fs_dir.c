@@ -91,7 +91,7 @@ static M_fs_error_t M_fs_dir_mkdir_sys(const char *path, M_fs_perms_t *perms)
 	return res;
 }
 #else
-static M_fs_error_t M_fs_dir_mkdir_sys(const char *path, M_fs_perms_t *perms)
+static M_fs_error_t M_fs_dir_mkdir_sys(const char *path, const M_fs_perms_t *perms)
 {
 	mode_t mode = S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH;
 

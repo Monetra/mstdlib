@@ -75,7 +75,7 @@ static M_fs_perms_t *M_fs_info_mode_to_perms(mode_t mode)
 	return perms;
 }
 
-static M_fs_error_t M_fs_info_int(M_fs_info_t **info, struct stat *stbuf, M_uint32 flags)
+static M_fs_error_t M_fs_info_int(M_fs_info_t **info, const struct stat *stbuf, M_uint32 flags)
 {
 	M_fs_perms_t  *perms;
 	struct passwd  pwd;

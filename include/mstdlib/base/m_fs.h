@@ -719,7 +719,7 @@ M_API M_bool M_fs_path_isunc(const char *p);
  *
  * \return Whether the path is considered hidden.
  */
-M_API M_bool M_fs_path_ishidden(const char *path, M_fs_info_t *info);
+M_API M_bool M_fs_path_ishidden(const char *path, const M_fs_info_t *info);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

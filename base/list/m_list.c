@@ -857,7 +857,7 @@ M_list_t *M_list_duplicate(const M_list_t *d)
 /* dest will be created if *dest == NULL. src will be freed. Any values within
  * src that are not moved to dest will be freed.
  */
-static void M_list_merge_int(M_list_t **dest, M_list_t *src, M_list_t *dups, M_bool include_duplicates, M_uint32 type)
+static void M_list_merge_int(M_list_t **dest, M_list_t *src, const M_list_t *dups, M_bool include_duplicates, M_uint32 type)
 {
 	void                    *val;
 	size_t                   i;

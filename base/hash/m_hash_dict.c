@@ -314,7 +314,7 @@ static M_hashdict_quote_type_t M_hash_dict_serialize_quotetype(const char *val, 
 }
 
 
-M_bool M_hash_dict_serialize_buf(M_hash_dict_t *dict, M_buf_t *buf, char delim, char kv_delim, char quote, char escape, M_uint32 flags)
+M_bool M_hash_dict_serialize_buf(const M_hash_dict_t *dict, M_buf_t *buf, char delim, char kv_delim, char quote, char escape, M_uint32 flags)
 {
 	M_hash_dict_enum_t *hashenum = NULL;
 	const char         *key;
@@ -379,7 +379,7 @@ M_bool M_hash_dict_serialize_buf(M_hash_dict_t *dict, M_buf_t *buf, char delim, 
 }
 
 
-char *M_hash_dict_serialize(M_hash_dict_t *dict, char delim, char kv_delim, char quote, char escape, M_uint32 flags)
+char *M_hash_dict_serialize(const M_hash_dict_t *dict, char delim, char kv_delim, char quote, char escape, M_uint32 flags)
 {
 	M_buf_t *buf = M_buf_create();
 	char    *out = NULL;

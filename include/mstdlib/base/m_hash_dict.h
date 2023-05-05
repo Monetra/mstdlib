@@ -370,7 +370,7 @@ typedef enum {
  * \param[in] flags    Bitmap of possible M_hash_dict_ser_flag_t flags
  * \return M_TRUE on success or M_FALSE on failure.
  */
-M_API M_bool M_hash_dict_serialize_buf(M_hash_dict_t *dict, M_buf_t *buf, char delim, char kv_delim, char quote, char escape, M_uint32 flags);
+M_API M_bool M_hash_dict_serialize_buf(const M_hash_dict_t *dict, M_buf_t *buf, char delim, char kv_delim, char quote, char escape, M_uint32 flags);
 
 
 /*! Serialize a dictionary into a string as per the definition.
@@ -383,7 +383,7 @@ M_API M_bool M_hash_dict_serialize_buf(M_hash_dict_t *dict, M_buf_t *buf, char d
  * \param[in] flags    Bitmap of possible M_hash_dict_ser_flag_t flags
  * \return String of serialized data, or NULL on failure.
  */
-M_API char *M_hash_dict_serialize(M_hash_dict_t *dict, char delim, char kv_delim, char quote, char escape, M_uint32 flags);
+M_API char *M_hash_dict_serialize(const M_hash_dict_t *dict, char delim, char kv_delim, char quote, char escape, M_uint32 flags);
 
 
 /*! Deserialize a string into a hashtable as per the definition.

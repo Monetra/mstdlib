@@ -54,7 +54,7 @@ void M_queue_destroy(M_queue_t *queue)
 		return;
 
 	M_llist_destroy(queue->list, M_TRUE);
-	M_hashtable_destroy(queue->hash, M_TRUE);
+	M_hashtable_destroy(queue->hash, M_FALSE);
 	M_free(queue);
 }
 
@@ -76,7 +76,7 @@ M_bool M_queue_insert(M_queue_t *queue, void *member)
 }
 
 
-M_bool M_queue_remove(M_queue_t *queue, void *member)
+M_bool M_queue_remove(M_queue_t *queue, const void *member)
 {
 	M_llist_node_t *node;
 
@@ -88,12 +88,12 @@ M_bool M_queue_remove(M_queue_t *queue, void *member)
 		return M_FALSE;
 
 	M_llist_remove_node(node);
-	M_hashtable_remove(queue->hash, member, M_TRUE /* Doesn't actually matter, no cb registered */);
+	M_hashtable_remove(queue->hash, member, M_FALSE);
 	return M_TRUE;
 }
 
 
-M_bool M_queue_take(M_queue_t *queue, void *member)
+M_bool M_queue_take(M_queue_t *queue, const void *member)
 {
 	M_llist_node_t *node;
 
@@ -110,7 +110,7 @@ M_bool M_queue_take(M_queue_t *queue, void *member)
 }
 
 
-M_bool M_queue_exists(M_queue_t *queue, void *member)
+M_bool M_queue_exists(const M_queue_t *queue, const void *member)
 {
 	M_llist_node_t *node;
 
@@ -124,7 +124,7 @@ M_bool M_queue_exists(M_queue_t *queue, void *member)
 }
 
 
-size_t M_queue_len(M_queue_t *queue)
+size_t M_queue_len(const M_queue_t *queue)
 {
 	if (queue == NULL)
 		return M_FALSE;
@@ -165,7 +165,7 @@ void *M_queue_take_first(M_queue_t *queue)
 	member = M_llist_take_node(node);
 
 	/* Remove it from hashtable */
-	M_hashtable_remove(queue->hash, member, M_TRUE /* Doesn't actually matter, no cb registered */);
+	M_hashtable_remove(queue->hash, member, M_FALSE);
 
 	return member;
 }
@@ -186,7 +186,7 @@ void *M_queue_last(M_queue_t *queue)
 }
 
 
-M_bool M_queue_foreach(M_queue_t *queue, M_queue_foreach_t **q_foreach, void **member)
+M_bool M_queue_foreach(const M_queue_t *queue, M_queue_foreach_t **q_foreach, void **member)
 {
 	if (queue == NULL || q_foreach == NULL || member == NULL)
 		return M_FALSE;

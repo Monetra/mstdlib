@@ -51,7 +51,7 @@ typedef enum {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_hash_multi_val_type_t M_hash_multi_val_type(M_hash_multi_object_t *o)
+static M_hash_multi_val_type_t M_hash_multi_val_type(const M_hash_multi_object_t *o)
 {
 	M_hash_multi_val_type_t val_type;
 
@@ -119,7 +119,7 @@ static M_hash_multi_object_t *M_hash_multi_create_object_vp(void *val)
 	return M_hash_multi_create_object(M_HASH_MULTI_VAL_TYPE_VP, (const unsigned char *)&val, sizeof(val));
 }
 
-static M_bool M_hash_multi_get_object_bool(M_hash_multi_object_t *o, M_bool *val)
+static M_bool M_hash_multi_get_object_bool(const M_hash_multi_object_t *o, M_bool *val)
 {
 	if (o == NULL)
 		return M_FALSE;
@@ -133,7 +133,7 @@ static M_bool M_hash_multi_get_object_bool(M_hash_multi_object_t *o, M_bool *val
 	return M_TRUE;
 }
 
-static M_bool M_hash_multi_get_object_int(M_hash_multi_object_t *o, M_uint64 *val)
+static M_bool M_hash_multi_get_object_int(const M_hash_multi_object_t *o, M_uint64 *val)
 {
 	if (o == NULL)
 		return M_FALSE;
@@ -147,7 +147,7 @@ static M_bool M_hash_multi_get_object_int(M_hash_multi_object_t *o, M_uint64 *va
 	return M_TRUE;
 }
 
-static M_bool M_hash_multi_get_object_str(M_hash_multi_object_t *o, const char **val)
+static M_bool M_hash_multi_get_object_str(const M_hash_multi_object_t *o, const char **val)
 {
 	if (o == NULL)
 		return M_FALSE;
@@ -161,7 +161,7 @@ static M_bool M_hash_multi_get_object_str(M_hash_multi_object_t *o, const char *
 	return M_TRUE;
 }
 
-static M_bool M_hash_multi_get_object_bin(M_hash_multi_object_t *o, const unsigned char **val, size_t *len)
+static M_bool M_hash_multi_get_object_bin(const M_hash_multi_object_t *o, const unsigned char **val, size_t *len)
 {
 	if (o == NULL)
 		return M_FALSE;
@@ -183,7 +183,7 @@ static M_bool M_hash_multi_get_object_bin(M_hash_multi_object_t *o, const unsign
 	return M_TRUE;
 }
 
-static M_bool M_hash_multi_get_object_vp(M_hash_multi_object_t *o, void **val)
+static M_bool M_hash_multi_get_object_vp(const M_hash_multi_object_t *o, void **val)
 {
 	if (o == NULL)
 		return M_FALSE;
@@ -337,7 +337,7 @@ M_bool M_hash_multi_u64_insert_vp(M_hash_multi_t *h, M_uint64 key, void *val, M_
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_hash_multi_u64_get_bool(M_hash_multi_t *h, M_uint64 key, M_bool *val)
+M_bool M_hash_multi_u64_get_bool(const M_hash_multi_t *h, M_uint64 key, M_bool *val)
 {
 	M_hash_multi_object_t *o;
 
@@ -350,7 +350,7 @@ M_bool M_hash_multi_u64_get_bool(M_hash_multi_t *h, M_uint64 key, M_bool *val)
 	return M_hash_multi_get_object_bool(o, val);
 }
 
-M_bool M_hash_multi_u64_get_int(M_hash_multi_t *h, M_uint64 key, M_int64 *val)
+M_bool M_hash_multi_u64_get_int(const M_hash_multi_t *h, M_uint64 key, M_int64 *val)
 {
 	M_hash_multi_object_t *o;
 
@@ -363,12 +363,12 @@ M_bool M_hash_multi_u64_get_int(M_hash_multi_t *h, M_uint64 key, M_int64 *val)
 	return M_hash_multi_get_object_int(o, (M_uint64 *)val);
 }
 
-M_bool M_hash_multi_u64_get_uint(M_hash_multi_t *h, M_uint64 key, M_uint64 *val)
+M_bool M_hash_multi_u64_get_uint(const M_hash_multi_t *h, M_uint64 key, M_uint64 *val)
 {
 	return M_hash_multi_u64_get_int(h, key, (M_int64 *)val);
 }
 
-M_bool M_hash_multi_u64_get_str(M_hash_multi_t *h, M_uint64 key, const char **val)
+M_bool M_hash_multi_u64_get_str(const M_hash_multi_t *h, M_uint64 key, const char **val)
 {
 	M_hash_multi_object_t *o;
 
@@ -381,7 +381,7 @@ M_bool M_hash_multi_u64_get_str(M_hash_multi_t *h, M_uint64 key, const char **va
 	return M_hash_multi_get_object_str(o, val);
 }
 
-M_bool M_hash_multi_u64_get_bin(M_hash_multi_t *h, M_uint64 key, const unsigned char **val, size_t *len)
+M_bool M_hash_multi_u64_get_bin(const M_hash_multi_t *h, M_uint64 key, const unsigned char **val, size_t *len)
 {
 	M_hash_multi_object_t *o;
 
@@ -394,7 +394,7 @@ M_bool M_hash_multi_u64_get_bin(M_hash_multi_t *h, M_uint64 key, const unsigned 
 	return M_hash_multi_get_object_bin(o, val, len);
 }
 
-M_bool M_hash_multi_u64_get_vp(M_hash_multi_t *h, M_uint64 key, void **val)
+M_bool M_hash_multi_u64_get_vp(const M_hash_multi_t *h, M_uint64 key, void **val)
 {
 	M_hash_multi_object_t *o;
 
@@ -497,7 +497,7 @@ M_bool M_hash_multi_str_insert_vp(M_hash_multi_t *h, const char *key, void *val,
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_hash_multi_str_get_bool(M_hash_multi_t *h, const char *key, M_bool *val)
+M_bool M_hash_multi_str_get_bool(const M_hash_multi_t *h, const char *key, M_bool *val)
 {
 	M_hash_multi_object_t *o;
 
@@ -510,7 +510,7 @@ M_bool M_hash_multi_str_get_bool(M_hash_multi_t *h, const char *key, M_bool *val
 	return M_hash_multi_get_object_bool(o, val);
 }
 
-M_bool M_hash_multi_str_get_int(M_hash_multi_t *h, const char *key, M_int64 *val)
+M_bool M_hash_multi_str_get_int(const M_hash_multi_t *h, const char *key, M_int64 *val)
 {
 	M_hash_multi_object_t *o;
 
@@ -523,12 +523,12 @@ M_bool M_hash_multi_str_get_int(M_hash_multi_t *h, const char *key, M_int64 *val
 	return M_hash_multi_get_object_int(o, (M_uint64 *)val);
 }
 
-M_bool M_hash_multi_str_get_uint(M_hash_multi_t *h, const char *key, M_uint64 *val)
+M_bool M_hash_multi_str_get_uint(const M_hash_multi_t *h, const char *key, M_uint64 *val)
 {
 	return M_hash_multi_str_get_int(h, key, (M_int64 *)val);
 }
 
-M_bool M_hash_multi_str_get_str(M_hash_multi_t *h, const char *key, const char **val)
+M_bool M_hash_multi_str_get_str(const M_hash_multi_t *h, const char *key, const char **val)
 {
 	M_hash_multi_object_t *o;
 
@@ -541,7 +541,7 @@ M_bool M_hash_multi_str_get_str(M_hash_multi_t *h, const char *key, const char *
 	return M_hash_multi_get_object_str(o, val);
 }
 
-M_bool M_hash_multi_str_get_bin(M_hash_multi_t *h, const char *key, const unsigned char **val, size_t *len)
+M_bool M_hash_multi_str_get_bin(const M_hash_multi_t *h, const char *key, const unsigned char **val, size_t *len)
 {
 	M_hash_multi_object_t *o;
 
@@ -554,7 +554,7 @@ M_bool M_hash_multi_str_get_bin(M_hash_multi_t *h, const char *key, const unsign
 	return M_hash_multi_get_object_bin(o, val, len);
 }
 
-M_bool M_hash_multi_str_get_vp(M_hash_multi_t *h, const char *key, void **val)
+M_bool M_hash_multi_str_get_vp(const M_hash_multi_t *h, const char *key, void **val)
 {
 	M_hash_multi_object_t *o;
 

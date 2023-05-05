@@ -235,7 +235,7 @@ static void M_state_machine_state_destory_vp(void *p)
 	M_state_machine_state_destory(p);
 }
 
-static void M_state_machine_call_trace(M_state_machine_trace_t trace, M_state_machine_t *master, M_state_machine_t *current, M_state_machine_status_t status, M_bool run_sub, M_uint64 next_id)
+static void M_state_machine_call_trace(M_state_machine_trace_t trace, const M_state_machine_t *master, const M_state_machine_t *current, M_state_machine_status_t status, M_bool run_sub, M_uint64 next_id)
 {
 	const char *sdescr  = NULL;
 	char       *fdesr   = NULL;

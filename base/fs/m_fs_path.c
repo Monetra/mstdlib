@@ -501,7 +501,7 @@ M_fs_error_t M_fs_path_set_cwd(const char *path)
 }
 
 #ifdef _WIN32
-M_bool M_fs_path_ishidden(const char *path, M_fs_info_t *info)
+M_bool M_fs_path_ishidden(const char *path, const M_fs_info_t *info)
 {
 	M_bool have_info;
 	M_bool ret;
@@ -526,7 +526,7 @@ M_bool M_fs_path_ishidden(const char *path, M_fs_info_t *info)
 	return ret;
 }
 #else
-M_bool M_fs_path_ishidden(const char *path, M_fs_info_t *info)
+M_bool M_fs_path_ishidden(const char *path, const M_fs_info_t *info)
 {
 	M_list_str_t *path_parts;
 	size_t        len;

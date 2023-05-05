@@ -181,7 +181,7 @@ static M_bool M_getopt_parse_isoption(const char *option)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_getopt_error_t M_getopt_parse(M_getopt_t *g, const char * const *argv, int argc, const char **opt_fail, void *thunk)
+M_getopt_error_t M_getopt_parse(const M_getopt_t *g, const char * const *argv, int argc, const char **opt_fail, void *thunk)
 {
 	M_getopt_error_t  ret;
 	M_bool            isopt;

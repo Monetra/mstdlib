@@ -190,7 +190,7 @@ M_API void M_parser_direct_write_end(M_parser_t *parser, size_t len);
  *
  * \return Length of remaining data.
  */
-M_API size_t M_parser_len(M_parser_t *parser);
+M_API size_t M_parser_len(const M_parser_t *parser);
 
 
 /*! Retrieve the total number of bytes processed so far.
@@ -199,7 +199,7 @@ M_API size_t M_parser_len(M_parser_t *parser);
  *
  * \return Total number of processed bytes.
  */
-M_API size_t M_parser_current_offset(M_parser_t *parser);
+M_API size_t M_parser_current_offset(const M_parser_t *parser);
 
 
 /*! Retrieves the current line number.
@@ -211,7 +211,7 @@ M_API size_t M_parser_current_offset(M_parser_t *parser);
  *
  * \return Line number starting at 1.
  */
-M_API size_t M_parser_current_line(M_parser_t *parser);
+M_API size_t M_parser_current_line(const M_parser_t *parser);
 
 
 /*! Retrieves the current column for the current line.
@@ -223,7 +223,7 @@ M_API size_t M_parser_current_line(M_parser_t *parser);
  *
  * \return Column number starting at 1.
  */
-M_API size_t M_parser_current_column(M_parser_t *parser);
+M_API size_t M_parser_current_column(const M_parser_t *parser);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -238,7 +238,7 @@ M_API size_t M_parser_current_column(M_parser_t *parser);
  *
  * \return M_TRUE if match, M_FALSE otherwise
  */
-M_API M_bool M_parser_compare(M_parser_t *parser, const unsigned char *data, size_t data_len);
+M_API M_bool M_parser_compare(const M_parser_t *parser, const unsigned char *data, size_t data_len);
 
 
 /*! Compare parser contents to provided string.
@@ -255,7 +255,7 @@ M_API M_bool M_parser_compare(M_parser_t *parser, const unsigned char *data, siz
  *
  * \return M_TRUE if match, M_FALSE otherwise
  */
-M_API M_bool M_parser_compare_str(M_parser_t *parser, const char *str, size_t max_len, M_bool casecmp);
+M_API M_bool M_parser_compare_str(const M_parser_t *parser, const char *str, size_t max_len, M_bool casecmp);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -318,7 +318,7 @@ M_API size_t M_parser_reset(M_parser_t *parser);
  *
  * \return Pointer to data.
  */
-M_API const unsigned char *M_parser_peek(M_parser_t *parser);
+M_API const unsigned char *M_parser_peek(const M_parser_t *parser);
 
 
 /*! Retrieve the internal pointer for the marked position in the parse buffer.
@@ -328,7 +328,7 @@ M_API const unsigned char *M_parser_peek(M_parser_t *parser);
  *
  * \return Pointer to data.
  */
-M_API const unsigned char *M_parser_peek_mark(M_parser_t *parser, size_t *len);
+M_API const unsigned char *M_parser_peek_mark(const M_parser_t *parser, size_t *len);
 
 
 /*! Read a single byte from the current buffer without advancing.
@@ -338,7 +338,7 @@ M_API const unsigned char *M_parser_peek_mark(M_parser_t *parser, size_t *len);
  *
  * \return M_TRUE on success, M_FALSE on failure.
  */
-M_API M_bool M_parser_peek_byte(M_parser_t *parser, unsigned char *byte);
+M_API M_bool M_parser_peek_byte(const M_parser_t *parser, unsigned char *byte);
 
 
 /*! Read bytes (binary) from the current buffer and output in the user-provided
@@ -1527,7 +1527,7 @@ M_API M_PARSER_FRAME_ERROR M_parser_read_stxetxlrc_message(M_parser_t *parser, M
  *
  * \return M_TRUE if matching. Otherwise M_FALSE.
  */
-M_API M_bool M_parser_is_predicate(M_parser_t *parser, size_t len, M_parser_predicate_func func);
+M_API M_bool M_parser_is_predicate(const M_parser_t *parser, size_t len, M_parser_predicate_func func);
 
 
 /*! Validate the parser matches the given chr predicate function.
@@ -1540,7 +1540,7 @@ M_API M_bool M_parser_is_predicate(M_parser_t *parser, size_t len, M_parser_pred
  *
  * \return M_TRUE if matching. Otherwise M_FALSE.
  */
-M_API M_bool M_parser_is_chr_predicate(M_parser_t *parser, size_t len, M_chr_predicate_func func);
+M_API M_bool M_parser_is_chr_predicate(const M_parser_t *parser, size_t len, M_chr_predicate_func func);
 
 
 /*! Validate the parser matches the given character set.
@@ -1552,7 +1552,7 @@ M_API M_bool M_parser_is_chr_predicate(M_parser_t *parser, size_t len, M_chr_pre
  *
  * \return M_TRUE if matching. Otherwise M_FALSE.
  */
-M_API M_bool M_parser_is_charset(M_parser_t *parser, size_t len, const unsigned char *charset, size_t charset_len);
+M_API M_bool M_parser_is_charset(const M_parser_t *parser, size_t len, const unsigned char *charset, size_t charset_len);
 
 
 /*! Validate the parser matches the given NULL-terminated charset.
@@ -1563,7 +1563,7 @@ M_API M_bool M_parser_is_charset(M_parser_t *parser, size_t len, const unsigned 
  *
  * \return M_TRUE if matching. Otherwise M_FALSE.
  */
-M_API M_bool M_parser_is_str_charset(M_parser_t *parser, size_t len, const char *charset);
+M_API M_bool M_parser_is_str_charset(const M_parser_t *parser, size_t len, const char *charset);
 
 
 /*! Validate the parser does not match the given predicate function.
@@ -1576,7 +1576,7 @@ M_API M_bool M_parser_is_str_charset(M_parser_t *parser, size_t len, const char 
  *
  * \return M_TRUE if not matching. Otherwise M_FALSE. If parser is NULL, len is 0, or func is NULL, this will return M_TRUE.
  */
-M_API M_bool M_parser_is_not_predicate(M_parser_t *parser, size_t len, M_parser_predicate_func func);
+M_API M_bool M_parser_is_not_predicate(const M_parser_t *parser, size_t len, M_parser_predicate_func func);
 
 
 /*! Validate the parser does not match the given chr predicate function.
@@ -1589,7 +1589,7 @@ M_API M_bool M_parser_is_not_predicate(M_parser_t *parser, size_t len, M_parser_
  *
  * \return M_TRUE if not matching. Otherwise M_FALSE. If parser is NULL, len is 0, or func is NULL, this will return M_TRUE.
  */
-M_API M_bool M_parser_is_not_chr_predicate(M_parser_t *parser, size_t len, M_chr_predicate_func func);
+M_API M_bool M_parser_is_not_chr_predicate(const M_parser_t *parser, size_t len, M_chr_predicate_func func);
 
 
 /*! Validate the parser does not match the given character set.
@@ -1601,7 +1601,7 @@ M_API M_bool M_parser_is_not_chr_predicate(M_parser_t *parser, size_t len, M_chr
  *
  * \return M_TRUE if not matching. Otherwise M_FALSE. If parser is NULL, len is 0, charset is NULL, or charset_len is 0, this will return M_TRUE.
  */
-M_API M_bool M_parser_is_not_charset(M_parser_t *parser, size_t len, const unsigned char *charset, size_t charset_len);
+M_API M_bool M_parser_is_not_charset(const M_parser_t *parser, size_t len, const unsigned char *charset, size_t charset_len);
 
 
 /*! Validate the parser does not match the given NULL-terminated charset.
@@ -1612,7 +1612,7 @@ M_API M_bool M_parser_is_not_charset(M_parser_t *parser, size_t len, const unsig
  *
  * \return M_TRUE if not matching. Otherwise M_FALSE. If parser is NULL, len is 0, or charset is NULL, this will return M_TRUE.
  */
-M_API M_bool M_parser_is_not_str_charset(M_parser_t *parser, size_t len, const char *charset);
+M_API M_bool M_parser_is_not_str_charset(const M_parser_t *parser, size_t len, const char *charset);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
