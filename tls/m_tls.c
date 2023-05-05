@@ -1258,7 +1258,7 @@ static M_io_state_t M_io_tls_state_cb(M_io_layer_t *layer)
 		case M_TLS_STATE_ERROR:
 		default:
 			break;
-	};
+	}
 
 	return M_IO_STATE_ERROR;
 }

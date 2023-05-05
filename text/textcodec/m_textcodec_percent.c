@@ -34,7 +34,7 @@ static M_bool is_percent_reserved(char c)
 		if (c == reserved[i]) {
 			return M_TRUE;
 		}
-	};
+	}
 	return M_FALSE;
 }
 

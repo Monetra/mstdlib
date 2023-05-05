@@ -187,7 +187,7 @@ M_log_error_t M_log_module_set_filter(M_log_t *log, M_log_module_t *module, M_lo
 
 M_log_error_t M_log_module_reopen(M_log_t *log, M_log_module_t *module)
 {
-	M_log_error_t ret = M_LOG_SUCCESS;;
+	M_log_error_t ret = M_LOG_SUCCESS;
 
 	if (log == NULL || module == NULL) {
 		return M_LOG_INVALID_PARAMS;

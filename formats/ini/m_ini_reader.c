@@ -327,7 +327,7 @@ static M_fs_error_t M_ini_reader_parse_line(M_ini_element_t **elem, const char *
 {
 	M_ini_element_type_t  type = M_INI_ELEMENT_TYPE_UNKNOWN;
 	char                 *line;
-	M_bool                ret  = M_TRUE;;
+	M_bool                ret  = M_TRUE;
 
 	if (elem == NULL) {
 		return M_FS_ERROR_INVALID;

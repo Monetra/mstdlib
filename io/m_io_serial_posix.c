@@ -481,7 +481,7 @@ M_io_error_t M_io_serial_handle_set_flowcontrol(M_io_handle_t *handle, M_io_seri
 		case M_IO_SERIAL_FLOWCONTROL_SOFTWARE:
 			options.c_iflag |= (IXON | IXOFF);
 			break;
-	};
+	}
 
 	if (tcsetattr(handle->fd, TCSANOW, &options) != 0) {
 		handle->last_error_sys = errno;

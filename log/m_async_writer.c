@@ -675,7 +675,7 @@ M_bool M_async_writer_write(M_async_writer_t *writer, const char *msg)
 		if (writer->num_dropped < M_UINT64_MAX) {
 			writer->num_dropped++;
 		}
-	};
+	}
 
 	done:
 	if (msg_added) {

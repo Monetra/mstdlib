@@ -287,7 +287,7 @@ static M_bool M_fs_dir_walk_create_entry(const char *base_path, const char *path
 					ret = M_fs_dir_walk_create_entry(base_path, npath, nprefix, nname, pat, filter, cb, thunk, seen, M_fs_info_get_type(info_sym), info_sym);
 
 					M_free(nname);
-					M_free(nprefix);;
+					M_free(nprefix);
 					M_free(npath);
 					if (!ret) {
 						M_free(full_path);

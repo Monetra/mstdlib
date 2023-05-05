@@ -593,7 +593,7 @@ static void M_thread_coop_create_int(M_thread_coop_t *thread, void *(*func)(void
 
 static void M_thread_coop_create_int(M_thread_coop_t *thread, void *(*func)(void *), void *arg)
 {
-	M_thread_coop_t *athread = M_llist_node_val(M_llist_first(coop_active_threads));;
+	M_thread_coop_t *athread = M_llist_node_val(M_llist_first(coop_active_threads));
 
 	/* Create the new context */
 	getcontext(&thread->th_context);

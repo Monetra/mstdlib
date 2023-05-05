@@ -272,7 +272,7 @@ __BEGIN_DECLS
  *
  * static void destroy_cb(M_io_layer_t *layer)
  * {
- *     M_io_handle_t *handle = M_io_layer_get_handle(layer);;
+ *     M_io_handle_t *handle = M_io_layer_get_handle(layer);
  *
  *     M_buf_cancel(handle->read_buf);
  *     M_buf_cancel(handle->write_buf);
@@ -370,7 +370,7 @@ __BEGIN_DECLS
  * {
  *     M_io_t       *io;
  *     size_t        layer_idx;
- *     M_io_error_t  err       = M_IO_ERROR_SUCCESS;;
+ *     M_io_error_t  err       = M_IO_ERROR_SUCCESS;
  *     size_t        write_len = 0;
  *
  *     if (layer == NULL || handle == NULL)
@@ -613,7 +613,7 @@ __BEGIN_DECLS
  *
  * static M_io_error_t write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *buf_len, M_io_meta_t *meta)
  * {
- *     M_io_handle_t  *handle      = M_io_layer_get_handle(layer);;
+ *     M_io_handle_t  *handle      = M_io_layer_get_handle(layer);
  *     M_io_t         *io          = M_io_layer_get_io(layer);
  *     size_t          mywrite_len = 0;
  *
@@ -1004,7 +1004,7 @@ __BEGIN_DECLS
  *
  * static void destroy_cb(M_io_layer_t *layer)
  * {
- *     M_io_handle_t *handle = M_io_layer_get_handle(layer);;
+ *     M_io_handle_t *handle = M_io_layer_get_handle(layer);
  *
  *     M_io_meta_destroy(handle->write_meta);
  *     M_buf_cancel(handle->read_buf);

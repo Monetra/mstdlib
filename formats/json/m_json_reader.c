@@ -44,7 +44,7 @@ static M_json_node_t *M_json_read_value(M_parser_t *parser, M_uint32 flags, M_js
 static M_bool M_json_eat_comment(M_parser_t *parser, M_uint32 flags, M_json_error_t *error)
 {
 	const unsigned char *s;
-	M_bool               isblock = M_FALSE;;
+	M_bool               isblock = M_FALSE;
 
 	if (flags & M_JSON_READER_DISALLOW_COMMENTS)
 		return M_TRUE;

@@ -143,7 +143,7 @@ static void serial_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm
 		case M_EVENT_TYPE_READ:
 			len = M_parser_len(parser);
 			M_io_read_into_parser(comm, parser);
-			event_debug("serial client %p read %zu bytes", comm, M_parser_len(parser) - len);;
+			event_debug("serial client %p read %zu bytes", comm, M_parser_len(parser) - len);
 			if (M_parser_compare_str(parser, "HelloWorld", 0, M_FALSE))  {
 				M_io_write(comm, (const unsigned char *)"GoodBye", 7, &len);
 				event_debug("serial client %p wrote %zu bytes", comm, len);

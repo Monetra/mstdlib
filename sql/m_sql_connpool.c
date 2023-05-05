@@ -231,7 +231,7 @@ M_sql_driver_t *M_sql_get_driver_postgresql(void);
 
 static void M_sql_init_routine(M_uint64 flags)
 {
-	M_sql_driver_t *driver = NULL;;
+	M_sql_driver_t *driver = NULL;
 	(void)driver;
 	(void)flags;
 	M_sql_lock    = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
