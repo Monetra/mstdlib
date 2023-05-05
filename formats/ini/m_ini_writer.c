@@ -261,7 +261,8 @@ static void M_ini_writer_tree_add_kv(M_ini_t *ini, M_ini_kvs_t *kvs)
 				first_sect_idx  = i;
 				find_first_sect = M_FALSE;
 			}
-			M_ini_elements_insert_at(section, elem, first_sect_idx++);
+			M_ini_elements_insert_at(section, elem, first_sect_idx);
+			first_sect_idx++;
 		/* Sections just need to have the element inserted at the end. */
 		} else {
 			section = M_ini_section_get_direct(ini, section_name);

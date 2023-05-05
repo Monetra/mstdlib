@@ -495,7 +495,8 @@ static tre_literal_t *tre_new_lit(struct literals *p)
 		p->a    = M_realloc(p->a, p->cap * sizeof *p->a);
 	}
 
-	a  = p->a + p->len++;
+	a  = p->a + p->len;
+	p->len++;
 	*a = tre_mem_calloc(p->mem, sizeof **a);
 
 	return *a;
@@ -984,7 +985,8 @@ static reg_errcode_t parse_atom(tre_parse_ctx_t *ctx, const char *s)
 							}
 							s++;
 						}
-						node = tre_ast_new_literal(ctx->mem, v, v, ctx->position++);
+						node = tre_ast_new_literal(ctx->mem, v, v, ctx->position);
+						ctx->position++;
 						s--;
 					}
 					break;
@@ -1003,8 +1005,10 @@ static reg_errcode_t parse_atom(tre_parse_ctx_t *ctx, const char *s)
 				node = tre_ast_new_literal(ctx->mem, 0, TRE_CHAR_MAX, ctx->position++);
 			} else {
 				tre_ast_node_t *tmp1, *tmp2;
-				tmp1 = tre_ast_new_literal(ctx->mem, 0, '\n'-1, ctx->position++);
-				tmp2 = tre_ast_new_literal(ctx->mem, '\n'+1, TRE_CHAR_MAX, ctx->position++);
+				tmp1 = tre_ast_new_literal(ctx->mem, 0, '\n'-1, ctx->position);
+				ctx->position++;
+				tmp2 = tre_ast_new_literal(ctx->mem, '\n'+1, TRE_CHAR_MAX, ctx->position);
+				ctx->position++;
 				if (tmp1 && tmp2) {
 					node = tre_ast_new_union(ctx->mem, tmp1, tmp2);
 				} else {
@@ -2914,7 +2918,8 @@ reg_errcode_t mregcomp(regex_t *preg, const char *regex, regex_flags_t cflags)
 
 	/* Add a dummy node for the final state. */
 	tmp_ast_l = tree;
-	tmp_ast_r = tre_ast_new_literal(mem, 0, 0, parse_ctx.position++);
+	tmp_ast_r = tre_ast_new_literal(mem, 0, 0, parse_ctx.position);
+	parse_ctx.position++;
 	if (tmp_ast_r == NULL)
 		ERROR_EXIT(REG_ESPACE);
 
