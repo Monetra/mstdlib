@@ -209,7 +209,7 @@ M_bool M_hash_u64u64_enumerate_next(const M_hash_u64u64_t *h, M_hash_u64u64_enum
 	const M_uint64     *tmp_key;
 	const void         *tmp_val;
 
-	if (!M_hashtable_enumerate_next((const M_hashtable_t *)h, myhashenum, (const void **)&tmp_key, (const void **)&tmp_val))
+	if (!M_hashtable_enumerate_next((const M_hashtable_t *)h, myhashenum, (const void **)&tmp_key, &tmp_val))
 		return M_FALSE;
 
 	if (key != NULL)

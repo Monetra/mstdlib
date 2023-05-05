@@ -597,7 +597,7 @@ void M_parser_mark_clear(M_parser_t *parser)
 }
 
 
-size_t M_parser_mark_len(M_parser_t *parser)
+size_t M_parser_mark_len(const M_parser_t *parser)
 {
 	size_t len_marked = 0;
 	M_parser_marked_buffer_start(parser, M_PARSER_MARKED_USER, &len_marked);
@@ -731,7 +731,7 @@ M_bool M_parser_peek_byte(const M_parser_t *parser, unsigned char *byte)
 }
 
 
-M_bool M_parser_peek_bytes(M_parser_t *parser, size_t len, unsigned char *buf)
+M_bool M_parser_peek_bytes(const M_parser_t *parser, size_t len, unsigned char *buf)
 {
 	if (parser == NULL || parser->data_len < len || buf == NULL || len == 0)
 		return M_FALSE;
@@ -1075,7 +1075,7 @@ size_t M_parser_consume_str_boundary(M_parser_t *parser, const char *pat, M_bool
 
 size_t M_parser_consume_not_charset(M_parser_t *parser, const unsigned char *charset, size_t charset_len)
 {
-	return M_parser_consume_charset_int(parser, (const unsigned char *)charset, charset_len, M_FALSE);
+	return M_parser_consume_charset_int(parser, charset, charset_len, M_FALSE);
 }
 
 

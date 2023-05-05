@@ -198,7 +198,7 @@ M_csv_t *M_csv_parse_inplace(char *data, size_t len, char delim, char quote, M_u
 	out = M_malloc(outlen);
 	M_mem_set(out, 0, outlen);
 	buf = (char *)out;
-	for (i=0; i<(size_t)num_rows; i++) {
+	for (i=0; i<num_rows; i++) {
 		/* Calc offset of allocated block to assign pointers */
 		out[i] = (char **)(void *)&buf[num_rows*sizeof(*out) + i*num_cols*sizeof(**out)];
 	}

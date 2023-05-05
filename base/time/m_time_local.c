@@ -115,7 +115,7 @@ static M_time_t M_time_fromlocal_sys(M_time_localtm_t *ltime)
 	return M_time_from_filetime(&fto);
 }
 #else
-static M_time_t M_time_fromlocal_sys(M_time_localtm_t *ltime)
+static M_time_t M_time_fromlocal_sys(const M_time_localtm_t *ltime)
 {
 	struct tm tmtime;
 	M_time_t  t;

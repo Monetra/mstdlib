@@ -285,7 +285,7 @@ M_bool M_hash_multi_u64_insert_bool(M_hash_multi_t *h, M_uint64 key, M_bool val)
 		return M_FALSE;
 
 	M_hash_multi_u64_remove(h, key, M_TRUE);
-	return M_hash_u64vp_insert(h->table_int, (M_uint64)key, M_hash_multi_create_object_bool(val));
+	return M_hash_u64vp_insert(h->table_int, key, M_hash_multi_create_object_bool(val));
 }
 
 M_bool M_hash_multi_u64_insert_int(M_hash_multi_t *h, M_uint64 key, M_int64 val)
@@ -294,7 +294,7 @@ M_bool M_hash_multi_u64_insert_int(M_hash_multi_t *h, M_uint64 key, M_int64 val)
 		return M_FALSE;
 
 	M_hash_multi_u64_remove(h, key, M_TRUE);
-	return M_hash_u64vp_insert(h->table_int, (M_uint64)key, M_hash_multi_create_object_int((M_uint64)val));
+	return M_hash_u64vp_insert(h->table_int, key, M_hash_multi_create_object_int((M_uint64)val));
 }
 
 M_bool M_hash_multi_u64_insert_uint(M_hash_multi_t *h, M_uint64 key, M_uint64 val)

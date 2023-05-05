@@ -105,7 +105,7 @@ static void M_llist_free_func_default(void *arg)
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Calculate the number of levels necessary for the number of elements in the list. */
-static size_t M_llist_max_level(M_llist_t *d)
+static size_t M_llist_max_level(const M_llist_t *d)
 {
 	size_t elements;
 
@@ -116,7 +116,7 @@ static size_t M_llist_max_level(M_llist_t *d)
 }
 
 /*! The number of levels a node should appear in. */
-static size_t M_llist_node_calc_level(M_llist_t *d)
+static size_t M_llist_node_calc_level(const M_llist_t *d)
 {
 	M_uint64 r     = 0;
 	M_bool   found = M_FALSE;

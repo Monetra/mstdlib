@@ -535,8 +535,8 @@ static M_bool add_icase_literals(struct literals *ls, int min, int max)
 		if (lit == NULL)
 			return M_FALSE; 
 
-		lit->code_min = (int)b;
-		lit->code_max = (int)e-1;
+		lit->code_min = b;
+		lit->code_max = e-1;
 		lit->position = -1;
 	}
 
@@ -2447,13 +2447,13 @@ static reg_errcode_t tre_compute_nfl(tre_mem_t mem, tre_stack_t *stack, tre_ast_
 								/* Literal at position i: nullable = false, firstpos = {i},
 								   lastpos = {i}. */
 								node->nullable = 0;
-								node->firstpos = tre_set_one(mem, lit->position, (int)lit->code_min, (int)lit->code_max);
+								node->firstpos = tre_set_one(mem, lit->position, lit->code_min, lit->code_max);
 
 								if (!node->firstpos) {
 									return REG_ESPACE;
 								}
 
-								node->lastpos = tre_set_one(mem, lit->position, (int)lit->code_min, (int)lit->code_max);
+								node->lastpos = tre_set_one(mem, lit->position, lit->code_min, lit->code_max);
 								if (!node->lastpos) {
 									return REG_ESPACE;
 								}
@@ -3024,7 +3024,7 @@ void mregfree(regex_t *preg)
 	unsigned int           i;
 	tre_tnfa_transition_t *trans;
 
-	tnfa = (void *)preg->tnfa;
+	tnfa = preg->tnfa;
 	if (tnfa == NULL)
 		return;
 	preg->tnfa = NULL;

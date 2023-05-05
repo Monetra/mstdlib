@@ -232,7 +232,7 @@ void M_sort_qsort(void *base, size_t nmemb, size_t esize, M_sort_compar_t compar
 		 * always >= 'left1' because they are initialized to the same value and every
 		 * time 'left1' is incremented, 'left2' is also incremented */
 		s  = (size_t)M_MIN(left1 - (unsigned char *)base, left2 - left1);
-		sort_swap_multiple(base, left2 - s, (size_t)s, swaptype);
+		sort_swap_multiple(base, left2 - s, s, swaptype);
 
 		end = (unsigned char *)base + (nmemb * esize);
 		/* Cast to size_t is ok here because 'right2' and 'right1' are initialized to the

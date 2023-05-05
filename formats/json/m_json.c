@@ -744,11 +744,11 @@ M_bool M_json_get_value(const M_json_node_t *node, char *buf, size_t buf_len)
 
 	switch (node->type) {
 		case M_JSON_TYPE_STRING:
-			if ((size_t)M_snprintf(buf, buf_len, "%s", node->data.json_string) >= buf_len)
+			if (M_snprintf(buf, buf_len, "%s", node->data.json_string) >= buf_len)
 				return M_FALSE;
 			break;
 		case M_JSON_TYPE_INTEGER:
-			if ((size_t)M_snprintf(buf, buf_len, "%lld", node->data.json_integer) >= buf_len)
+			if (M_snprintf(buf, buf_len, "%lld", node->data.json_integer) >= buf_len)
 				return M_FALSE;
 			break;
 		case M_JSON_TYPE_DECIMAL:
@@ -761,11 +761,11 @@ M_bool M_json_get_value(const M_json_node_t *node, char *buf, size_t buf_len)
 			} else {
 				bool_val = "false";
 			}
-			if ((size_t)M_snprintf(buf, buf_len, "%s", bool_val) >= buf_len)
+			if (M_snprintf(buf, buf_len, "%s", bool_val) >= buf_len)
 				return M_FALSE;
 			break;
 		case M_JSON_TYPE_NULL:
-			if ((size_t)M_snprintf(buf, buf_len, "null") >= buf_len)
+			if (M_snprintf(buf, buf_len, "null") >= buf_len)
 				return M_FALSE;
 			break;
 		default:

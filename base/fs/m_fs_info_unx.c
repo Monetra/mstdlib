@@ -207,7 +207,7 @@ static M_fs_error_t M_fs_info_int(M_fs_info_t **info, const struct stat *stbuf, 
 #endif
 
 	/* Perms. */
-	perms = M_fs_info_mode_to_perms((mode_t)stbuf->st_mode);
+	perms = M_fs_info_mode_to_perms(stbuf->st_mode);
 	if (perms == NULL) {
 		M_fs_info_destroy(*info);
 		*info = NULL;

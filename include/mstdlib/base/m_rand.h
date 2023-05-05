@@ -140,7 +140,7 @@ M_API M_bool M_rand_str(M_rand_t *state, const char *charset, char *out, size_t 
  *
  * \see M_rand_jump
  */
-M_API M_rand_t *M_rand_duplicate(M_rand_t *state);
+M_API M_rand_t *M_rand_duplicate(const M_rand_t *state);
 
 
 /*! Advance the random number generator to generate non-overlapping sequences.

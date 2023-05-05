@@ -540,7 +540,7 @@ static void tre_fill_pmatch(size_t nmatch, regmatch_t pmatch[],
 
 reg_errcode_t mregexec(const regex_t *preg, const char *string, size_t nmatch, regmatch_t *pmatch)
 {
-	tre_tnfa_t    *tnfa = (void *)preg->tnfa;
+	tre_tnfa_t    *tnfa = preg->tnfa;
 	reg_errcode_t  status;
 	regoff_t      *tags = NULL;
 	regoff_t       eo;

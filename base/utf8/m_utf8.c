@@ -95,7 +95,7 @@ static M_bool M_utf8_validate_int(const char *str, const char **endptr, size_t *
 		return M_FALSE;
 
 	/* Set the end pointer to the NULL terminator. */
- 	if (endptr != NULL)
+	if (endptr != NULL)
 		*endptr = str;
 	return M_TRUE;
 }

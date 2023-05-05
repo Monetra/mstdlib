@@ -250,7 +250,7 @@ M_list_str_t *M_list_str_split(unsigned char delim, const char *s, M_uint32 flag
 		return d;
 	}
 
-	parts = M_str_explode_str((unsigned char)delim, s, &num_parts);
+	parts = M_str_explode_str(delim, s, &num_parts);
 	for (i=0; i<num_parts; i++) {
 		if (keep_empty_parts || (parts[i] != NULL && *parts[i] != '\0')) {
 			M_list_str_insert(d, parts[i]);

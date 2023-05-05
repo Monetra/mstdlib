@@ -283,7 +283,7 @@ M_API void M_parser_mark_clear(M_parser_t *parser);
  *
  * \return Length or 0 on error.
  */
-M_API size_t M_parser_mark_len(M_parser_t *parser);
+M_API size_t M_parser_mark_len(const M_parser_t *parser);
 
 
 /*! Rewind data back to the marked position.
@@ -353,7 +353,7 @@ M_API M_bool M_parser_peek_byte(const M_parser_t *parser, unsigned char *byte);
  *
  * \return M_TRUE on success, M_FALSE if not enough bytes or other error.
  */
-M_API M_bool M_parser_peek_bytes(M_parser_t *parser, size_t len, unsigned char *buf);
+M_API M_bool M_parser_peek_bytes(const M_parser_t *parser, size_t len, unsigned char *buf);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

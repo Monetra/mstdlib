@@ -34,7 +34,7 @@ static const int mdays[2][12] = {
 	{ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
 };
 
-static M_int64 calc_yday(M_time_gmtm_t *tm)
+static M_int64 calc_yday(const M_time_gmtm_t *tm)
 {
 	int     is_leapyear = IS_LEAPYEAR(tm->year);
 	M_int64 yday        = 0;

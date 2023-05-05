@@ -66,12 +66,12 @@ void M_time_tz_dst_rules_destroy(M_time_tz_dst_rules_t *d)
 	M_list_destroy((M_list_t *)d, M_TRUE);
 }
 
-size_t M_time_tz_dst_rules_len(M_time_tz_dst_rules_t *d)
+size_t M_time_tz_dst_rules_len(const M_time_tz_dst_rules_t *d)
 {
 	return M_list_len((const M_list_t *)d);
 }
 
-const M_time_tz_dst_rule_t *M_time_tz_dst_rules_at(M_time_tz_dst_rules_t *d, size_t idx)
+const M_time_tz_dst_rule_t *M_time_tz_dst_rules_at(const M_time_tz_dst_rules_t *d, size_t idx)
 {
 	return M_list_at((const M_list_t *)d, idx);
 }
@@ -81,7 +81,7 @@ M_bool M_time_tz_dst_rules_insert(M_time_tz_dst_rules_t *d, M_time_tz_dst_rule_t
 	return M_list_insert((M_list_t *)d, val);
 }
 
-M_bool M_time_tz_dst_rules_contains(M_time_tz_dst_rules_t *d, M_int64 year)
+M_bool M_time_tz_dst_rules_contains(const M_time_tz_dst_rules_t *d, M_int64 year)
 {
 	M_time_tz_dst_rule_t val;
 

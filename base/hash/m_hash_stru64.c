@@ -225,7 +225,7 @@ M_bool M_hash_stru64_enumerate_next(const M_hash_stru64_t *h, M_hash_stru64_enum
 	M_hashtable_enum_t *myhashenum = (M_hashtable_enum_t *)hashenum;
 	const void         *tmp_val;
 
-	if (!M_hashtable_enumerate_next((const M_hashtable_t *)h, myhashenum, (const void **)key, (const void **)&tmp_val))
+	if (!M_hashtable_enumerate_next((const M_hashtable_t *)h, myhashenum, (const void **)key, &tmp_val))
 		return M_FALSE;
 
 	if (value != NULL)

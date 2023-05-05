@@ -223,7 +223,7 @@ M_bool M_rand_str(M_rand_t *state, const char *charset, char *out, size_t len)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_rand_t *M_rand_duplicate(M_rand_t *state)
+M_rand_t *M_rand_duplicate(const M_rand_t *state)
 {
 	M_rand_t *dstate;
 

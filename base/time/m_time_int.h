@@ -268,10 +268,10 @@ M_API M_time_result_t M_time_tz_rule_load(M_time_tzs_t *tzs, M_time_tz_rule_t *r
 
 M_API M_time_tz_dst_rules_t *M_time_tz_dst_rules_create(void);
 M_API void M_time_tz_dst_rules_destroy(M_time_tz_dst_rules_t *d);
-M_API size_t M_time_tz_dst_rules_len(M_time_tz_dst_rules_t *d);
-M_API const M_time_tz_dst_rule_t *M_time_tz_dst_rules_at(M_time_tz_dst_rules_t *d, size_t idx);
+M_API size_t M_time_tz_dst_rules_len(const M_time_tz_dst_rules_t *d);
+M_API const M_time_tz_dst_rule_t *M_time_tz_dst_rules_at(const M_time_tz_dst_rules_t *d, size_t idx);
 M_API M_bool M_time_tz_dst_rules_insert(M_time_tz_dst_rules_t *d, M_time_tz_dst_rule_t *val);
-M_API M_bool M_time_tz_dst_rules_contains(M_time_tz_dst_rules_t *d, M_int64 year);
+M_API M_bool M_time_tz_dst_rules_contains(const M_time_tz_dst_rules_t *d, M_int64 year);
 /*! Get the DST rule for the given year.
  * \param d List.
  * \param year The year.
