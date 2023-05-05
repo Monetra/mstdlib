@@ -151,7 +151,7 @@ M_API M_bool M_bitlist_tohash(M_hash_stru64_t **hash_toint, M_hash_u64str_t **ha
  * \param[in,out] error      Buffer to hold error string.
  * \param[in]     error_len  Length of error buffer
  * \return M_TRUE on success, M_FALSE on failure */
-M_API M_bool M_bitlist_hash_parse(M_uint64 *out, M_bitlist_flags_t flags, M_hash_stru64_t *hash_toint, const char *data, unsigned char delim, char *error, size_t error_len);
+M_API M_bool M_bitlist_hash_parse(M_uint64 *out, M_bitlist_flags_t flags, const M_hash_stru64_t *hash_toint, const char *data, unsigned char delim, char *error, size_t error_len);
 
 /*! Extract a single name from a bitlist that exactly matches the passed in id.
  *

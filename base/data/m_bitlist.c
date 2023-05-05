@@ -213,7 +213,7 @@ M_bool M_bitlist_parse(M_uint64 *out, M_bitlist_flags_t flags, const M_bitlist_t
 	return M_bitlist_parse_int(out, flags, list, NULL, data, delim, error, error_len);
 }
 
-M_bool M_bitlist_hash_parse(M_uint64 *out, M_bitlist_flags_t flags, M_hash_stru64_t *hash_toint, const char *data, unsigned char delim, char *error, size_t error_len)
+M_bool M_bitlist_hash_parse(M_uint64 *out, M_bitlist_flags_t flags, const M_hash_stru64_t *hash_toint, const char *data, unsigned char delim, char *error, size_t error_len)
 {
 	return M_bitlist_parse_int(out, flags, NULL, hash_toint, data, delim, error, error_len);
 }

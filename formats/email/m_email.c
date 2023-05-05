@@ -106,7 +106,7 @@ static M_list_t *create_address_list(void)
 	return M_list_create(&cbs, M_LIST_SORTED);
 }
 
-static M_bool M_email_address_entry(M_email_address_t *ad, char const **group, char const **name, char const **address)
+static M_bool M_email_address_entry(const M_email_address_t *ad, char const **group, char const **name, char const **address)
 {
 	if (ad == NULL ||
 			(M_str_isempty(ad->group) &&
@@ -492,7 +492,7 @@ M_bool M_email_to(const M_email_t *email, size_t idx, char const **group, char c
 {
 	if (email == NULL)
 		return M_FALSE;
-	return M_email_address_entry((M_email_address_t *)M_list_at(email->to, idx), group, name, address);
+	return M_email_address_entry((const M_email_address_t *)M_list_at(email->to, idx), group, name, address);
 }
 
 char *M_email_to_field(const M_email_t *email)
@@ -539,7 +539,7 @@ M_bool M_email_cc(const M_email_t *email, size_t idx, char const **group, char c
 {
 	if (email == NULL)
 		return M_FALSE;
-	return M_email_address_entry((M_email_address_t *)M_list_at(email->cc, idx), group, name, address);
+	return M_email_address_entry((const M_email_address_t *)M_list_at(email->cc, idx), group, name, address);
 }
 
 char *M_email_cc_field(const M_email_t *email)
@@ -586,7 +586,7 @@ M_bool M_email_bcc(const M_email_t *email, size_t idx, char const **group, char 
 {
 	if (email == NULL)
 		return M_FALSE;
-	return M_email_address_entry((M_email_address_t *)M_list_at(email->bcc, idx), group, name, address);
+	return M_email_address_entry((const M_email_address_t *)M_list_at(email->bcc, idx), group, name, address);
 }
 
 char *M_email_bcc_field(const M_email_t *email)
@@ -904,12 +904,12 @@ void M_email_parts_clear(M_email_t *email)
 
 const char *M_email_part_data(const M_email_t *email, size_t idx)
 {
-	M_email_part_t *part;
+	const M_email_part_t *part;
 
 	if (email == NULL)
 		return NULL;
 
-	part = (M_email_part_t *)M_list_at(email->parts, idx);
+	part = (const M_email_part_t *)M_list_at(email->parts, idx);
 	if (part == NULL)
 		return NULL;
 	return M_buf_peek(part->data);
@@ -917,12 +917,12 @@ const char *M_email_part_data(const M_email_t *email, size_t idx)
 
 const M_hash_dict_t *M_email_part_headers(const M_email_t *email, size_t idx)
 {
-	M_email_part_t *part;
+	const M_email_part_t *part;
 
 	if (email == NULL)
 		return NULL;
 
-	part = (M_email_part_t *)M_list_at(email->parts, idx);
+	part = (const M_email_part_t *)M_list_at(email->parts, idx);
 	if (part == NULL)
 		return NULL;
 	return part->headers;
@@ -930,12 +930,12 @@ const M_hash_dict_t *M_email_part_headers(const M_email_t *email, size_t idx)
 
 M_bool M_email_part_is_attachmenet(const M_email_t *email, size_t idx)
 {
-	M_email_part_t *part;
+	const M_email_part_t *part;
 
 	if (email == NULL)
 		return M_FALSE;
 
-	part = (M_email_part_t *)M_list_at(email->parts, idx);
+	part = (const M_email_part_t *)M_list_at(email->parts, idx);
 	if (part == NULL)
 		return M_FALSE;
 	return part->is_attachment;
@@ -943,7 +943,7 @@ M_bool M_email_part_is_attachmenet(const M_email_t *email, size_t idx)
 
 M_bool M_email_part_attachment_info(const M_email_t *email, size_t idx, char const **content_type, char const **transfer_encoding, char const **filename)
 {
-	M_email_part_t *part;
+	const M_email_part_t *part;
 
 	if (content_type != NULL)
 		*content_type = NULL;
@@ -955,7 +955,7 @@ M_bool M_email_part_attachment_info(const M_email_t *email, size_t idx, char con
 	if (email == NULL)
 		return M_FALSE;
 
-	part = (M_email_part_t *)M_list_at(email->parts, idx);
+	part = (const M_email_part_t *)M_list_at(email->parts, idx);
 	if (part == NULL)
 		return M_FALSE;
 
