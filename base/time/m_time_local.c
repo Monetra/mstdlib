@@ -195,11 +195,11 @@ static M_uint64 M_time_win_to_int(M_uint64 month, M_uint64 day, M_uint64 hour, M
 	return (month * 1000000) + (day * 10000) + (hour * 100) + minute;
 }
 
-static M_bool M_time_win_is_dst(SYSTEMTIME *StandardDate, SYSTEMTIME *DaylightDate, M_time_localtm_t *currtime)
+static M_bool M_time_win_is_dst(SYSTEMTIME *StandardDate, SYSTEMTIME *DaylightDate, M_time_localtm_t *currdate)
 {
-	M_uint64 stime = M_time_win_to_int(StandardDate->wMonth, StandardDate->wDay, StandardDate->wHour, StandardDate->wMinute);
-	M_uint64 dtime = M_time_win_to_int(DaylightDate->wMonth, DaylightDate->wDay, DaylightDate->wHour, DaylightDate->wMinute);
-	M_uint64 ctime = M_time_win_to_int(currtime->month, currtime->day, currtime->hour, currtime->min);
+	M_uint64 stdtime = M_time_win_to_int(StandardDate->wMonth, StandardDate->wDay, StandardDate->wHour, StandardDate->wMinute);
+	M_uint64 dsttime = M_time_win_to_int(DaylightDate->wMonth, DaylightDate->wDay, DaylightDate->wHour, DaylightDate->wMinute);
+	M_uint64 curtime = M_time_win_to_int(currdate->month, currdate->day, currdate->hour, currdate->min);
 
 	/* https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/ns-timezoneapi-time_zone_information
 	 * If the time zone does not support daylight saving time or if the caller needs to disable daylight saving time,
@@ -208,21 +208,24 @@ static M_bool M_time_win_is_dst(SYSTEMTIME *StandardDate, SYSTEMTIME *DaylightDa
 	if (StandardDate->wMonth == 0)
 		return M_FALSE;
 
-	if (stime > dtime) {
+	if (stdtime > dsttime) {
 		/* switch to standard time at end of year, daylight at beginning */
-		if (ctime >= stime)
+		if (curtime >= stdtime)
 			return M_FALSE;
 
-		if (ctime < dtime)
+		if (curtime < dsttime)
 			return M_FALSE;
+
 		return M_TRUE;
 	}
 
 	/* switch to daylight time at end of year, standard at end */
-	if (ctime >= dtime)
+	if (curtime >= dsttime)
 		return M_TRUE;
-	if (ctime < stime)
+
+	if (curtime < stdtime)
 		return M_TRUE;
+
 	return M_FALSE;
 }
 
