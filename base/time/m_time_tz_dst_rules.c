@@ -88,7 +88,7 @@ M_bool M_time_tz_dst_rules_contains(const M_time_tz_dst_rules_t *d, M_int64 year
 	M_mem_set(&val, 0, sizeof(val));
 	val.year = year;
 
-	return M_list_index_of((M_list_t *)d, &val, M_LIST_MATCH_VAL, NULL);
+	return M_list_index_of((const M_list_t *)d, &val, M_LIST_MATCH_VAL, NULL);
 }
 
 const M_time_tz_dst_rule_t *M_time_tz_dst_rules_get_rule(M_time_tz_dst_rules_t *d, M_int64 year)

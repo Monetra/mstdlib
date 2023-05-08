@@ -136,7 +136,7 @@ M_textcodec_error_t M_textcodec_decode_percent(M_textcodec_buffer_t *buf, const 
 	if (ehandler == M_TEXTCODEC_EHANDLER_FAIL && !M_str_ispredicate(in, M_chr_isascii))
 		return M_TEXTCODEC_ERROR_BADINPUT;
 
-	parser = M_parser_create_const((unsigned char *)in, M_str_len(in), M_PARSER_FLAG_NONE);
+	parser = M_parser_create_const((const unsigned char *)in, M_str_len(in), M_PARSER_FLAG_NONE);
 	if (parser == NULL)
 		return M_TEXTCODEC_ERROR_FAIL;
 

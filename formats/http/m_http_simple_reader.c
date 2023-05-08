@@ -412,7 +412,7 @@ const unsigned char *M_http_simple_read_body(const M_http_simple_read_t *simple,
 		return NULL;
 
 	*len = M_buf_len(simple->http->body);
-	return (unsigned char *)M_buf_peek(simple->http->body);
+	return (const unsigned char *)M_buf_peek(simple->http->body);
 }
 
 const M_hash_dict_t *M_http_simple_read_body_form_data(const M_http_simple_read_t *simple)

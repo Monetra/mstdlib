@@ -70,7 +70,7 @@ M_textcodec_error_t M_textcodec_decode_quoted_printable(M_textcodec_buffer_t *bu
 	M_parser_t          *parser;
 	M_textcodec_error_t  res = M_TEXTCODEC_ERROR_SUCCESS;
 
-	parser = M_parser_create_const((unsigned char *)in, M_str_len(in), M_PARSER_FLAG_NONE);
+	parser = M_parser_create_const((const unsigned char *)in, M_str_len(in), M_PARSER_FLAG_NONE);
 	if (parser == NULL)
 		return M_TEXTCODEC_ERROR_FAIL;
 

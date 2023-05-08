@@ -378,7 +378,7 @@ M_bool M_table_load_markdown(M_table_t *table, const char *data, size_t len)
 	size_t          num_rows = 0;
 	size_t          i;
 
-	parser = M_parser_create_const((unsigned char *)data, len, M_PARSER_FLAG_NONE);
+	parser = M_parser_create_const((const unsigned char *)data, len, M_PARSER_FLAG_NONE);
 	M_parser_consume_whitespace(parser, M_PARSER_WHITESPACE_NONE);
 	M_parser_truncate_whitespace(parser, M_PARSER_WHITESPACE_NONE);
 

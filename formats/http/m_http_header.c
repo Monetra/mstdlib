@@ -247,11 +247,11 @@ M_bool M_http_header_update(M_http_header_t *h, const char *header_value)
 
 char *M_http_header_value(const M_http_header_t *h)
 {
-	const M_http_header_value_t *hval;
-	M_hash_strvp_enum_t         *he;
-	M_list_str_t                *l;
-	const char                  *key;
-	char                        *out;
+	M_hash_strvp_enum_t *he;
+	M_list_str_t        *l;
+	const char          *key;
+	char                *out;
+	void                *vp;
 
 	if (h == NULL)
 		return NULL;
@@ -259,8 +259,8 @@ char *M_http_header_value(const M_http_header_t *h)
 	l = M_list_str_create(M_LIST_STR_NONE);
 
 	M_hash_strvp_enumerate(h->values, &he);
-	while (M_hash_strvp_enumerate_next(h->values, he, &key, (void **)&hval)) {
-		out = M_http_header_value_string(hval);
+	while (M_hash_strvp_enumerate_next(h->values, he, &key, &vp)) {
+		out  = M_http_header_value_string((const M_http_header_value_t *)vp);
 		M_list_str_insert(l, out);
 		M_free(out);
 	}
