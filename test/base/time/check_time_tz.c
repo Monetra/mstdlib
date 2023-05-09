@@ -254,6 +254,7 @@ START_TEST(check_time_tz_sys_vs_lib)
 		M_free(sys_date);
 		M_free(lib_date);
 	}
+	M_time_tzs_destroy(tzs);
 }
 END_TEST
 
