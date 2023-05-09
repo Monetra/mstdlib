@@ -199,19 +199,16 @@ static M_uint64 M_time_win_to_int(M_uint64 month, M_uint64 day, M_uint64 hour, M
 /* Transform wDay member from a week multiplier to an actual day of month */
 static void M_time_win_SYSTEMTIME_normalize(SYSTEMTIME *st, int year)
 {
-	M_time_gm_t gmt;
-	M_time_t    t;
-	int         days_in_month = M_time_days_in_month(year, st->wMonth);
-	int         day;
+	M_time_gmtm_t gmt;
+	int           days_in_month = M_time_days_in_month(year, st->wMonth);
+	int           day;
 
-	/* We need to get the day of the week the first day falls on, so we do a
-	 * double conversion */
+	/* We need to get the day of the week the first day falls on */
 	M_mem_set(&gmt, 0, sizeof(gmt));
 	gmt->year = year;
 	gmt->month = st->wMonth;
 	gmt->day = 1;
-	t = M_time_fromgm(&gmt);
-	M_time_togm(t, &gmt);
+	M_time_fromgm(&gmt); /* This updates gmt->tm_wday */
 
 	/* use wDayOfWeek (0-6), and wDay (week of month) to calculate the day of the
 	 * month */
@@ -254,8 +251,8 @@ static M_bool M_time_win_is_dst(SYSTEMTIME *StandardDate, SYSTEMTIME *DaylightDa
 	if (StandardDate->wMonth == 0)
 		return M_FALSE;
 
-	M_time_win_SYSTEMTIME_normalize(StandardDate);
-	M_time_win_SYSTEMTIME_normalize(DaylightDate);
+	M_time_win_SYSTEMTIME_normalize(StandardDate, currdate->year);
+	M_time_win_SYSTEMTIME_normalize(DaylightDate, currdate->year);
 	stdtime = M_time_win_to_int(StandardDate->wMonth, StandardDate->wDay, StandardDate->wHour, StandardDate->wMinute);
 	dsttime = M_time_win_to_int(DaylightDate->wMonth, DaylightDate->wDay, DaylightDate->wHour, DaylightDate->wMinute);
 	curtime = M_time_win_to_int(currdate->month, currdate->day, currdate->hour, currdate->min);
