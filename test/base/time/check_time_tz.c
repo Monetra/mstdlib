@@ -221,35 +221,72 @@ START_TEST(check_time_tz_sys_convert)
 }
 END_TEST
 
+START_TEST(check_time_tz_sys_vs_lib)
+{
+	const M_time_t test_times[] = { 1678510800, 1680148800, 0 };
+	size_t         i;
+	M_time_tzs_t  *tzs          = NULL;
+
+	M_time_tzs_load(&tzs, M_TIME_TZ_ZONE_ALL, M_TIME_TZ_ALIAS_ALL, M_TIME_TZ_LOAD_LAZY);
+
+	for (i=0; test_times[i] != 0; i++) {
+		M_time_localtm_t   sys_ltime;
+		M_time_localtm_t   lib_ltime;
+		char              *sys_date;
+		char              *lib_date;
+		const M_time_tz_t *tz;
+
+		/* Using system conversion */
+		M_time_tolocal(test_times[i], &sys_ltime, NULL);
+
+		/* Extract time zone from system conversion to look it up */
+		tz = M_time_tzs_get_tz(tzs, sys_ltime.abbr);
+
+		ck_assert_msg(tz == NULL, "%llu: timezone %s not found", (llu)i, sys_ltime.abbr);
+
+		/* Transform using our own tz database */
+		M_time_tolocal(test_times[i], &lib_ltime, NULL);
+
+		/* Compare system vs lib */
+		sys_date = M_time_to_str("%Y-%m-%d %H:%M:%S %z", &sys_ltime);
+		lib_date = M_time_to_str("%Y-%m-%d %H:%M:%S %z", &lib_ltime);
+		ck_assert_msg(M_str_eq(sys_date, lib_date), "%llu: sys_date %s != lib_date %s for ts %llu TZ %s", (llu)i, sys_date, lib_date, test_times[i], sys_ltime.abbr);
+		M_free(sys_date);
+		M_free(lib_date);
+	}
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 Suite *M_time_tz_suite(void)
 {
 	Suite *suite;
-	TCase *tc_time_tz_posix;
-#ifndef _WIN32
-	TCase *tc_time_tz_olson;
-#endif
-	TCase *tc_time_tz_sys_convert;
+	TCase *tc;
 
 	suite = suite_create("time_tz");
 
-	tc_time_tz_posix = tcase_create("time_tz_posix");
-	tcase_add_unchecked_fixture(tc_time_tz_posix, NULL, NULL);
-	tcase_add_test(tc_time_tz_posix, check_time_tz_posix);
-	suite_add_tcase(suite, tc_time_tz_posix);
+	tc = tcase_create("time_tz_posix");
+	tcase_add_unchecked_fixture(tc, NULL, NULL);
+	tcase_add_test(tc, check_time_tz_posix);
+	suite_add_tcase(suite, tc);
 
 #ifndef _WIN32
-	tc_time_tz_olson = tcase_create("time_tz_olson");
-	tcase_add_unchecked_fixture(tc_time_tz_olson, NULL, NULL);
-	tcase_add_test(tc_time_tz_olson, check_time_tz_olson);
-	suite_add_tcase(suite, tc_time_tz_olson);
+	tc = tcase_create("time_tz_olson");
+	tcase_add_unchecked_fixture(tc, NULL, NULL);
+	tcase_add_test(tc, check_time_tz_olson);
+	suite_add_tcase(suite, tc);
 #endif
 
-	tc_time_tz_sys_convert = tcase_create("time_tz_sys_convert");
-	tcase_add_unchecked_fixture(tc_time_tz_sys_convert, NULL, NULL);
-	tcase_add_test(tc_time_tz_sys_convert, check_time_tz_sys_convert);
-	suite_add_tcase(suite, tc_time_tz_sys_convert);
+	tc = tcase_create("time_tz_sys_convert");
+	tcase_add_unchecked_fixture(tc, NULL, NULL);
+	tcase_add_test(tc, check_time_tz_sys_convert);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("time_tz_sys_vs_lib");
+	tcase_add_unchecked_fixture(tc, NULL, NULL);
+	tcase_add_test(tc, check_time_tz_sys_vs_lib);
+	suite_add_tcase(suite, tc);
 
 	return suite;
 }
