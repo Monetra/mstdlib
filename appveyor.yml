@@ -83,7 +83,8 @@ on_finish:
 #  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 # Force build worker to stay open after build is done, so we can RDP into it.
 
+init:
+  - tzutil /s "Eastern Standard Time"
 # Enable RDP connections into build worker.
-#init:
 #  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
