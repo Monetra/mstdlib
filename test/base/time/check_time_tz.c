@@ -245,7 +245,7 @@ START_TEST(check_time_tz_sys_vs_lib)
 		ck_assert_msg(tz == NULL, "%llu: timezone %s not found", (llu)i, sys_ltime.abbr);
 
 		/* Transform using our own tz database */
-		M_time_tolocal(test_times[i], &lib_ltime, NULL);
+		M_time_tolocal(test_times[i], &lib_ltime, tz);
 
 		/* Compare system vs lib */
 		sys_date = M_time_to_str("%Y-%m-%d %H:%M:%S %z", &sys_ltime);
