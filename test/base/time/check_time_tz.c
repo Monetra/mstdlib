@@ -223,7 +223,7 @@ END_TEST
 
 START_TEST(check_time_tz_sys_vs_lib)
 {
-	const M_time_t test_times[] = { 1678510800, 1680148800, 0 };
+	const M_time_t test_times[] = { 1678510800, 1680148800, 1698811200, 1701320400, 0 };
 	size_t         i;
 	M_time_tzs_t  *tzs          = NULL;
 
@@ -251,6 +251,7 @@ START_TEST(check_time_tz_sys_vs_lib)
 		sys_date = M_time_to_str("%Y-%m-%d %H:%M:%S %z", &sys_ltime);
 		lib_date = M_time_to_str("%Y-%m-%d %H:%M:%S %z", &lib_ltime);
 		ck_assert_msg(M_str_eq(sys_date, lib_date), "%llu: sys_date %s != lib_date %s for ts %llu TZ %s", (llu)i, sys_date, lib_date, test_times[i], sys_ltime.abbr);
+M_printf("%llu: sys_date %s, lib_date %s, ts %llu, TZ %s\r\n", (llu)i, sys_date, lib_date, test_times[i], sys_ltime.abbr);
 		M_free(sys_date);
 		M_free(lib_date);
 	}
