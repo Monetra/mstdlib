@@ -201,6 +201,7 @@ static M_bool M_time_win_is_dst(SYSTEMTIME *StandardDate, SYSTEMTIME *DaylightDa
 	M_uint64 dsttime = M_time_win_to_int(DaylightDate->wMonth, DaylightDate->wDay, DaylightDate->wHour, DaylightDate->wMinute);
 	M_uint64 curtime = M_time_win_to_int(currdate->month, currdate->day, currdate->hour, currdate->min);
 
+M_printf("%s(): stdtime %07llu, dsttime %07llu, curtime %07llu\r\n", __FUNCTION__, stdtime, dsttime, curtime);
 	/* https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/ns-timezoneapi-time_zone_information
 	 * If the time zone does not support daylight saving time or if the caller needs to disable daylight saving time,
 	 * the wMonth member in the SYSTEMTIME structure must be zero. If this date is specified, the DaylightDate member
@@ -261,12 +262,14 @@ static void M_time_tolocal_sys(M_time_t t, M_time_localtm_t *ltime)
 
 	if (M_time_win_is_dst(&info.StandardDate, &info.DaylightDate, ltime)) {
 		abbr = M_win32_wchar_to_char(info.DaylightName);
+M_printf("%s(): is_dst=1, %s\r\n", __FUNCTION__, abbr);
 		M_snprintf(ltime->abbr, sizeof(ltime->abbr), "%s", abbr);
 		M_free(abbr);
 		ltime->gmtoff = (info.Bias*-60)+(info.DaylightBias*-60);
 		ltime->isdst = 1;
 	} else {
 		abbr = M_win32_wchar_to_char(info.StandardName);
+M_printf("%s(): is_dst=0, %s\r\n", __FUNCTION__, abbr);
 		M_snprintf(ltime->abbr, sizeof(ltime->abbr), "%s", abbr);
 		M_free(abbr);
 		ltime->gmtoff = (info.Bias*-60)+(info.StandardBias*-60);
