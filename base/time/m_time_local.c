@@ -212,7 +212,7 @@ static void M_time_win_SYSTEMTIME_normalize(SYSTEMTIME *st, int year)
 
 	/* use wDayOfWeek (0-6), and wDay (week of month 1-5) to calculate the day of the
 	 * month */
-	day = (st->wDayOfWeek + 1) * st->wDay;
+	day = (st->wDayOfWeek + 1) + ((st->wDay - 1) * 7);
 	if (gmt.wday > st->wDayOfWeek) {
 		day += 7 - gmt.wday + st->wDayOfWeek;
 	} else if (gmt.wday < st->wDayOfWeek) {
