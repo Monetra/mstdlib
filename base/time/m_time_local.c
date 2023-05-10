@@ -222,8 +222,6 @@ static void M_time_win_SYSTEMTIME_normalize(SYSTEMTIME *st, int year)
 	while (day > days_in_month)
 		day -= 7;
 
-M_printf("%s(): st->wDayOfWeek: %d, st->wDay: %d, gmt.wday: %d, days_in_month: %d -- calcday: %d\r\n", __FUNCTION__, (int)st->wDayOfWeek, (int)st->wDay, (int)gmt.wday, days_in_month, day);
-
 	st->wDay = day;
 }
 
@@ -258,7 +256,6 @@ static M_bool M_time_win_is_dst(SYSTEMTIME *StandardDate, SYSTEMTIME *DaylightDa
 	stdtime = M_time_win_to_int(StandardDate->wMonth, StandardDate->wDay, StandardDate->wHour, StandardDate->wMinute);
 	dsttime = M_time_win_to_int(DaylightDate->wMonth, DaylightDate->wDay, DaylightDate->wHour, DaylightDate->wMinute);
 	curtime = M_time_win_to_int(currdate->month, currdate->day, currdate->hour, currdate->min);
-M_printf("%s(): stdtime %08llu, dsttime %08llu, curtime %08llu\r\n", __FUNCTION__, stdtime, dsttime, curtime);
 
 	if (stdtime > dsttime) {
 		/* switch to standard time at end of year, daylight at beginning */
@@ -313,14 +310,12 @@ static void M_time_tolocal_sys(M_time_t t, M_time_localtm_t *ltime)
 
 	if (M_time_win_is_dst(&info.StandardDate, &info.DaylightDate, ltime)) {
 		abbr = M_win32_wchar_to_char(info.DaylightName);
-M_printf("%s(): is_dst=1, %s\r\n", __FUNCTION__, abbr);
 		M_snprintf(ltime->abbr, sizeof(ltime->abbr), "%s", abbr);
 		M_free(abbr);
 		ltime->gmtoff = (info.Bias*-60)+(info.DaylightBias*-60);
 		ltime->isdst = 1;
 	} else {
 		abbr = M_win32_wchar_to_char(info.StandardName);
-M_printf("%s(): is_dst=0, %s\r\n", __FUNCTION__, abbr);
 		M_snprintf(ltime->abbr, sizeof(ltime->abbr), "%s", abbr);
 		M_free(abbr);
 		ltime->gmtoff = (info.Bias*-60)+(info.StandardBias*-60);
