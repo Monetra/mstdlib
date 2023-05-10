@@ -248,8 +248,9 @@ START_TEST(check_time_tz_sys_vs_lib)
 		M_time_tolocal(test_times[i], &lib_ltime, tz);
 
 		/* Compare system vs lib */
-		sys_date = M_time_to_str("%Y-%m-%d %H:%M:%S %z", &sys_ltime);
-		lib_date = M_time_to_str("%Y-%m-%d %H:%M:%S %z", &lib_ltime);
+		M_asprintf(&sys_date, "%04lld-%02lld-%02lld %02lld:%02lld:%02lld off %04lld", sys_ltime.year, sys_ltime.month, sys_ltime.day, sys_ltime.hour, sys_ltime.min, sys_ltime.sec, sys_ltime.gmtoff);
+		M_asprintf(&lib_date, "%04lld-%02lld-%02lld %02lld:%02lld:%02lld off %04lld", lib_ltime.year, lib_ltime.month, lib_ltime.day, lib_ltime.hour, lib_ltime.min, lib_ltime.sec, lib_ltime.gmtoff);
+
 		ck_assert_msg(M_str_eq(sys_date, lib_date), "%llu: sys_date %s != lib_date %s for ts %llu TZ %s", (llu)i, sys_date, lib_date, test_times[i], sys_ltime.abbr);
 M_printf("%llu: sys_date %s, lib_date %s, ts %llu, TZ %s\r\n", (llu)i, sys_date, lib_date, test_times[i], sys_ltime.abbr);
 		M_free(sys_date);
