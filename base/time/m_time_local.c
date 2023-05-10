@@ -250,9 +250,10 @@ static M_bool M_time_win_is_dst(SYSTEMTIME *StandardDate, SYSTEMTIME *DaylightDa
 	 */
 	if (StandardDate->wMonth == 0)
 		return M_FALSE;
-
+#if 0
 	M_time_win_SYSTEMTIME_normalize(StandardDate, currdate->year);
 	M_time_win_SYSTEMTIME_normalize(DaylightDate, currdate->year);
+#endif
 	stdtime = M_time_win_to_int(StandardDate->wMonth, StandardDate->wDay, StandardDate->wHour, StandardDate->wMinute);
 	dsttime = M_time_win_to_int(DaylightDate->wMonth, DaylightDate->wDay, DaylightDate->wHour, DaylightDate->wMinute);
 	curtime = M_time_win_to_int(currdate->month, currdate->day, currdate->hour, currdate->min);
