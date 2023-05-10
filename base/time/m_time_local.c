@@ -205,18 +205,18 @@ static void M_time_win_SYSTEMTIME_normalize(SYSTEMTIME *st, int year)
 
 	/* We need to get the day of the week the first day falls on */
 	M_mem_set(&gmt, 0, sizeof(gmt));
-	gmt->year = year;
-	gmt->month = st->wMonth;
-	gmt->day = 1;
+	gmt.year = year;
+	gmt.month = st->wMonth;
+	gmt.day = 1;
 	M_time_fromgm(&gmt); /* This updates gmt->tm_wday */
 
 	/* use wDayOfWeek (0-6), and wDay (week of month) to calculate the day of the
 	 * month */
 	day = st->wDayOfWeek * st->wDay;
-	if (gmt->tm_wday > st->wDayOfWeek) {
-		day += 7 - gmt->tm_wday + st->wDayOfWeek;
-	} else if (gmt->tm_wday < st->wDayOfWeek) {
-		day += st->wDayOfWeek - gmt->tm_wday;
+	if (gmt.wday > st->wDayOfWeek) {
+		day += 7 - gmt.wday + st->wDayOfWeek;
+	} else if (gmt.wday < st->wDayOfWeek) {
+		day += st->wDayOfWeek - gmt.wday;
 	}
 
 	while (day > days_in_month)
