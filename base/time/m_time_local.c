@@ -210,7 +210,7 @@ static void M_time_win_SYSTEMTIME_normalize(SYSTEMTIME *st, int year)
 	gmt.day = 1;
 	M_time_fromgm(&gmt); /* This updates gmt->tm_wday */
 
-	/* use wDayOfWeek (0-6), and wDay (week of month) to calculate the day of the
+	/* use wDayOfWeek (0-6), and wDay (week of month 1-5) to calculate the day of the
 	 * month */
 	day = (st->wDayOfWeek + 1) * st->wDay;
 	if (gmt.wday > st->wDayOfWeek) {
@@ -221,6 +221,8 @@ static void M_time_win_SYSTEMTIME_normalize(SYSTEMTIME *st, int year)
 
 	while (day > days_in_month)
 		day -= 7;
+
+M_printf("%s(): st->wDayOfWeek: %d, st->wDay: %d, gmt.wday: %d, days_in_month: %d -- calcday: %d\r\n", __FUNCTION__, (int)st->wDayOfWeek, (int)st->wDay, (int)gmt.wday, days_in_month, day);
 
 	st->wDay = day;
 }
