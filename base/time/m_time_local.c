@@ -250,7 +250,7 @@ static M_bool M_time_win_is_dst(SYSTEMTIME *StandardDate, SYSTEMTIME *DaylightDa
 	 */
 	if (StandardDate->wMonth == 0)
 		return M_FALSE;
-#if 0
+#if 1
 	M_time_win_SYSTEMTIME_normalize(StandardDate, currdate->year);
 	M_time_win_SYSTEMTIME_normalize(DaylightDate, currdate->year);
 #endif
