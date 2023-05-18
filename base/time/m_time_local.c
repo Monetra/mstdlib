@@ -115,7 +115,7 @@ static M_time_t M_time_fromlocal_sys(M_time_localtm_t *ltime)
 	return M_time_from_filetime(&fto);
 }
 #else
-static M_time_t M_time_fromlocal_sys(M_time_localtm_t *ltime)
+static M_time_t M_time_fromlocal_sys(const M_time_localtm_t *ltime)
 {
 	struct tm tmtime;
 	M_time_t  t;
@@ -195,18 +195,68 @@ static M_uint64 M_time_win_to_int(M_uint64 month, M_uint64 day, M_uint64 hour, M
 	return (month * 1000000) + (day * 10000) + (hour * 100) + minute;
 }
 
+
+/* Transform wDay member from a week multiplier to an actual day of month */
+static void M_time_win_SYSTEMTIME_normalize(SYSTEMTIME *st, int year)
+{
+	M_time_gmtm_t gmt;
+	int           days_in_month = M_time_days_in_month(year, st->wMonth);
+	int           day;
+
+	/* We need to get the day of the week the first day falls on */
+	M_mem_set(&gmt, 0, sizeof(gmt));
+	gmt.year = year;
+	gmt.month = st->wMonth;
+	gmt.day = 1;
+	M_time_fromgm(&gmt); /* This updates gmt->tm_wday */
+
+	/* use wDayOfWeek (0-6), and wDay (week of month 1-5) to calculate the day of the
+	 * month */
+	day = (st->wDayOfWeek + 1) + ((st->wDay - 1) * 7);
+	if (gmt.wday > st->wDayOfWeek) {
+		day += 7 - gmt.wday + st->wDayOfWeek;
+	} else if (gmt.wday < st->wDayOfWeek) {
+		day += st->wDayOfWeek - gmt.wday;
+	}
+
+	while (day > days_in_month)
+		day -= 7;
+
+	st->wDay = day;
+}
+
 static M_bool M_time_win_is_dst(SYSTEMTIME *StandardDate, SYSTEMTIME *DaylightDate, M_time_localtm_t *currdate)
 {
-	M_uint64 stdtime = M_time_win_to_int(StandardDate->wMonth, StandardDate->wDay, StandardDate->wHour, StandardDate->wMinute);
-	M_uint64 dsttime = M_time_win_to_int(DaylightDate->wMonth, DaylightDate->wDay, DaylightDate->wHour, DaylightDate->wMinute);
-	M_uint64 curtime = M_time_win_to_int(currdate->month, currdate->day, currdate->hour, currdate->min);
+	M_uint64 stdtime;
+	M_uint64 dsttime;
+	M_uint64 curtime;
 
 	/* https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/ns-timezoneapi-time_zone_information
 	 * If the time zone does not support daylight saving time or if the caller needs to disable daylight saving time,
 	 * the wMonth member in the SYSTEMTIME structure must be zero. If this date is specified, the DaylightDate member
-	 * of this structure must also be specified. */
+	 * of this structure must also be specified.
+	 *
+	 * NOTE: This is a funky interface, while wDay is typically the day of the month for the SYSTEMTIME structure,
+	 *       this is NOT the case for this function.  Instead its an indicator of the *week* of the month, which
+	 *       must be used in conjunction with wDayOfWeek
+	 *
+	 * To select the correct day in the month, set the wYear member to zero, the wHour and wMinute members to the
+	 * transition time, the wDayOfWeek member to the appropriate weekday, and the wDay member to indicate the
+	 * occurrence of the day of the week within the month (1 to 5, where 5 indicates the final occurrence during
+	 * the month if that day of the week does not occur 5 times).
+	 * Using this notation, specify 02:00 on the first Sunday in April as follows: wHour = 2, wMonth = 4,
+	 * wDayOfWeek = 0, wDay = 1. Specify 02:00 on the last Thursday in October as follows:
+	 *   wHour = 2, wMonth = 10, wDayOfWeek = 4, wDay = 5.
+	 */
 	if (StandardDate->wMonth == 0)
 		return M_FALSE;
+#if 1
+	M_time_win_SYSTEMTIME_normalize(StandardDate, currdate->year);
+	M_time_win_SYSTEMTIME_normalize(DaylightDate, currdate->year);
+#endif
+	stdtime = M_time_win_to_int(StandardDate->wMonth, StandardDate->wDay, StandardDate->wHour, StandardDate->wMinute);
+	dsttime = M_time_win_to_int(DaylightDate->wMonth, DaylightDate->wDay, DaylightDate->wHour, DaylightDate->wMinute);
+	curtime = M_time_win_to_int(currdate->month, currdate->day, currdate->hour, currdate->min);
 
 	if (stdtime > dsttime) {
 		/* switch to standard time at end of year, daylight at beginning */
