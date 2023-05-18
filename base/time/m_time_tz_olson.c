@@ -516,6 +516,7 @@ static M_time_tz_t *M_time_tz_olson_load_tzfile(const char *path)
 
 	/* Create the tz to put the data in. */
 	tz                   = M_malloc(sizeof(*tz));
+	tz->type             = M_TIME_TZ_RULE_OLSON;
 	tz->data             = olson_tz;
 	tz->destroy          = M_time_tz_olson_destroy;
 	tz->adjust_fromlocal = M_time_tz_olson_adjust_fromlocal;

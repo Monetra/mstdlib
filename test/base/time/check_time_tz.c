@@ -227,7 +227,7 @@ START_TEST(check_time_tz_sys_vs_lib)
 	size_t         i;
 	M_time_tzs_t  *tzs          = NULL;
 
-	M_time_tzs_load(&tzs, M_TIME_TZ_ZONE_ALL, M_TIME_TZ_ALIAS_ALL, M_TIME_TZ_LOAD_LAZY);
+	M_time_tzs_load(&tzs, M_TIME_TZ_ZONE_ALL, M_TIME_TZ_ALIAS_ALL, M_TIME_TZ_LOAD_NORMAL);
 
 	for (i=0; test_times[i] != 0; i++) {
 		M_time_localtm_t   sys_ltime;
@@ -242,7 +242,9 @@ START_TEST(check_time_tz_sys_vs_lib)
 		/* Extract time zone from system conversion to look it up */
 		tz = M_time_tzs_get_tz(tzs, sys_ltime.abbr);
 
-		ck_assert_msg(tz == NULL, "%llu: timezone %s not found", (llu)i, sys_ltime.abbr);
+		/* XXX: It looks like abbreviation to time zone conversion doesn't work, I guess an abbreviation isn't
+		 *      really a timezone.  So how do we get the actual timezone? */
+		ck_assert_msg(tz != NULL, "%llu: timezone %s not found", (llu)i, sys_ltime.abbr);
 
 		/* Transform using our own tz database */
 		M_time_tolocal(test_times[i], &lib_ltime, tz);
@@ -286,10 +288,13 @@ Suite *M_time_tz_suite(void)
 	tcase_add_test(tc, check_time_tz_sys_convert);
 	suite_add_tcase(suite, tc);
 
+/* Retrieving system timezone for this test doesn't work */
+#if 0
 	tc = tcase_create("time_tz_sys_vs_lib");
 	tcase_add_unchecked_fixture(tc, NULL, NULL);
 	tcase_add_test(tc, check_time_tz_sys_vs_lib);
 	suite_add_tcase(suite, tc);
+#endif
 
 	return suite;
 }

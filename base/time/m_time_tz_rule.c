@@ -345,6 +345,7 @@ M_time_tz_t *M_time_tz_rule_create_tz(M_time_tz_rule_t *rtz)
 
 	/* Create the tz to put the data in. */
 	tz                   = M_malloc(sizeof(*tz));
+	tz->type             = M_TIME_TZ_RULE_TZ;
 	tz->data             = rtz;
 	tz->destroy          = M_time_tz_rule_destroy;
 	tz->adjust_fromlocal = M_time_tz_rule_adjust_fromlocal;

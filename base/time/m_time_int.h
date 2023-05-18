@@ -56,6 +56,11 @@ typedef M_time_tz_t *(*M_time_tzs_lazy_load_t)(const char *name, void *data);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+typedef enum {
+	M_TIME_TZ_RULE_OLSON = 1,  /*! Olson type rule */
+	M_TIME_TZ_RULE_TZ    = 2   /*! Standard timezone rule */
+} M_time_tz_rule_format_t;
+
 /*! Timezone data.
  * The timezone data can be from one of a variety of timezone sources. This provides a standardized way to
  * work with data which is from different sources and internally is stored in different formats.
@@ -64,7 +69,8 @@ typedef M_time_tz_t *(*M_time_tzs_lazy_load_t)(const char *name, void *data);
  * format are set in the structure for use with the data.
  */
 struct M_time_tz {
-	void *data; /*!< The data in the source format. */
+	M_time_tz_rule_format_t type;
+	void                   *data; /*!< The data in the source format. */
 	/* Callbacks */
 	void        (*destroy)(void *data); /*!< Destroy the void pointer data object. */
 	M_time_t    (*adjust_fromlocal)(const void *data, const M_time_localtm_t *ltime); /*!< Get the amount of time a time in local time needs to be adjusted to UTC. */
