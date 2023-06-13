@@ -476,7 +476,21 @@ M_API char *M_table_write_csv(const M_table_t *table, char delim, char quote, M_
 M_API M_bool M_table_load_json(M_table_t *table, const char *data, size_t len);
 
 
-/*! Write the table as JSON.
+/*! Write the table as a JSON node object.
+ *
+ * A NULL table poiner will return NULL.
+ * A table with 0 rows will output a json node as an empty array.
+ *
+ * All columns must be named!
+ *
+ * \param[in] table Table.
+ *
+ * \return JSON node object.
+ */
+M_API M_json_node_t *M_table_create_json(const M_table_t *table);
+
+
+/*! Write the table as a JSON buffer.
  *
  * A NULL table poiner will return NULL.
  * A table with 0 rows will output an empty JSON array (`[]`).
