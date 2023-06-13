@@ -95,11 +95,11 @@ done:
 	return ret;
 }
 
-char *M_table_write_json(const M_table_t *table, M_uint32 flags)
+
+M_json_node_t *M_table_create_json(const M_table_t *table)
 {
 	M_json_node_t *json;
 	M_json_node_t *node;
-	char          *out;
 	const char    *colname;
 	const char    *val;
 	size_t         numrows;
@@ -109,9 +109,6 @@ char *M_table_write_json(const M_table_t *table, M_uint32 flags)
 
 	if (table == NULL)
 		return NULL;
-
-	if (M_table_row_count(table) == 0)
-		return M_strdup("[]");
 
 	/* Validate all columns are named. */
 	numcols = M_table_column_count(table);
@@ -139,6 +136,18 @@ char *M_table_write_json(const M_table_t *table, M_uint32 flags)
 
 		M_json_array_insert(json, node);
 	}
+
+	return json;
+}
+
+
+char *M_table_write_json(const M_table_t *table, M_uint32 flags)
+{
+	M_json_node_t *json = M_table_create_json(table);
+	char          *out;
+
+	if (json == NULL)
+		return NULL;
 
 	out = M_json_write(json, flags, NULL);
 	M_json_node_destroy(json);
