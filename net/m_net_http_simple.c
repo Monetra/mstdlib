@@ -76,9 +76,10 @@ static const char *DEFAULT_USER_AGENT = "MSTDLIB/Net HTTP Simple " NET_HTTP_VERS
 static void io_destroy_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	(void)el;
-	(void)etype;
 	(void)thunk;
-	M_io_destroy(io);
+
+	if (etype == M_EVENT_TYPE_DISCONNECTED || etype == M_EVENT_TYPE_ERROR)
+		M_io_destroy(io);
 }
 
 static void io_disconnect_and_destroy(M_net_http_simple_t *hs)
@@ -90,6 +91,8 @@ static void io_disconnect_and_destroy(M_net_http_simple_t *hs)
 
 	state = M_io_get_state(hs->io);
 	if (state == M_IO_STATE_CONNECTED || state == M_IO_STATE_DISCONNECTING) {
+		if (state == M_IO_STATE_CONNECTED)
+			M_io_disconnect(hs->io);
 		M_event_edit_io_cb(hs->io, io_destroy_cb, NULL);
 	} else {
 		M_io_destroy(hs->io);
@@ -110,6 +113,9 @@ static void M_net_http_simple_destroy(M_net_http_simple_t *hs)
 	M_buf_cancel(hs->header_buf);
 	M_http_simple_read_destroy(hs->simple);
 	M_hash_dict_destroy(hs->headers);
+	M_free(hs->user_agent);
+	M_free(hs->content_type);
+	M_free(hs->charset);
 	M_free(hs->message);
 
 	M_free(hs);
@@ -630,10 +636,6 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 	/* Create our io object. */
 	if (!setup_io(hs, url))
 		return M_FALSE;
-
-	/* Setup read and write buffer. */
-	hs->header_buf  = M_buf_create();
-	hs->read_parser = M_parser_create(M_PARSER_FLAG_NONE);
 
 	/* Add the data to the write buf. */
 	split_url(url, &host, &port, &uri);
