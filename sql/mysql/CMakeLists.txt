@@ -69,6 +69,7 @@ endif ()
 if (WIN32)
 	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}") # Output module file to bin/, not lib/
 endif ()
+
 if (MSTDLIB_SQL_STATIC)
 	add_library(${PROJECT_NAME} STATIC
 		mstdlib_sql_mysql.c
@@ -91,10 +92,12 @@ else ()
 	)
 endif ()
 
+
 # Link dependencies on other modules.
 target_link_libraries(${PROJECT_NAME} PRIVATE
 	Mstdlib::thread
 	Mstdlib::base
+	Mstdlib::config
 	MySQL::mysql
 )
 
