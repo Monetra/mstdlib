@@ -20,6 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "m_config.h"
 #include <mstdlib/mstdlib_sql.h>
 #include <mstdlib/sql/m_sql_driver.h>
 
