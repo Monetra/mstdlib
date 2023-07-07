@@ -161,7 +161,7 @@ AC_CHECK_LIB(rt, clock_gettime, [], [])
 AC_CHECK_TYPE(socklen_t, [ AC_DEFINE(HAVE_SOCKLEN_T, [], [socklen_t]) ], [ ] , [
              #include <sys/types.h>
              #include <sys/socket.h>
- ] )librar
+ ] )
 
 AC_CHECK_TYPE([struct sockaddr_storage], [ AC_DEFINE(HAVE_SOCKADDR_STORAGE, [], [struct sockaddr_storage]) ], [ ] , [
              #include <sys/socket.h>
@@ -981,6 +981,13 @@ if test "${build_mstdlib_sql}" = "yes" ; then
 				AC_MSG_ERROR(mysql requested but not found)
 			fi
 		fi
+
+		CFLAGS_backup="${CFLAGS}"
+		CFLAGS="${MYSQL_CPPFLAGS} ${CFLAGS}"
+		AC_CHECK_TYPE(my_bool, [ AC_DEFINE(HAVE_MY_BOOL, [], [my_bool]) ], [ ] , [
+		             #include <mysql.h>
+		] )
+		CFLAGS="${CFLAGS_backup}"
 	fi
 
 	if test "${build_mstdlib_sql_postgresql}" != "no" ; then

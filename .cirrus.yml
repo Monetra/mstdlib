@@ -158,7 +158,7 @@ debian_template: &debian_template
     COV_PLATFORM: linux-x64
   osdeps_install_script:
     - apt-get update &&
-      apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev unixodbc-dev libsqlite3-dev check ninja-build git wget curl unzip
+      apt-get install -y cmake autoconf automake libtool libssl-dev doxygen libpq-dev libmariadbd-dev unixodbc-dev libsqlite3-dev check ninja-build git wget curl unzip
 
 debian_x64_template: &debian_x64_template
   << : *debian_template
