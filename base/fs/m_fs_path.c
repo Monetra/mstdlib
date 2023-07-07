@@ -433,7 +433,7 @@ M_fs_error_t M_fs_path_readlink_int(char **out, const char *path, M_bool last, M
 		return M_fs_error_from_syserr(errsv);
 	} else {
 		/* Appease coverity even though it is null termed on allocation */
-		temp[read_len] = '\0';
+		temp[M_MIN(read_len, path_max-1)] = '\0';
 	}
 	/* this way out isn't massive if the path is small. */
 	*out = M_strdup(temp);
