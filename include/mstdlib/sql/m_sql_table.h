@@ -547,7 +547,7 @@ typedef enum {
 M_API M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_txn_field_select_t fselect);
 
 
-/*! Retrieve if the field has changed.
+/*! Retrieve if the field has changed.  Text fields are evaluated case sensitive.
  *
  * \param[in] txn        Transaction provided to callback.
  * \param[in] field_name Name of field
@@ -555,6 +555,14 @@ M_API M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_txn
   */
 M_API M_bool M_sql_tabledata_txn_field_changed(M_sql_tabledata_txn_t *txn, const char *field_name);
 
+
+/*! Retrieve if the field has changed.  Text fields are evaluated case insensitively.
+ *
+ * \param[in] txn        Transaction provided to callback.
+ * \param[in] field_name Name of field
+ * \return M_TRUE if the field is found and on an add, or has changed on an edit, M_FALSE otherwise
+  */
+M_API M_bool M_sql_tabledata_txn_field_changed_ci(M_sql_tabledata_txn_t *txn, const char *field_name);
 
 /*! Retrieve the field definition for a field name from the current transaction.
  *
