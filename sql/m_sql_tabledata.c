@@ -1325,12 +1325,12 @@ static M_bool M_sql_tabledata_txn_field_changed_int(M_sql_tabledata_txn_t *txn, 
 
 M_bool M_sql_tabledata_txn_field_changed(M_sql_tabledata_txn_t *txn, const char *field_name)
 {
-	M_sql_tabledata_txn_field_changed_int(txn, field_name, M_FALSE);
+	return M_sql_tabledata_txn_field_changed_int(txn, field_name, M_FALSE);
 }
 
 M_bool M_sql_tabledata_txn_field_changed_ci(M_sql_tabledata_txn_t *txn, const char *field_name)
 {
-	M_sql_tabledata_txn_field_changed_int(txn, field_name, M_TRUE);
+	return M_sql_tabledata_txn_field_changed_int(txn, field_name, M_TRUE);
 }
 
 
