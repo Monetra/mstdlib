@@ -497,7 +497,7 @@ M_sql_data_type_t M_sql_tabledata_field_type(const M_sql_tabledata_field_t *fiel
 }
 
 
-static M_bool M_sql_tabledata_field_eq(const M_sql_tabledata_field_t *field1, M_sql_tabledata_field_t *field2)
+static M_bool M_sql_tabledata_field_eq(const M_sql_tabledata_field_t *field1, M_sql_tabledata_field_t *field2, M_bool case_insensitive)
 {
 	M_bool               b;
 	M_int16              i16;
@@ -540,7 +540,7 @@ static M_bool M_sql_tabledata_field_eq(const M_sql_tabledata_field_t *field1, M_
 		case M_SQL_DATA_TYPE_TEXT:
 			if (!M_sql_tabledata_field_get_text(field2, &t))
 				return M_FALSE;
-			return M_str_eq(t, field1->d.t.data);
+			return case_insensitive?M_str_caseeq(t, field1->d.t.data):M_str_eq(t, field1->d.t.data);
 
 		case M_SQL_DATA_TYPE_BINARY:
 			if (!M_sql_tabledata_field_get_binary(field2, &bin, &len))
@@ -1297,7 +1297,7 @@ M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_txn_t *tx
 }
 
 
-M_bool M_sql_tabledata_txn_field_changed(M_sql_tabledata_txn_t *txn, const char *field_name)
+static M_bool M_sql_tabledata_txn_field_changed_int(M_sql_tabledata_txn_t *txn, const char *field_name, M_bool case_insensitive)
 {
 	M_sql_tabledata_field_t    *prior_field;
 	M_sql_tabledata_field_t    *curr_field;
@@ -1315,12 +1315,22 @@ M_bool M_sql_tabledata_txn_field_changed(M_sql_tabledata_txn_t *txn, const char 
 		return M_TRUE;
 
 	/* If its the same, its not changed */
-	if (M_sql_tabledata_field_eq(prior_field, curr_field)) {
+	if (M_sql_tabledata_field_eq(prior_field, curr_field, case_insensitive)) {
 		return M_FALSE;
 	}
 
 	/* Its different, so changed */
 	return M_TRUE;
+}
+
+M_bool M_sql_tabledata_txn_field_changed(M_sql_tabledata_txn_t *txn, const char *field_name)
+{
+	M_sql_tabledata_txn_field_changed_int(txn, field_name, M_FALSE);
+}
+
+M_bool M_sql_tabledata_txn_field_changed_ci(M_sql_tabledata_txn_t *txn, const char *field_name)
+{
+	M_sql_tabledata_txn_field_changed_int(txn, field_name, M_TRUE);
 }
 
 
