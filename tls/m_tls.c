@@ -379,7 +379,7 @@ static M_bool M_io_tls_process_state_init(M_io_layer_t *layer, M_event_type_t *t
 }
 
 
-static void M_io_tls_error_string(int sslerr, char *error, size_t errlen)
+static void M_io_tls_error_string(int sslerr, char *error, size_t errlen, M_io_handle_t *handle)
 {
 	unsigned long e;
 	switch (sslerr) {
@@ -408,7 +408,7 @@ static void M_io_tls_error_string(int sslerr, char *error, size_t errlen)
 		case SSL_ERROR_SSL:
 		default:
 			e = ERR_get_error();
-			M_snprintf(error, errlen, "TLS ERROR (%lu): %s", e, ERR_reason_error_string(e));
+			M_snprintf(error, errlen, "TLS ERROR (%lu): reason: %s hostname: %s elapsed: %llums", e, ERR_reason_error_string(e), handle->hostname, M_time_elapsed(&handle->negotiation_start));
 			break;
 	}
 }
@@ -486,7 +486,7 @@ cert_err:
 			handle->state            = M_TLS_STATE_ERROR;
 			*type                    = M_EVENT_TYPE_ERROR;
 			handle->negotiation_time = M_time_elapsed(&handle->negotiation_start);
-			M_io_tls_error_string(err, handle->error, sizeof(handle->error));
+			M_io_tls_error_string(err, handle->error, sizeof(handle->error), handle);
 			return M_FALSE; /* Not consumed, relay rewritten error message */
 		case M_EVENT_TYPE_DISCONNECTED:
 		case M_EVENT_TYPE_ERROR:
@@ -543,7 +543,7 @@ static M_bool M_io_tls_process_state_accepting(M_io_layer_t *layer, M_event_type
 			*type                    = M_EVENT_TYPE_ERROR;
 			handle->negotiation_time = M_time_elapsed(&handle->negotiation_start);
 
-			M_io_tls_error_string(err, handle->error, sizeof(handle->error));
+			M_io_tls_error_string(err, handle->error, sizeof(handle->error), handle);
 			return M_FALSE; /* Not consumed, relay rewritten error message */
 		case M_EVENT_TYPE_DISCONNECTED:
 		case M_EVENT_TYPE_ERROR:
@@ -993,7 +993,7 @@ static M_io_error_t M_io_tls_read_cb(M_io_layer_t *layer, unsigned char *buf, si
 		} else {
 			handle->state = M_TLS_STATE_ERROR;
 		}
-		M_io_tls_error_string(err, handle->error, sizeof(handle->error));
+		M_io_tls_error_string(err, handle->error, sizeof(handle->error), handle);
 	}
 
 	/* Overwrite error condition if we have data */
@@ -1063,7 +1063,7 @@ static M_io_error_t M_io_tls_write_cb(M_io_layer_t *layer, const unsigned char *
 		} else {
 			handle->state = M_TLS_STATE_ERROR;
 		}
-		M_io_tls_error_string(err, handle->error, sizeof(handle->error));
+		M_io_tls_error_string(err, handle->error, sizeof(handle->error), handle);
 	}
 
 	/* Overwrite error condition if we wrote data */
