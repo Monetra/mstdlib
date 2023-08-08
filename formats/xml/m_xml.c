@@ -401,12 +401,10 @@ void M_xml_node_destroy(M_xml_node_t *node)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#define ERRCASE(x) case x: ret = #x; break
+#define ERRCASE(x) case x: return #x
 
 const char *M_xml_errcode_to_str(M_xml_error_t err)
 {
-	const char *ret = "unknown";
-
 	switch (err) {
 		ERRCASE(M_XML_ERROR_SUCCESS);
 		ERRCASE(M_XML_ERROR_GENERIC);
@@ -424,7 +422,7 @@ const char *M_xml_errcode_to_str(M_xml_error_t err)
 		ERRCASE(M_XML_ERROR_EXPECTED_END);
 	}
 
-	return ret;
+	return "unknown";
 }
 
 M_xml_node_type_t M_xml_node_type(const M_xml_node_t *node)

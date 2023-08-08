@@ -406,11 +406,10 @@ const char *M_http_code_to_reason(M_uint32 code)
 }
 
 
-#define ERRCASE(x) case x: ret = #x; break
+#define ERRCASE(x) case x: return #x
 
 const char *M_http_errcode_to_str(M_http_error_t err)
 {
-	const char *ret = "unknown";
 	switch (err) {
 		ERRCASE(M_HTTP_ERROR_SUCCESS);
 		ERRCASE(M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE);
@@ -444,7 +443,8 @@ const char *M_http_errcode_to_str(M_http_error_t err)
 		ERRCASE(M_HTTP_ERROR_TEXTCODEC_FAILURE);
 		ERRCASE(M_HTTP_ERROR_USER_FAILURE);
 	}
-	return ret;
+
+	return "unknown";
 }
 
 

@@ -195,12 +195,10 @@ void M_json_node_destroy(M_json_node_t *node)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#define ERRCASE(x) case x: ret = #x; break
+#define ERRCASE(x) case x: return #x
 
 const char *M_json_errcode_to_str(M_json_error_t err)
 {
-	const char *ret = "unknown";
-
 	switch (err) {
 		ERRCASE(M_JSON_ERROR_SUCCESS);
 		ERRCASE(M_JSON_ERROR_GENERIC);
@@ -230,7 +228,7 @@ const char *M_json_errcode_to_str(M_json_error_t err)
 		ERRCASE(M_JSON_ERROR_UNEXPECTED_END);
 	}
 
-	return ret;
+	return "unknown";
 }
 
 M_json_type_t M_json_node_type(const M_json_node_t *node)
