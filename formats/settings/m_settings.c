@@ -57,8 +57,6 @@ static M_settings_type_t M_settings_determine_type(M_settings_type_t type)
 
 static const char *M_settings_determine_type_extension(M_settings_type_t type)
 {
-	const char *ext = "";
-
 	switch (M_settings_determine_type(type)) {
 		/* NATIVE shouldn't ever be here becuase we've already determined the actual type.
  		 * But we want to have it listed so we don't get a compiler warning. We don't
@@ -73,17 +71,14 @@ static const char *M_settings_determine_type_extension(M_settings_type_t type)
 			 * delete all keys then write the settings. We don't want a situation
 			 * where one app uses "Org/App" but another only uses "Org". The "Org"
 			 * entry will be mixed with "Org/App" since it's a tree based hierarchy. */
-			ext = ".cfg";
-			break;
+			return ".cfg";
 		case M_SETTINGS_TYPE_INI:
-			ext = ".ini";
-			break;
+			return ".ini";
 		case M_SETTINGS_TYPE_JSON:
-			ext = ".json";
-			break;
+			return ".json";
 	}
 
-	return ext;
+	return "";
 }
 
 static M_settings_t *M_settings_create_int(const char *organization, const char *application, const char *filename, M_settings_scope_t scope, M_settings_type_t type, M_uint32 flags)
