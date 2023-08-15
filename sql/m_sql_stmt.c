@@ -440,6 +440,11 @@ M_sql_error_t M_sql_stmt_execute(M_sql_connpool_t *pool, M_sql_stmt_t *stmt)
 			rollback = M_FALSE;
 		}
 
+
+		/* Make sure we start at offset when making decisions, important to clear befor calling M_sql_driver_stmt_bind_rows()
+		 * as it uses the offset, so if we had a rollback for some reason, things could go wonky */
+		stmt->bind_row_offset = 0;
+
 		/* Either begin transaction or acquire connection */
 		if (M_sql_driver_stmt_bind_rows(stmt) > 1 || stmt->group_lock) {
 			err = M_sql_trans_begin(&trans, pool, M_SQL_ISOLATION_READCOMMITTED, stmt->error_msg, sizeof(stmt->error_msg));
@@ -466,9 +471,6 @@ M_sql_error_t M_sql_stmt_execute(M_sql_connpool_t *pool, M_sql_stmt_t *stmt)
 				goto done;
 			}
 		}
-
-		/* Make sure we start at offset when making decisions */
-		stmt->bind_row_offset = 0;
 
 		if (!trans) {
 			err = M_sql_conn_execute(conn, stmt);
