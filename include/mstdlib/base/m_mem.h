@@ -26,6 +26,7 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+#include <stdlib.h>
 #include <mstdlib/base/m_defs.h>
 #include <mstdlib/base/m_fmt.h>
 #include <mstdlib/base/m_str.h>
@@ -65,6 +66,41 @@ M_BEGIN_IGNORE_REDECLARATIONS
 #  endif
 #endif
 M_END_IGNORE_REDECLARATIONS
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+#define M_MEM_DEBUG
+#ifdef M_MEM_DEBUG
+
+#define M_MEM_DEBUG_MSG   M_printf
+
+#define M_MEM_DEBUG_CHECK(expression, ...) \
+        do { \
+            if ((expression) == M_false) { \
+                M_MEM_DEBUG_MSG("debug check failed: '%s'\n", #expression); \
+                M_MEM_DEBUG_MSG("    file: '%s'\n", __FILE__); \
+                M_MEM_DEBUG_MSG("    line: %d\n", __LINE__); \
+                if (__M_MEM_NUM_ARGS(__VA_ARGS__) > 0) M_MEM_DEBUG_MSG("    " __VA_ARGS__ "\n"); \
+                abort(); \
+            } \
+        } while (0)
+
+/* check a ptr returned by the allocators found in this module for validity */
+#define M_MEM_DEBUG_CHECK_PTR(ptr)    __m_mem_check_ptr(ptr, #ptr, __FILE__, __LINE__)
+
+/* don't use or call any of the following directly, use the macros above instead */
+#define __M_MEM_LAST_ARG(a01, a02, a03, a04, a05, a06, a07, a08, a09, a10, a11, ...) a11
+#define __M_MEM_NUM_ARGS(...) __M_MEM_LAST_ARG(dummy, ##__VA_ARGS__, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+
+M_API void __m_mem_check_ptr(void *ptr, char const *ptr_name, char const *file, size_t line);
+
+#else
+
+#define M_MEM_DEBUG_MSG(format_string, ...)
+#define M_MEM_DEBUG_CHECK(expression, ...)
+#define M_MEM_DEBUG_CHECK_PTR(ptr)
+
+#endif
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
