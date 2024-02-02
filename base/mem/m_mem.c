@@ -23,8 +23,10 @@
 
 #include "m_config.h"
 
+#include <errno.h>
 #include <stdlib.h> /* malloc, free */
 #include <string.h> /* memset, memchr, memmove */
+#include <unistd.h>
 
 #include <mstdlib/mstdlib.h>
 #include "m_defs_int.h"
@@ -137,39 +139,182 @@ void M_malloc_clear_errorcb(void)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/* endianness doesn't (really) matter here */
+typedef union {
+	uint32_t value;
+	struct {
+		char a;
+		char b;
+		char c;
+		char d;
+	} chars;
+} memtag_t;
+
+#define MAKE_TAG(val1,val2,val3,val4)   ((((val1) & 0xFF) << 24) | \
+										 (((val2) & 0xFF) << 16) | \
+										 (((val3) & 0xFF) <<  8) | \
+										 (((val4) & 0xFF) <<  0))
+#define MAKE_SIMPLETAG(id)              MAKE_TAG(id,id,id,id)
+
+typedef struct memblockprehdr_s {
+    uint8_t    *address;            /* ptr returned to the caller */
+    size_t      requested_size;     /* used to determine where the memblockposthdr_t starts */
+    memtag_t    tag;
+} memblockprehdr_t;
+
+typedef struct memblockposthdr_s {
+    memtag_t    tag;
+} memblockposthdr_t;
+
+#define MEMBLOCK_PRETAG     MAKE_TAG('A','L','O','C')
+#define MEMBLOCK_POSTTAG    MAKE_TAG('A','P','S','T')
+
+
+static M_bool __m_mem_is_ptr_usable(const void *ptr)
+{
+	int fd[2];
+	M_bool usable = M_TRUE;	/* assume usable until told otherwise */
+
+	if (ptr == NULL) {
+		return M_FALSE;
+	}
+
+    /* test the pointer by trying to write 1 byte from it to a pipe */
+	pipe(fd);
+	if (write(fd[1], ptr, 1) < 0) {
+		if (errno == EFAULT) {
+			usable = M_FALSE;
+		}
+	}
+
+	close(fd[0]);
+	close(fd[1]);
+	return usable;
+}
+
+static memblockprehdr_t *__m_mem_preheader(void *ptr)
+{
+    memblockprehdr_t    *pre_header;
+    size_t const         address_offset = sizeof(memblockprehdr_t) + M_SAFE_ALIGNMENT;
+
+    if (ptr == NULL) {
+        return NULL;
+    }
+
+#if defined(__clang__)
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wcast-align"
+#elif defined(__GNUC__) && ((__GNUC__ * 100) + __GNUC_MINOR__) >= 406
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-align"
+#endif
+    pre_header = (memblockprehdr_t * const)((uint8_t *)ptr - address_offset);
+#if defined(__clang__)
+#  pragma clang diagnostic pop
+#elif defined(__GNUC__) && ((__GNUC__ * 100) + __GNUC_MINOR__) >= 406
+#  pragma GCC diagnostic pop
+#endif
+
+    return pre_header;
+}
+
+static memblockposthdr_t *__m_mem_postheader(memblockprehdr_t *pre_header)
+{
+    memblockposthdr_t   *post_header;
+
+#if defined(__clang__)
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wcast-align"
+#elif defined(__GNUC__) && ((__GNUC__ * 100) + __GNUC_MINOR__) >= 406
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-align"
+#endif
+    post_header = (memblockposthdr_t * const)(pre_header->address + pre_header->requested_size);
+#if defined(__clang__)
+#  pragma clang diagnostic pop
+#elif defined(__GNUC__) && ((__GNUC__ * 100) + __GNUC_MINOR__) >= 406
+#  pragma GCC diagnostic pop
+#endif
+
+    return post_header;
+}
+
+static size_t __m_mem_full_size(void *ptr)
+{
+    memblockprehdr_t    *pre_header = __m_mem_preheader(ptr);
+    if (pre_header == NULL) {
+        return 0;
+    }
+    return sizeof(memblockprehdr_t) + M_SAFE_ALIGNMENT + pre_header->requested_size + sizeof(memblockposthdr_t);
+}
+
+void __m_mem_check_ptr(void *ptr, char const *ptr_name, char const *file, size_t line)
+{
+    memblockprehdr_t    *pre_header = __m_mem_preheader(ptr);
+    memblockposthdr_t   *post_header;
+
+	if (__m_mem_is_ptr_usable(ptr) == M_FALSE) {
+		M_MEM_DEBUG_MSG("%s ptr (=%p) is unusable at %s::%zu", ptr_name, ptr, file, line);
+        abort();
+	}
+
+    M_MEM_DEBUG_CHECK(pre_header->requested_size < SIZE_MAX, "double-free or corrupt memory");
+    M_MEM_DEBUG_CHECK(pre_header->requested_size > 0, "double-free or corrupt memory");
+    M_MEM_DEBUG_CHECK(pre_header->tag.value == MEMBLOCK_PRETAG);
+
+    post_header = __m_mem_postheader(pre_header);
+    M_MEM_DEBUG_CHECK(post_header->tag.value == MEMBLOCK_POSTTAG);
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 void *M_malloc(size_t size)
 {
-	void   *ptr;
-	size_t  ecb_num = error_cbs_cnt;
-	M_bool  success = M_FALSE;
+    void                *ptr;
+    memblockprehdr_t    *pre_header;
+    memblockposthdr_t   *post_header;
+    size_t               ecb_num = error_cbs_cnt;
+    M_bool               success = M_FALSE;
+    size_t const         address_offset = sizeof(memblockprehdr_t) + M_SAFE_ALIGNMENT;
+    size_t const         full_block_size = address_offset + size + sizeof(memblockposthdr_t);
 
-	/* Prevent size + M_SAFE_ALIGNMENT exceeding maximum amount of memory */
-	if (size == 0 || size > SIZE_MAX - M_SAFE_ALIGNMENT)
-		return NULL;
+    M_MEM_DEBUG_CHECK(size > 0, "trying to allocate a size of 0");
+    M_MEM_DEBUG_CHECK(full_block_size <= SIZE_MAX, "block size is too large");
+    if (size == 0 || full_block_size > SIZE_MAX) {
+        return NULL;
+    }
 
-	while (1) {
-		ptr = malloc(size + M_SAFE_ALIGNMENT);
-		if (ptr != NULL) {
-			break;
-		} else {
-			success = M_FALSE;
-			while (ecb_num > 0 && !success) {
-				ecb_num--;
-				success = error_cbs[ecb_num]();
-			}
-			if (success) {
-				continue;
-			}
-		}
-		break;
-	} 
+    while (1) {
+        ptr = malloc(full_block_size);
+        if (ptr != NULL) {
+            break;
+        } else {
+            success = M_FALSE;
+            while (ecb_num > 0 && !success) {
+                ecb_num--;
+                success = error_cbs[ecb_num]();
+            }
+            if (success) {
+                continue;
+            }
+        }
+        break;
+    } 
 
-	if (ptr == NULL)
-		return NULL;
+    if (ptr == NULL) {
+        return NULL;
+    }
 
-	/* Cache size allocated so we can free it later */
-	M_mem_copy(ptr, &size, sizeof(size));
-	return ((char *)ptr) + M_SAFE_ALIGNMENT;
+    /* prepare the structures M_free() validation */
+    pre_header = (memblockprehdr_t * const)ptr;
+    pre_header->address         = (uint8_t *)ptr + address_offset;
+    pre_header->requested_size  = size;
+    pre_header->tag.value       = MEMBLOCK_PRETAG;
+
+    post_header = __m_mem_postheader(pre_header);
+    post_header->tag.value = MEMBLOCK_POSTTAG;
+
+    return pre_header->address;
 }
 
 void *M_malloc_zero(size_t size)
@@ -189,38 +334,44 @@ void *M_malloc_zero(size_t size)
 
 static void *M_realloc_int(void *ptr, size_t size, M_bool zero)
 {
-	void  *ret;
-	size_t orig_size = 0;
+    void                *ret;
+    memblockprehdr_t    *pre_header;
+    size_t               orig_size;
 
-	/* Same as M_malloc */
-	if (ptr == NULL) {
-		if (zero)
-			return M_malloc_zero(size);
-		return M_malloc(size);
-	}
+    /* Same as M_malloc */
+    if (ptr == NULL) {
+        if (zero) {
+            return M_malloc_zero(size);
+        }
+        return M_malloc(size);
+    }
 
-	/* Same as M_free */
-	if (size == 0) {
-		M_free(ptr);
-		return NULL;
-	}
+    /* Same as M_free */
+    if (size == 0) {
+        M_free(ptr);
+        return NULL;
+    }
 
-	/* Get the original size */
-	M_mem_copy(&orig_size, ((char *)ptr) - M_SAFE_ALIGNMENT, sizeof(orig_size));
+    /* validate the ptr before adjusting */
+    M_MEM_DEBUG_CHECK_PTR(ptr);
 
-	/* Copy all data to new memory address */
-	ret = M_memdup_max(ptr, orig_size, size);
+    pre_header = __m_mem_preheader(ptr);    /* don't need to check for null here */
+    orig_size = pre_header->requested_size;
 
-	/* Zero out the extended memory if necesary */
-	if (ret != NULL && zero && size > orig_size) {
-		M_mem_set(((char *)ret)+orig_size, 0, size-orig_size);
-	}
+    /* Copy all data to new memory address */
+    ret = M_memdup_max(ptr, orig_size, size);
 
-	/* Free original memory pointer if realloc didn't fail */
-	if (ret != NULL)
-		M_free(ptr);
+    /* Zero out the extended memory if necesary */
+    if (ret != NULL && zero && size > orig_size) {
+        M_mem_set(((char *)ret)+orig_size, 0, size-orig_size);
+    }
 
-	return ret;
+    /* Free original memory pointer if memdup didn't fail */
+    if (ret != NULL) {
+        M_free(ptr);
+    }
+
+    return ret;
 }
 
 void *M_realloc(void *ptr, size_t size)
@@ -260,34 +411,14 @@ void *M_memdup_max(const void *src, size_t size, size_t min_alloc_size)
 
 void M_free(void *ptr)
 {
-	void  *actual_ptr;
-	size_t size = 0;
+    memblockprehdr_t    *pre_header = __m_mem_preheader(ptr);
+    if (pre_header == NULL) {
+        return;
+    }
 
-	if (ptr == NULL)
-		return;
-
-	if (ptr == (void *)SIZE_MAX) {
-		M_fprintf(stderr, "M_free(): invalid pointer address\n");
-		abort();
-	}
-
-	actual_ptr = ((char *)ptr) - M_SAFE_ALIGNMENT;
-
-	/* Grab size out of buffer */
-	M_mem_copy(&size, actual_ptr, sizeof(size));
-
-	/* Secure clear uses 0xFF, so SIZE_MAX should be 0xFFFFFFFF or 0xFFFFFFFFFFFFFFFF
-	 * so if we see a size as size_max, we know we're dealing with already-free()'d
-	 * memory */
-	if (size == SIZE_MAX || size == 0) {
-		M_fprintf(stderr, "M_free(): double-free or corrupt memory\n");
-		abort();
-	}
-
-	/* Secure the user-data */
-	M_mem_secure_clear(actual_ptr, size + M_SAFE_ALIGNMENT);
-
-	free(actual_ptr);
+    M_MEM_DEBUG_CHECK_PTR(ptr);
+    M_mem_secure_clear(pre_header, __m_mem_full_size(ptr)); /* Secure the user-data */
+    free(pre_header);
 }
 
 
