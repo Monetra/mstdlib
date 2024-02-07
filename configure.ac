@@ -1,4 +1,4 @@
-m4_define([mstdlib_major_version],   [1])
+m4_define([mstdlib_major_version],   [2])
 m4_define([mstdlib_minor_version],   [0])
 m4_define([mstdlib_release_version], [0])
 m4_define([mstdlib_version], [mstdlib_major_version.mstdlib_minor_version.mstdlib_release_version])
