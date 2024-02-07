@@ -68,12 +68,6 @@
 #include <mach/thread_policy.h>
 #endif
 
-#ifdef __sun__
-#  include <sys/types.h>
-#  include <sys/processor.h>
-#  include <sys/procset.h>
-#endif
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static void M_thread_pthread_attr_topattr(const M_thread_attr_t *attr, pthread_attr_t *tattr)
@@ -288,12 +282,6 @@ static M_bool M_thread_pthread_set_processor(M_thread_t *thread, M_threadid_t ti
 
     if (sched_setaffinity(tid, sizeof(cpuset), &cpuset) != 0) {
         M_fprintf(stderr, "sched_setaffinity thread %lld to processor %d failed: %s\n", (M_int64)thread, processor_id, strerror(errno));
-        return M_FALSE;
-    }
-#elif defined(__sun__)
-    (void)tid;
-    if (processor_bind(P_LWPID, (id_t)((pthread_t)thread), (processorid_t)((processor_id == -1)?PBIND_NONE:processor_id), NULL) != 0) {
-        M_fprintf(stderr, "processor_bind thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
         return M_FALSE;
     }
 #elif defined(__APPLE__)

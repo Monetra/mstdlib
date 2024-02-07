@@ -40,12 +40,11 @@
  * It can be cacluated using alignof(max_align_t)); with C11 (we support back
  * to C89).
  *
- * The typicall recomendation is to use __WORDSIZE from limits.h but there
+ * The typical recommendation is to use __WORDSIZE from limits.h but there
  * are two issues.
  *
  * 1. limits.h is a C99 addition.
- * 2. word size on Solaris SPARC is 32 (4 bytes) but alignment is 64 (8 bytes).
- * 3. float can be 16 bytes on some platforms while pointers are 8.
+ * 2. float can be 16 bytes on some platforms while pointers are 8.
  *
  * 16 is a known safe alignment value that works across all CPUs we use/test.
  */

@@ -276,13 +276,6 @@ if (MSTDLIB_BUILD_THREAD)
 	if (Threads_FOUND AND NOT WIN32)
 		set(HAVE_PTHREAD TRUE)
 
-		# Fix solaris9 bug due to libc having pthread_create() stubs that always fail.  CMake
-		# doesn't realize that the real pthread functions aren't in libc, so sets the pthread
-		# library CAKE_THREAD_LIBS_INIT variable to blank instead of to the correct "-lpthread".
-		if (CMAKE_SYSTEM_NAME STREQUAL "SunOS" AND NOT CMAKE_THREAD_LIBS_INIT)
-			set(CMAKE_THREAD_LIBS_INIT "-lpthread")
-		endif ()
-
 		# PThread functions.
 		check_include_files(pthread.h                                 HAVE_PTHREAD_H)
 		check_include_files(pthread_np.h                              HAVE_PTHREAD_NP_H)

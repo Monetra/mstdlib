@@ -27,14 +27,13 @@
 
 #define ATOMIC_OP_GCC_BUILTIN 1  /* GCC builtin                      */
 #define ATOMIC_OP_MSC_BUILTIN 2  /* MS Compiler builtin              */
-#define ATOMIC_OP_SUN         3  /* SunOS/Solaris OS atomic function */
-#define ATOMIC_OP_APPLE       4  /* Apple OS atomic function         */
-#define ATOMIC_OP_FREEBSD     5  /* FreeBSD OS atomic function       */
-#define ATOMIC_OP_ASM         6  /* Inline ASM                       */
-#define ATOMIC_OP_SPINLOCK    7  /* Emulation via spinlock           */
-#define ATOMIC_OP_CAS32       8  /* Emulation via CAS32              */
-#define ATOMIC_OP_CAS64       9  /* Emulation via CAS64              */
-#define ATOMIC_OP_STDATOMIC   10 /* stdatomic from C11               */
+#define ATOMIC_OP_APPLE       3  /* Apple OS atomic function         */
+#define ATOMIC_OP_FREEBSD     4  /* FreeBSD OS atomic function       */
+#define ATOMIC_OP_ASM         5  /* Inline ASM                       */
+#define ATOMIC_OP_SPINLOCK    6  /* Emulation via spinlock           */
+#define ATOMIC_OP_CAS32       7  /* Emulation via CAS32              */
+#define ATOMIC_OP_CAS64       8  /* Emulation via CAS64              */
+#define ATOMIC_OP_STDATOMIC   9  /* stdatomic from C11               */
 
 /* Defines that will get created:
  * ATOMIC_CAS32 - Compare and Set atomic operation method
@@ -56,43 +55,18 @@
 #  define ATOMIC_INC64 ATOMIC_OP_STDATOMIC
 #endif
 
-#if defined(__sun__) && defined(HAVE_ATOMIC_H)
-#  if !defined(ATOMIC_CAS32) || !defined(ATOMIC_CAS64) || !defined(ATOMIC_INC32) || !defined(ATOMIC_INC64)
-#    include <atomic.h>
-#  endif
-#  if !defined(ATOMIC_CAS32)
-#    define ATOMIC_CAS32 ATOMIC_OP_SUN
-#  endif
-#  if !defined(ATOMIC_CAS64)
-#    define ATOMIC_CAS64 ATOMIC_OP_SUN
-#  endif
-#  if !defined(ATOMIC_INC32)
-#    define ATOMIC_INC32 ATOMIC_OP_SUN
-#  endif
-#  if !defined(ATOMIC_INC64)
-#    define ATOMIC_INC64 ATOMIC_OP_SUN
-#  endif
-#endif
-
 /* Use GCC's __sync built-in functions when they are known to exist and work.
  * This requires GCC 4.1.1+ for 32bit operations, and for 64bit, these are known to work:
  *  - Any amd64 OS
- *  - Sun Solaris SPARC64
- * Exception: Solaris9 Sparc32 doesn't seem to actually work, prefer sun's atomic.h
  */
-#if defined(__sun__) && defined(__sparc__) && !defined(__arch64__)
-#  define SUN_SPARC32
-#endif
-
-#if (defined(__GNUC__) && (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) >= 40101) && !defined(SUN_SPARC32)
+#if (defined(__GNUC__) && (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) >= 40101)
 #  if !defined(ATOMIC_CAS32)
 #    define ATOMIC_CAS32 ATOMIC_OP_GCC_BUILTIN
 #  endif
 #  if !defined(ATOMIC_INC32)
 #    define ATOMIC_INC32 ATOMIC_OP_GCC_BUILTIN
 #  endif
-#  if defined(__amd64__) || \
-      (defined(__sun__) && defined(__sparc__) && defined(__arch64__))
+#  if defined(__amd64__)
 #    if !defined(ATOMIC_CAS64)
 #      define ATOMIC_CAS64 ATOMIC_OP_GCC_BUILTIN
 #    endif
@@ -197,13 +171,6 @@
 #endif
 
 
-#if defined(__GNUC__) && defined(__sparc__) && !defined(__arch64__)
-#  if !defined(ATOMIC_CAS32)
-#    define ATOMIC_CAS32 ATOMIC_OP_ASM
-#  endif
-#endif
-
-
 #if !defined(ATOMIC_CAS32)
 #  error unable to determine how to implement compare and set
 #endif
@@ -295,26 +262,6 @@ static __inline__ unsigned int M_atomic_cas32_asm(volatile M_uint32 *dest, M_uin
     return success;
 }
 
-#  elif defined(__GNUC__) && defined(__sparc__)
-
-static __inline__ unsigned int M_atomic_cas32_asm(volatile M_uint32 *dest, M_uint32 expected, M_uint32 newval)
-{
-    unsigned char success;
-
-    __asm__ __volatile__ (
-            "membar #StoreLoad | #LoadLoad\n"
-            "cas [%1],%2,%3\n"
-            "membar #StoreLoad | #LoadLoad\n"
-            "cmp %2,%3\n"
-            "be,a 1f\n"
-            "mov 1,%0\n"
-            "mov 0,%0\n"
-            "1:"
-            : "=r" (success)
-            : "r" (dest), "r" (expected), "r" (newval));
-    return success;
-}
-
 #  else
 #    error unexpected ATOMIC_CAS32 value
 #  endif
@@ -325,10 +272,6 @@ M_bool M_atomic_cas32(volatile M_uint32 *ptr, M_uint32 expected, M_uint32 newval
 {
 #if ATOMIC_CAS32 == ATOMIC_OP_MSC_BUILTIN
     if (_InterlockedCompareExchange((long *)ptr, newval, expected) != expected)
-        return M_FALSE;
-    return M_TRUE;
-#elif ATOMIC_CAS32 == ATOMIC_OP_SUN
-    if (atomic_cas_32(ptr, expected, newval) != expected)
         return M_FALSE;
     return M_TRUE;
 #elif ATOMIC_CAS32 == ATOMIC_OP_APPLE
@@ -474,10 +417,6 @@ M_bool M_atomic_cas64(volatile M_uint64 *ptr, M_uint64 expected, M_uint64 newval
     if (_InterlockedCompareExchange64(ptr, newval, expected) != expected)
         return M_FALSE;
     return M_TRUE;
-#elif ATOMIC_CAS64 == ATOMIC_OP_SUN
-    if (atomic_cas_64(ptr, expected, newval) != expected)
-        return M_FALSE;
-    return M_TRUE;
 #elif ATOMIC_CAS64 == ATOMIC_OP_APPLE
     return OSAtomicCompareAndSwap64Barrier((int64_t)expected, (int64_t)newval, (volatile int64_t *)ptr)?M_TRUE:M_FALSE;
 #elif ATOMIC_CAS64 == ATOMIC_OP_FREEBSD
@@ -599,8 +538,6 @@ M_uint32 M_atomic_add_u32(volatile M_uint32 *ptr, M_uint32 val)
     return (M_uint32)OSAtomicAdd32Barrier(val, (M_int32 *)ptr) - val;
 #elif ATOMIC_INC32 == ATOMIC_OP_FREEBSD
     return atomic_fetchadd_32(ptr, val);
-#elif ATOMIC_INC32 == ATOMIC_OP_SUN
-    return atomic_add_32_nv(ptr, val) - val;
 #elif ATOMIC_INC32 == ATOMIC_OP_ASM
     return M_atomic_add_u32_asm(ptr, val);
 #elif ATOMIC_INC32 == ATOMIC_OP_CAS32
@@ -650,8 +587,6 @@ M_uint64 M_atomic_add_u64(volatile M_uint64 *ptr, M_uint64 val)
     return (M_uint64)OSAtomicAdd64Barrier(val, (M_int64 *)ptr) - val;
 #elif ATOMIC_INC64 == ATOMIC_OP_FREEBSD
     return atomic_fetchadd_64(ptr, val);
-#elif ATOMIC_INC64 == ATOMIC_OP_SUN
-    return atomic_add_64_nv(ptr, val) - val;
 #elif ATOMIC_INC64 == ATOMIC_OP_ASM
     return M_atomic_add_u64_asm(ptr, val);
 #elif ATOMIC_INC64 == ATOMIC_OP_CAS64

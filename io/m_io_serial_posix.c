@@ -705,8 +705,6 @@ static const char * const M_io_serial_paths[] = {
     "/dev/cuaa*", "/dev/cuad*", "/dev/ucom*", "/dev/ttyU*",
 #elif defined(__SCO_VERSION__) || defined(_SCO_ELF)
     "/dev/tty[1-9][A-Z]",
-#elif defined(__sun__)
-    "/dev/cua/*",
 #endif
     NULL
 };

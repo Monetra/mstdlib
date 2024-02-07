@@ -4,8 +4,6 @@
 #  _MINIX                   - Identify Minix platform.
 #  _POSIX_1_SOURCE          - Additional Posix functions for Minix.
 #  _POSIX_SOURCE            - Posix founctions for Minix.
-#  __EXTENSIONS__           - General extensions for Solaris.
-#  _POSIX_PTHREAD_SEMANTICS - Thread extensions for Solaris.
 #  __USE_MINGW_ANSI_STDIO   - MinGW
 # Once done set the following CFLAGS if found:
 #  _XOPEN_SOURCE=500        - Enables some additional functions.
@@ -24,8 +22,6 @@ elseif (CMAKE_SYSTEM_NAME MATCHES "Android")
 	set(_new_flags "-D_GNU_SOURCE -D_POSIX_C_SOURCE=199309L -D_XOPEN_SOURCE=600")
 elseif (CMAKE_SYSTEM_NAME MATCHES "SCO_SV" OR CMAKE_SYSTEM_NAME MATCHES "UnixWare")
 	set(_new_flags "-D_REENTRANT")
-elseif (CMAKE_SYSTEM_NAME MATCHES "SunOS")
-	set(_new_flags "-std=gnu99 -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS -D__EXTENSIONS__ -D_XOPEN_SOURCE=600")
 elseif (MINGW)
 	set(_new_flags "-D__USE_MINGW_ANSI_STDIO")
 endif ()

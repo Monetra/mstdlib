@@ -34,9 +34,6 @@
 #  include <netinet/tcp.h>
 #  include <arpa/inet.h>
 #  include <netdb.h>
-#    ifdef __sun__
-#        include <xti.h>
-#    endif
 #endif
 
 #include <errno.h>
@@ -425,8 +422,6 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 #  endif
 
 #  if defined(TCP_KEEPALIVE) && defined(__APPLE__)
-    /* Sun has TCP_KEEPALIVE but doesn't work, returns errors */
-
     /* time in seconds idle before keepalive probes */
     on = (int)handle->settings.ka_idle_time_s;
     if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPALIVE, (const void *)&on, sizeof(on)) == -1) {
@@ -436,7 +431,6 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 #  endif
 
 #  if defined(TCP_KEEPALIVE_THRESHOLD)
-    /* Solaris */
     /* time in milliseconds between individual keepalive probes */
     on = (int)handle->settings.ka_retry_time_s * 1000;
     if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPALIVE_THRESHOLD, (const void *)&on, sizeof(on)) == -1) {
@@ -446,7 +440,6 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 #  endif
 
 #  if defined(TCP_KEEPALIVE_ABORT_THRESHOLD)
-    /* Solaris */
     /* default time (in milliseconds) threshold to abort a TCP connection after the keepalive probing mechanism has failed */
     on = (int)handle->settings.ka_retry_time_s * handle->settings.ka_retry_cnt * 1000;
     if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPALIVE_ABORT_THRESHOLD, (const void *)&on, sizeof(on)) == -1) {
