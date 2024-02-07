@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2020 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,7 +37,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_net_smtp SMTP mailer
  *  \ingroup m_net
- * 
+ *
  * SMTP mailer
  *
  * Defaults to 3 send attempts.
@@ -56,21 +56,21 @@ typedef struct M_net_smtp M_net_smtp_t;
 
 /*! Current processing status. */
 typedef enum {
-	M_NET_SMTP_STATUS_IDLE = 0,    /*!< Currently up and able to process. */
-	M_NET_SMTP_STATUS_PROCESSING,  /*!< Currently processing. */
-	M_NET_SMTP_STATUS_STOPPED,     /*!< Not processing. */
-	M_NET_SMTP_STATUS_NOENDPOINTS, /*!< Not processing due to no endpoints configured. */
-	M_NET_SMTP_STATUS_STOPPING     /*!< In the process of stopping. Messages will not continue to
-	                                    be sent but current messages that are processing will
-	                                    process until finished. */
+    M_NET_SMTP_STATUS_IDLE = 0,    /*!< Currently up and able to process. */
+    M_NET_SMTP_STATUS_PROCESSING,  /*!< Currently processing. */
+    M_NET_SMTP_STATUS_STOPPED,     /*!< Not processing. */
+    M_NET_SMTP_STATUS_NOENDPOINTS, /*!< Not processing due to no endpoints configured. */
+    M_NET_SMTP_STATUS_STOPPING     /*!< In the process of stopping. Messages will not continue to
+                                        be sent but current messages that are processing will
+                                        process until finished. */
 } M_net_smtp_status_t;
 
 
 /*! Pool operation mode. */
 typedef enum {
-	M_NET_SMTP_LOAD_BALANCE_FAILOVER = 0, /*!< Only one endpoint should be used and others should
-	                                           be used when the current endpoint has a failure. */
-	M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN    /*!< Connections should rotate across all endpoints. */
+    M_NET_SMTP_LOAD_BALANCE_FAILOVER = 0, /*!< Only one endpoint should be used and others should
+                                               be used when the current endpoint has a failure. */
+    M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN    /*!< Connections should rotate across all endpoints. */
 } M_net_smtp_load_balance_t;
 
 
@@ -166,7 +166,7 @@ typedef void (*M_net_smtp_sent_cb)(const M_hash_dict_t *headers, void *thunk);
  * \param[in] headers     Message headers provided as metadata to identify
  *                        the message that failed.
  * \param[in] error       Error message.
- * \param[in] attempt_num Current attempt number to send this message. Will be 0 when 
+ * \param[in] attempt_num Current attempt number to send this message. Will be 0 when
  *                        using an external queue. Otherwise, >= 1.
  * \param[in] can_requeue M_TRUE when the message can be requed to try again. Will be
  *                        M_FALSE if the message has reached the maximum send attempts
@@ -213,15 +213,15 @@ typedef M_bool (*M_net_smtp_iocreate_cb)(M_io_t *io, char *error, size_t errlen,
 
 /*! Structure of callbacks to inform and control operating behavior. */
 struct M_net_smtp_callbacks {
-	M_net_smtp_connect_cb           connect_cb;
-	M_net_smtp_connect_fail_cb      connect_fail_cb;
-	M_net_smtp_disconnect_cb        disconnect_cb;
-	M_net_smtp_process_fail_cb      process_fail_cb;
-	M_net_smtp_processing_halted_cb processing_halted_cb;
-	M_net_smtp_sent_cb              sent_cb;
-	M_net_smtp_send_failed_cb       send_failed_cb;
-	M_net_smtp_reschedule_cb        reschedule_cb;
-	M_net_smtp_iocreate_cb          iocreate_cb;
+    M_net_smtp_connect_cb           connect_cb;
+    M_net_smtp_connect_fail_cb      connect_fail_cb;
+    M_net_smtp_disconnect_cb        disconnect_cb;
+    M_net_smtp_process_fail_cb      process_fail_cb;
+    M_net_smtp_processing_halted_cb processing_halted_cb;
+    M_net_smtp_sent_cb              sent_cb;
+    M_net_smtp_send_failed_cb       send_failed_cb;
+    M_net_smtp_reschedule_cb        reschedule_cb;
+    M_net_smtp_iocreate_cb          iocreate_cb;
 };
 
 

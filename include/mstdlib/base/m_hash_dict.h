@@ -58,31 +58,31 @@ typedef struct M_hash_dict_enum M_hash_dict_enum_t;
 
 /*! Flags for controlling the behavior of the hashtable. */
 typedef enum {
-	M_HASH_DICT_NONE           = 0,       /*!< Case sensitive single value (new values replace). */
-	M_HASH_DICT_CASECMP        = 1 << 0,  /*!< Key compare is case insensitive. */
-	M_HASH_DICT_KEYS_UPPER     = 1 << 1,  /*!< Keys will be upper cased before being inserted. Should be used
-	                                           in conjunction with M_HASH_DICT_CASECMP. */
-	M_HASH_DICT_KEYS_LOWER     = 1 << 2,  /*!< Keys will be lower cased before being inserted. Should be used
-	                                           in conjunction with M_HASH_DICT_CASECMP. */
-	M_HASH_DICT_KEYS_ORDERED   = 1 << 3,  /*!< Keys should be ordered. Default is insertion order unless the
-	                                           sorted option is specified. */
-	M_HASH_DICT_KEYS_SORTASC   = 1 << 4,  /*!< When the keys are ordered sort them using the key_equality function. */
-	M_HASH_DICT_KEYS_SORTDESC  = 1 << 5,  /*!< When the keys are ordered sort them using the key_equality function. */
-	M_HASH_DICT_MULTI_VALUE    = 1 << 6,  /*!< Allow keys to contain multiple values.
-	                                           Sorted in insertion order another sorting is specified. */
-	M_HASH_DICT_MULTI_SORTASC  = 1 << 7,  /*!< Allow keys to contain multiple values sorted in ascending order */
-	M_HASH_DICT_MULTI_SORTDESC = 1 << 8,  /*!< Allow keys to contain multiple values sorted in descending order */
-	M_HASH_DICT_MULTI_GETLAST  = 1 << 9,  /*!< When using get and get_direct function get the last value from the list
-	                                           when allowing multiple values. The default is to get the first value. */
-	M_HASH_DICT_MULTI_CASECMP  = 1 << 10, /*!< Value compare is case insensitive. */
-	M_HASH_DICT_STATIC_SEED    = 1 << 11, /*!< Use a static seed for hash function initialization. This greatly reduces
-	                                           the security of the hashtable and removes collision attack protections.
-	                                           This should only be used as a performance optimization when creating
-	                                           millions of hashtables with static data specifically for quick look up.
-	                                           DO _NOT_ use this flag with any hashtable that could store user
-	                                           generated data! Be very careful about duplicating a hashtable that
-	                                           was created with this flag. All duplicates will use the static seed. */
-	M_HASH_DICT_DESER_TRIM_WHITESPACE = 1 << 26, /*!< During deserialization, trim whitespace. */
+    M_HASH_DICT_NONE           = 0,       /*!< Case sensitive single value (new values replace). */
+    M_HASH_DICT_CASECMP        = 1 << 0,  /*!< Key compare is case insensitive. */
+    M_HASH_DICT_KEYS_UPPER     = 1 << 1,  /*!< Keys will be upper cased before being inserted. Should be used
+                                               in conjunction with M_HASH_DICT_CASECMP. */
+    M_HASH_DICT_KEYS_LOWER     = 1 << 2,  /*!< Keys will be lower cased before being inserted. Should be used
+                                               in conjunction with M_HASH_DICT_CASECMP. */
+    M_HASH_DICT_KEYS_ORDERED   = 1 << 3,  /*!< Keys should be ordered. Default is insertion order unless the
+                                               sorted option is specified. */
+    M_HASH_DICT_KEYS_SORTASC   = 1 << 4,  /*!< When the keys are ordered sort them using the key_equality function. */
+    M_HASH_DICT_KEYS_SORTDESC  = 1 << 5,  /*!< When the keys are ordered sort them using the key_equality function. */
+    M_HASH_DICT_MULTI_VALUE    = 1 << 6,  /*!< Allow keys to contain multiple values.
+                                               Sorted in insertion order another sorting is specified. */
+    M_HASH_DICT_MULTI_SORTASC  = 1 << 7,  /*!< Allow keys to contain multiple values sorted in ascending order */
+    M_HASH_DICT_MULTI_SORTDESC = 1 << 8,  /*!< Allow keys to contain multiple values sorted in descending order */
+    M_HASH_DICT_MULTI_GETLAST  = 1 << 9,  /*!< When using get and get_direct function get the last value from the list
+                                               when allowing multiple values. The default is to get the first value. */
+    M_HASH_DICT_MULTI_CASECMP  = 1 << 10, /*!< Value compare is case insensitive. */
+    M_HASH_DICT_STATIC_SEED    = 1 << 11, /*!< Use a static seed for hash function initialization. This greatly reduces
+                                               the security of the hashtable and removes collision attack protections.
+                                               This should only be used as a performance optimization when creating
+                                               millions of hashtables with static data specifically for quick look up.
+                                               DO _NOT_ use this flag with any hashtable that could store user
+                                               generated data! Be very careful about duplicating a hashtable that
+                                               was created with this flag. All duplicates will use the static seed. */
+    M_HASH_DICT_DESER_TRIM_WHITESPACE = 1 << 26, /*!< During deserialization, trim whitespace. */
 } M_hash_dict_flags_t;
 
 
@@ -351,11 +351,11 @@ M_API M_hash_dict_t *M_hash_dict_duplicate(const M_hash_dict_t *h) M_MALLOC;
 
 /*! Possible flags for M_hash_dict_serialize() */
 typedef enum {
-	M_HASH_DICT_SER_FLAG_NONE               = 0,      /*!< Default flags */
-	M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE       = 1 << 0, /*!< Always quote the value even if not necessary. Cannot be used with M_HASH_DICT_SER_FLAG_QUOTE_NON_ANS */
-	M_HASH_DICT_SER_FLAG_QUOTE_NON_ANS      = 1 << 1, /*!< Quote any string that contains non Alpha-numeric or single space (0x20).  Cannot be used with M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE */
-	M_HASH_DICT_SER_FLAG_HEXENCODE_NONPRINT = 1 << 2, /*!< Any non-printable characters should be hex-encoded as [%02X] in the resulting output string */
-	M_HASH_DICT_SER_FLAG_LF_TO_CRLF         = 1 << 3  /*!< If a separator is specified as LF '\n', convert it to CRLF `\r\n`.  Necessary since delimiters can only be a single character. */
+    M_HASH_DICT_SER_FLAG_NONE               = 0,      /*!< Default flags */
+    M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE       = 1 << 0, /*!< Always quote the value even if not necessary. Cannot be used with M_HASH_DICT_SER_FLAG_QUOTE_NON_ANS */
+    M_HASH_DICT_SER_FLAG_QUOTE_NON_ANS      = 1 << 1, /*!< Quote any string that contains non Alpha-numeric or single space (0x20).  Cannot be used with M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE */
+    M_HASH_DICT_SER_FLAG_HEXENCODE_NONPRINT = 1 << 2, /*!< Any non-printable characters should be hex-encoded as [%02X] in the resulting output string */
+    M_HASH_DICT_SER_FLAG_LF_TO_CRLF         = 1 << 3  /*!< If a separator is specified as LF '\n', convert it to CRLF `\r\n`.  Necessary since delimiters can only be a single character. */
 } M_hash_dict_ser_flag_t;
 
 

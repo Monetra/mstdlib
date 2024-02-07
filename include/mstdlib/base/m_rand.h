@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -57,7 +57,7 @@ typedef struct M_rand M_rand_t;
  *                 is not cryptographically secure. This not being a cryptographically secure
  *                 random number generator we are using random data that is not cryptographically
  *                 secure for speed.
- * 
+ *
  * \return Random state.
  */
 M_API M_rand_t *M_rand_create(M_uint64 seed);
@@ -88,7 +88,7 @@ M_API M_uint64 M_rand(M_rand_t *state);
 
 /*! Generate a random number within a given range.
  *
- * Range is [min, max). Meaning from min to max-1. 
+ * Range is [min, max). Meaning from min to max-1.
  *
  * \param[in,out] state The state. Optional, can be NULL, but will incur the overhead of
  *                      M_rand_create(0); M_rand_destroy(); per iteration if not provided.
@@ -102,7 +102,7 @@ M_API M_uint64 M_rand_range(M_rand_t *state, M_uint64 min, M_uint64 max);
 
 /*! Generate a random number with a given maximum.
  *
- * Range is [0, max). Meaning from 0 to max-1. 
+ * Range is [0, max). Meaning from 0 to max-1.
  *
  * \param[in,out] state The state. Optional, can be NULL, but will incur the overhead of
  *                      M_rand_create(0); M_rand_destroy(); per iteration if not provided.
@@ -112,7 +112,7 @@ M_API M_uint64 M_rand_range(M_rand_t *state, M_uint64 min, M_uint64 max);
  */
 M_API M_uint64 M_rand_max(M_rand_t *state, M_uint64 max);
 
-/*! Generate a random string based on the provided character set. 
+/*! Generate a random string based on the provided character set.
  *
  * \param[in,out] state   The state. Optional, can be NULL, but will incur the overhead of
  *                        M_rand_create(0); M_rand_destroy(); per iteration if not provided.

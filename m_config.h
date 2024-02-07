@@ -6,9 +6,6 @@
 #  define M_DLL
 #endif
 
-/* note: the oldest GCC we deal with is 3.3.1 (sco5)
- */
-
 /* note: to see builtins
  *   clang -x c /dev/null -dM -E
  *   gcc   -x c /dev/null -dM -E

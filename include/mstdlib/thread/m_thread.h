@@ -106,9 +106,9 @@ __BEGIN_DECLS
 
 /*! Thread model. */
 typedef enum {
-	M_THREAD_MODEL_INVALID = -1, /*!< Invalid/no model. */
-	M_THREAD_MODEL_NATIVE  = 0,  /*!< System's native thread model. */
-	M_THREAD_MODEL_COOP          /*!< Cooperative threads. */
+    M_THREAD_MODEL_INVALID = -1, /*!< Invalid/no model. */
+    M_THREAD_MODEL_NATIVE  = 0,  /*!< System's native thread model. */
+    M_THREAD_MODEL_COOP          /*!< Cooperative threads. */
 } M_thread_model_t;
 
 
@@ -430,8 +430,8 @@ typedef struct M_thread_mutex M_thread_mutex_t;
 /*! Mutex attributes.
  * Used for mutex creation. */
 typedef enum {
-	M_THREAD_MUTEXATTR_NONE      = 0,     /*!< None. */
-	M_THREAD_MUTEXATTR_RECURSIVE = 1 << 0 /*!< Mutex is recursive. */
+    M_THREAD_MUTEXATTR_NONE      = 0,     /*!< None. */
+    M_THREAD_MUTEXATTR_RECURSIVE = 1 << 0 /*!< Mutex is recursive. */
 } M_thread_mutexattr_t;
 
 
@@ -506,7 +506,7 @@ typedef struct M_thread_cond M_thread_cond_t;
 /*! Conditional attributes.
  * Used for conditional creation. */
 typedef enum {
-	M_THREAD_CONDATTR_NONE = 0 /*!< None. */
+    M_THREAD_CONDATTR_NONE = 0 /*!< None. */
 } M_thread_condattr_t;
 
 
@@ -603,8 +603,8 @@ typedef struct M_thread_rwlock M_thread_rwlock_t;
 
 /*! Read/Write lock, lock type. */
 typedef enum {
-	M_THREAD_RWLOCK_TYPE_READ = 0, /*!< Lock for read. */
-	M_THREAD_RWLOCK_TYPE_WRITE     /*!< Lock for write. */
+    M_THREAD_RWLOCK_TYPE_READ = 0, /*!< Lock for read. */
+    M_THREAD_RWLOCK_TYPE_WRITE     /*!< Lock for write. */
 } M_thread_rwlock_type_t;
 
 
@@ -708,9 +708,9 @@ M_API void *M_thread_tls_getspecific(M_thread_tls_key_t key);
 
 /*! Public struct for spinlocks, so static initializers can be used */
 typedef struct M_thread_spinlock {
-	volatile M_uint32 current;
-	volatile M_uint32 queue;
-	M_threadid_t      threadid;
+    volatile M_uint32 current;
+    volatile M_uint32 queue;
+    M_threadid_t      threadid;
 } M_thread_spinlock_t;
 
 /*! Static initializer for spinlocks */
@@ -765,8 +765,8 @@ M_API void M_thread_spinlock_unlock(M_thread_spinlock_t *spinlock);
 
 /*! Public struct for M_thread_once, so static initializer can be used */
 typedef struct M_thread_once {
-	M_bool              initialized;
-	M_thread_spinlock_t spinlock;
+    M_bool              initialized;
+    M_thread_spinlock_t spinlock;
 } M_thread_once_t;
 
 /*! Static initializer for M_thread_once */

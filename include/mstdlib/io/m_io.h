@@ -45,11 +45,11 @@ __BEGIN_DECLS
 
 /*! io type */
 enum M_io_type {
-	M_IO_TYPE_STREAM   = 1, /*!< Object is a stream handle, can read and write             */
-	M_IO_TYPE_WRITER   = 2, /*!< Object is write only, such as a one-way pipe              */
-	M_IO_TYPE_READER   = 3, /*!< Object is read only, such as a one-way pipe               */
-	M_IO_TYPE_LISTENER = 4, /*!< Object is a listener for acceptance of new connections    */
-	M_IO_TYPE_EVENT    = 5  /*!< Object just handles events, cannot connect, read or write */
+    M_IO_TYPE_STREAM   = 1, /*!< Object is a stream handle, can read and write             */
+    M_IO_TYPE_WRITER   = 2, /*!< Object is write only, such as a one-way pipe              */
+    M_IO_TYPE_READER   = 3, /*!< Object is read only, such as a one-way pipe               */
+    M_IO_TYPE_LISTENER = 4, /*!< Object is a listener for acceptance of new connections    */
+    M_IO_TYPE_EVENT    = 5  /*!< Object just handles events, cannot connect, read or write */
 };
 typedef enum M_io_type M_io_type_t;
 
@@ -66,42 +66,42 @@ typedef struct M_io_meta M_io_meta_t;
 
 /*! io error. */
 enum M_io_error {
-	M_IO_ERROR_SUCCESS           = 0,  /*!< Success. No Error     */
-	M_IO_ERROR_WOULDBLOCK        = 1,  /*!< Operation would block */
-	M_IO_ERROR_DISCONNECT        = 2,  /*!< Connection disconnected during operation */
-	M_IO_ERROR_ERROR             = 3,  /*!< Generic Undefined error occurred */
-	M_IO_ERROR_NOTCONNECTED      = 4,  /*!< Connection is not established, invalid operation */
-	M_IO_ERROR_NOTPERM           = 5,  /*!< Not a permitted action for this io object */
-	M_IO_ERROR_CONNRESET         = 6,  /*!< Connection was reset by peer */
-	M_IO_ERROR_CONNABORTED       = 7,  /*!< Connection aborted */
-	M_IO_ERROR_ADDRINUSE         = 8,  /*!< Address or Port already in use */
-	M_IO_ERROR_PROTONOTSUPPORTED = 9,  /*!< Protocol not supported by OS */
-	M_IO_ERROR_CONNREFUSED       = 10, /*!< Connection refused */
-	M_IO_ERROR_NETUNREACHABLE    = 11, /*!< Network requested is unreachable */
-	M_IO_ERROR_TIMEDOUT          = 12, /*!< Operation timed out at the OS level */
-	M_IO_ERROR_NOSYSRESOURCES    = 13, /*!< System reported not enough resources */
-	M_IO_ERROR_INVALID           = 14, /*!< Invalid use or order of operation */
-	M_IO_ERROR_NOTIMPL           = 15, /*!< OS Does not implement the command or parameters */
-	M_IO_ERROR_NOTFOUND          = 16, /*!< Host/File/Path not found */
-	M_IO_ERROR_BADCERTIFICATE    = 17, /*!< Bad Peer Certificate (TLS) */
+    M_IO_ERROR_SUCCESS           = 0,  /*!< Success. No Error     */
+    M_IO_ERROR_WOULDBLOCK        = 1,  /*!< Operation would block */
+    M_IO_ERROR_DISCONNECT        = 2,  /*!< Connection disconnected during operation */
+    M_IO_ERROR_ERROR             = 3,  /*!< Generic Undefined error occurred */
+    M_IO_ERROR_NOTCONNECTED      = 4,  /*!< Connection is not established, invalid operation */
+    M_IO_ERROR_NOTPERM           = 5,  /*!< Not a permitted action for this io object */
+    M_IO_ERROR_CONNRESET         = 6,  /*!< Connection was reset by peer */
+    M_IO_ERROR_CONNABORTED       = 7,  /*!< Connection aborted */
+    M_IO_ERROR_ADDRINUSE         = 8,  /*!< Address or Port already in use */
+    M_IO_ERROR_PROTONOTSUPPORTED = 9,  /*!< Protocol not supported by OS */
+    M_IO_ERROR_CONNREFUSED       = 10, /*!< Connection refused */
+    M_IO_ERROR_NETUNREACHABLE    = 11, /*!< Network requested is unreachable */
+    M_IO_ERROR_TIMEDOUT          = 12, /*!< Operation timed out at the OS level */
+    M_IO_ERROR_NOSYSRESOURCES    = 13, /*!< System reported not enough resources */
+    M_IO_ERROR_INVALID           = 14, /*!< Invalid use or order of operation */
+    M_IO_ERROR_NOTIMPL           = 15, /*!< OS Does not implement the command or parameters */
+    M_IO_ERROR_NOTFOUND          = 16, /*!< Host/File/Path not found */
+    M_IO_ERROR_BADCERTIFICATE    = 17, /*!< Bad Peer Certificate (TLS) */
 /* Potential future errors
     M_IO_ERROR_AUTHFAILED -- could be used by proxies, maybe others
     M_IO_ERROR_BADCERTIFICATE -- Certificate verification failure, ssl
 */
-	M_IO_ERROR_INTERRUPTED       = 99  /*!< Should never be returned to a user */
+    M_IO_ERROR_INTERRUPTED       = 99  /*!< Should never be returned to a user */
 };
 typedef enum M_io_error M_io_error_t;
 
 
 /*! io state. */
 enum M_io_state {
-	M_IO_STATE_INIT          = 0, /*!< Initializing, not yet prompted to start connecting */
-	M_IO_STATE_LISTENING     = 1, /*!< Listening for a client connection                  */
-	M_IO_STATE_CONNECTING    = 2, /*!< Attempting to establish a connection               */
-	M_IO_STATE_CONNECTED     = 3, /*!< Connected                                          */
-	M_IO_STATE_DISCONNECTING = 4, /*!< In-progress graceful disconnect                    */
-	M_IO_STATE_DISCONNECTED  = 5, /*!< Connection Closed/Disconnected                     */
-	M_IO_STATE_ERROR         = 6  /*!< Connection in error state (not connected)          */
+    M_IO_STATE_INIT          = 0, /*!< Initializing, not yet prompted to start connecting */
+    M_IO_STATE_LISTENING     = 1, /*!< Listening for a client connection                  */
+    M_IO_STATE_CONNECTING    = 2, /*!< Attempting to establish a connection               */
+    M_IO_STATE_CONNECTED     = 3, /*!< Connected                                          */
+    M_IO_STATE_DISCONNECTING = 4, /*!< In-progress graceful disconnect                    */
+    M_IO_STATE_DISCONNECTED  = 5, /*!< Connection Closed/Disconnected                     */
+    M_IO_STATE_ERROR         = 6  /*!< Connection in error state (not connected)          */
 };
 typedef enum M_io_state M_io_state_t;
 

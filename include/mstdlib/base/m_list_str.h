@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -82,26 +82,26 @@ typedef struct M_list_str M_list_str_t;
 
 /*! Flags for controlling the behavior of the list. */
 typedef enum {
-	M_LIST_STR_NONE        = 1 << 0, /*!< Not sorting, asc compare. */
-	M_LIST_STR_SORTASC     = 1 << 1, /*!< Sort asc. */
-	M_LIST_STR_SORTDESC    = 1 << 2, /*!< Sort desc. */
-	M_LIST_STR_CASECMP     = 1 << 3, /*!< Compare is case insensitive. */
-	M_LIST_STR_STABLE      = 1 << 5, /*!< Make insert, search and sort stable. */
-	M_LIST_STR_STACK       = 1 << 6, /*!< Last in First out mode. */
-	M_LIST_STR_SET         = 1 << 7, /*!< Don't allow duplicates in the list.
-	                                      Insert is increased by an additional O(n) operation (on top of the insert
-	                                      itself) in order to determine if a value is a duplicate for unsorted.
-	                                      Insert is increased by an additional O(log(n)) operation (on top of the
-	                                      insert itself) in order to determine if a value is a duplicate for sorted. */
-	M_LIST_STR_NEVERSHRINK = 1 << 8  /*!< Never allow the list to shrink. */
+    M_LIST_STR_NONE        = 1 << 0, /*!< Not sorting, asc compare. */
+    M_LIST_STR_SORTASC     = 1 << 1, /*!< Sort asc. */
+    M_LIST_STR_SORTDESC    = 1 << 2, /*!< Sort desc. */
+    M_LIST_STR_CASECMP     = 1 << 3, /*!< Compare is case insensitive. */
+    M_LIST_STR_STABLE      = 1 << 5, /*!< Make insert, search and sort stable. */
+    M_LIST_STR_STACK       = 1 << 6, /*!< Last in First out mode. */
+    M_LIST_STR_SET         = 1 << 7, /*!< Don't allow duplicates in the list.
+                                          Insert is increased by an additional O(n) operation (on top of the insert
+                                          itself) in order to determine if a value is a duplicate for unsorted.
+                                          Insert is increased by an additional O(log(n)) operation (on top of the
+                                          insert itself) in order to determine if a value is a duplicate for sorted. */
+    M_LIST_STR_NEVERSHRINK = 1 << 8  /*!< Never allow the list to shrink. */
 } M_list_str_flags_t;
 
 
 /*! Type of matching that should be used when searching/modifying a value in the list. */
 typedef enum {
-	M_LIST_STR_MATCH_VAL = 0,      /*!< Match based on the value (equality function). */
-	M_LIST_STR_MATCH_PTR = 1 << 0, /*!< Math the pointer itself. */
-	M_LIST_STR_MATCH_ALL = 1 << 1  /*!< Include all instances. */
+    M_LIST_STR_MATCH_VAL = 0,      /*!< Match based on the value (equality function). */
+    M_LIST_STR_MATCH_PTR = 1 << 0, /*!< Math the pointer itself. */
+    M_LIST_STR_MATCH_ALL = 1 << 1  /*!< Include all instances. */
 } M_list_str_match_type_t;
 
 
@@ -110,7 +110,7 @@ typedef enum {
 /*! Create a new dynamic list.
  *
  * A dynamic list is a dynamically expanding array. Meaning the array will expand to accommodate new elements.
- * The list can be, optionally, kept in sorted order. 
+ * The list can be, optionally, kept in sorted order.
  *
  * \param[in] flags M_list_str_flags_t flags for controlling behavior.
  *
@@ -500,7 +500,7 @@ M_API M_list_str_t *M_list_str_split(unsigned char delim, const char *s, M_uint3
  *
  * \param[in] d   The list.
  * \param[in] sep The character to use as a separator between each string in the list.
- * 
+ *
  * \return An allocated string.
  */
 M_API char *M_list_str_join(const M_list_str_t *d, unsigned char sep);

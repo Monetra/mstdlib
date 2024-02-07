@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,11 +31,11 @@
 #ifndef HAVE_NSLOG_SYS /* If platform doesn't provide NSLog: */
 M_log_error_t M_log_module_add_nslog(M_log_t *log, size_t max_queue_bytes, M_log_module_t **out_mod)
 {
-	(void)log; (void)max_queue_bytes;
-	if (out_mod != NULL) {
-		*out_mod = NULL;
-	}
-	return M_LOG_MODULE_UNSUPPORTED;
+    (void)log; (void)max_queue_bytes;
+    if (out_mod != NULL) {
+        *out_mod = NULL;
+    }
+    return M_LOG_MODULE_UNSUPPORTED;
 }
 
 #else /* If platform does provide NSLog: */
@@ -50,14 +50,14 @@ M_log_error_t M_log_module_add_nslog(M_log_t *log, size_t max_queue_bytes, M_log
 
 static M_bool writer_write_cb(char *msg, M_uint64 cmd, void *thunk)
 {
-	(void)cmd;
-	(void)thunk;
+    (void)cmd;
+    (void)thunk;
 
-	if (!M_str_isempty(msg)) {
-		M_log_nslog_sys(msg);
-	}
+    if (!M_str_isempty(msg)) {
+        M_log_nslog_sys(msg);
+    }
 
-	return M_TRUE;
+    return M_TRUE;
 }
 
 
@@ -66,77 +66,77 @@ static M_bool writer_write_cb(char *msg, M_uint64 cmd, void *thunk)
 
 static void log_write_cb(M_log_module_t *mod, const char *msg, M_uint64 tag)
 {
-	M_async_writer_t *writer;
+    M_async_writer_t *writer;
 
-	(void)tag;
+    (void)tag;
 
-	if (msg == NULL || mod == NULL || mod->module_thunk == NULL) {
-		return;
-	}
+    if (msg == NULL || mod == NULL || mod->module_thunk == NULL) {
+        return;
+    }
 
-	writer = mod->module_thunk;
+    writer = mod->module_thunk;
 
-	M_async_writer_write(writer, msg);
+    M_async_writer_write(writer, msg);
 }
 
 
 static M_log_error_t log_suspend_cb(M_log_module_t *module)
 {
-	M_async_writer_t *writer;
+    M_async_writer_t *writer;
 
-	if (module == NULL || module->module_thunk == NULL) {
-		return M_LOG_INVALID_PARAMS;
-	}
+    if (module == NULL || module->module_thunk == NULL) {
+        return M_LOG_INVALID_PARAMS;
+    }
 
-	writer = module->module_thunk;
+    writer = module->module_thunk;
 
-	/* End the internal worker thread (message queue will still be intact and accepting messages). */
-	M_async_writer_stop(writer); /* BLOCKING */
+    /* End the internal worker thread (message queue will still be intact and accepting messages). */
+    M_async_writer_stop(writer); /* BLOCKING */
 
-	return M_LOG_SUCCESS;
+    return M_LOG_SUCCESS;
 }
 
 
 static M_log_error_t log_resume_cb(M_log_module_t *module, M_event_t *event)
 {
-	M_async_writer_t *writer;
+    M_async_writer_t *writer;
 
-	(void)event;
+    (void)event;
 
-	if (module == NULL || module->module_thunk == NULL) {
-		return M_LOG_INVALID_PARAMS;
-	}
+    if (module == NULL || module->module_thunk == NULL) {
+        return M_LOG_INVALID_PARAMS;
+    }
 
-	writer = module->module_thunk;
+    writer = module->module_thunk;
 
-	/* Start a new internal worker thread. */
-	M_async_writer_start(writer);
+    /* Start a new internal worker thread. */
+    M_async_writer_start(writer);
 
-	return M_LOG_SUCCESS;
+    return M_LOG_SUCCESS;
 }
 
 
 static void log_emergency_cb(M_log_module_t *mod, const char *msg)
 {
-	/* NOTE: this is an emergency method, intended to be called from a signal handler as a last-gasp
-	 *       attempt to get out a message before crashing. So, we don't want any mutex locks or mallocs
-	 *       in here. HORRIBLY DANGEROUS, MAY RESULT IN WEIRD ISSUES DUE TO THREAD CONFLICTS.
-	 */
+    /* NOTE: this is an emergency method, intended to be called from a signal handler as a last-gasp
+     *       attempt to get out a message before crashing. So, we don't want any mutex locks or mallocs
+     *       in here. HORRIBLY DANGEROUS, MAY RESULT IN WEIRD ISSUES DUE TO THREAD CONFLICTS.
+     */
 
-	(void)mod;
-	M_log_nslog_sys(msg);
+    (void)mod;
+    M_log_nslog_sys(msg);
 }
 
 
 static void log_destroy_cb(void *thunk, M_bool flush)
 {
-	M_async_writer_destroy((M_async_writer_t *)thunk, flush);
+    M_async_writer_destroy((M_async_writer_t *)thunk, flush);
 }
 
 
 static M_bool log_destroy_blocking_cb(void *thunk, M_bool flush, M_uint64 timeout_ms)
 {
-	return M_async_writer_destroy_blocking((M_async_writer_t *)thunk, flush, timeout_ms);
+    return M_async_writer_destroy_blocking((M_async_writer_t *)thunk, flush, timeout_ms);
 }
 
 
@@ -145,49 +145,49 @@ static M_bool log_destroy_blocking_cb(void *thunk, M_bool flush, M_uint64 timeou
 
 M_log_error_t M_log_module_add_nslog(M_log_t *log, size_t max_queue_bytes, M_log_module_t **out_mod)
 {
-	M_async_writer_t *writer;
-	M_log_module_t   *mod;
+    M_async_writer_t *writer;
+    M_log_module_t   *mod;
 
-	if (out_mod != NULL) {
-		*out_mod = NULL;
-	}
+    if (out_mod != NULL) {
+        *out_mod = NULL;
+    }
 
-	if (log == NULL || max_queue_bytes == 0) {
-		return M_LOG_INVALID_PARAMS;
-	}
+    if (log == NULL || max_queue_bytes == 0) {
+        return M_LOG_INVALID_PARAMS;
+    }
 
-	if (log->suspended) {
-		return M_LOG_SUSPENDED;
-	}
+    if (log->suspended) {
+        return M_LOG_SUSPENDED;
+    }
 
-	/* Set up thunk for nslog module. */
-	writer = M_async_writer_create(max_queue_bytes, writer_write_cb, NULL, NULL, NULL, log->line_end_writer_mode);
+    /* Set up thunk for nslog module. */
+    writer = M_async_writer_create(max_queue_bytes, writer_write_cb, NULL, NULL, NULL, log->line_end_writer_mode);
 
-	/* General module settings. */
-	mod                                   = M_malloc_zero(sizeof(*mod));
-	mod->type                             = M_LOG_MODULE_NSLOG;
-	mod->flush_on_destroy                 = log->flush_on_destroy;
-	mod->module_thunk                     = writer;
-	mod->module_write_cb                  = log_write_cb;
-	mod->module_suspend_cb                = log_suspend_cb;
-	mod->module_resume_cb                 = log_resume_cb;
-	mod->module_emergency_cb              = log_emergency_cb;
-	mod->destroy_module_thunk_cb          = log_destroy_cb;
-	mod->destroy_module_thunk_blocking_cb = log_destroy_blocking_cb;
+    /* General module settings. */
+    mod                                   = M_malloc_zero(sizeof(*mod));
+    mod->type                             = M_LOG_MODULE_NSLOG;
+    mod->flush_on_destroy                 = log->flush_on_destroy;
+    mod->module_thunk                     = writer;
+    mod->module_write_cb                  = log_write_cb;
+    mod->module_suspend_cb                = log_suspend_cb;
+    mod->module_resume_cb                 = log_resume_cb;
+    mod->module_emergency_cb              = log_emergency_cb;
+    mod->destroy_module_thunk_cb          = log_destroy_cb;
+    mod->destroy_module_thunk_blocking_cb = log_destroy_blocking_cb;
 
-	if (out_mod != NULL) {
-		*out_mod = mod;
-	}
+    if (out_mod != NULL) {
+        *out_mod = mod;
+    }
 
-	/* Start the internal writer's worker thread. */
-	M_async_writer_start(writer);
+    /* Start the internal writer's worker thread. */
+    M_async_writer_start(writer);
 
-	/* Add the module to the log. */
-	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-	M_llist_insert(log->modules, mod);
-	M_thread_rwlock_unlock(log->rwlock);
+    /* Add the module to the log. */
+    M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+    M_llist_insert(log->modules, mod);
+    M_thread_rwlock_unlock(log->rwlock);
 
-	return M_LOG_SUCCESS;
+    return M_LOG_SUCCESS;
 }
 
 #endif

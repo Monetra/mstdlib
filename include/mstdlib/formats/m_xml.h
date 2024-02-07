@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -65,22 +65,22 @@ __BEGIN_DECLS
  *
  * int main(int argc, char** argv)
  * {
- * 	M_xml_node_t *xml;
- * 	const char   *data = "<r><tag1>abc</tag1><tag2>123</tag2><tag3>xyz</tag3></r>";
- * 	char         *out;
+ *  M_xml_node_t *xml;
+ *  const char   *data = "<r><tag1>abc</tag1><tag2>123</tag2><tag3>xyz</tag3></r>";
+ *  char         *out;
  *
- * 	xml = M_xml_read(data, M_str_len(data), M_XML_READER_NONE, NULL, NULL, NULL, NULL);
- * 	if (xml == NULL) {
- * 		M_printf("xml parse error\n");
- * 		return M_FALSE;
- * 	}
+ *  xml = M_xml_read(data, M_str_len(data), M_XML_READER_NONE, NULL, NULL, NULL, NULL);
+ *  if (xml == NULL) {
+ *      M_printf("xml parse error\n");
+ *      return M_FALSE;
+ *  }
  *
- * 	M_xml_create_element_with_text("AbCd", "blah blah blah", 0, xml);
+ *  M_xml_create_element_with_text("AbCd", "blah blah blah", 0, xml);
  *
- * 	out = M_xml_write(xml, M_XML_WRITER_LOWER_TAGS|M_XML_WRITER_LOWER_ATTRS|M_XML_WRITER_PRETTYPRINT_SPACE, NULL);
- * 	M_printf("out=\n%s\n", out);
- * 	M_free(out);
- * 	return 0;
+ *  out = M_xml_write(xml, M_XML_WRITER_LOWER_TAGS|M_XML_WRITER_LOWER_ATTRS|M_XML_WRITER_PRETTYPRINT_SPACE, NULL);
+ *  M_printf("out=\n%s\n", out);
+ *  M_free(out);
+ *  return 0;
  * }
  * \endcode
  *
@@ -93,82 +93,82 @@ __BEGIN_DECLS
 
 /*! Node types in our XML tree structure */
 typedef enum {
-	M_XML_NODE_TYPE_UNKNOWN                = 0, /*!< An invalid node type. */
-	M_XML_NODE_TYPE_DOC                    = 1, /*!< The base of every XML tree and provides access to the
-	                                                 documents data.
-	                                                 Supports: Nodes.
-	                                                 Does not support: Name, Attributes, Text, Tag data. */
-	M_XML_NODE_TYPE_ELEMENT                = 2, /*!< Element (tag).
-	                                                 E.g: \code{xml}<name key="val" />, <name>...</name>\endcode.
-	                                                 Supports: Attributes, Nodes, Name.
-	                                                 Does not support: Text, Tag data. */
-	M_XML_NODE_TYPE_TEXT                   = 3, /*!< Text.
-	                                                 E.g: abc.
-	                                                 Supports: Text.
-	                                                 Does not support: Nodes, Name, Attributes, Tag data. */
-	M_XML_NODE_TYPE_PROCESSING_INSTRUCTION = 4, /*!< Conveys information.
-	                                                 E.g: \code{xml}<?xml version="1.0" encoding="UTF-8" ?>\endcode
-	                                                 Supports: Name, Attributes, Tag data.
-	                                                 Does not support: Nodes, Text. */
-	M_XML_NODE_TYPE_DECLARATION            = 5, /*!< HTML/DTD declaration.
-	                                                 E.g: \code{xml}<!DOCTYPE html>, <!ELEMENT element-name category>, <!ATTLIST payment type CDATA "check">\endcode
-	                                                 Supports: Name, Tag data.
-	                                                 Does not support: Nodes, Attributes, text. */
-	M_XML_NODE_TYPE_COMMENT                = 6  /*!< Comment.
-	                                                 E.g: \code{xml}<!-- comment -->\endcode
-	                                                 Supports: Tag data.
-	                                                 Does not support: Nodes, Name, Attributes, Text. */
+    M_XML_NODE_TYPE_UNKNOWN                = 0, /*!< An invalid node type. */
+    M_XML_NODE_TYPE_DOC                    = 1, /*!< The base of every XML tree and provides access to the
+                                                     documents data.
+                                                     Supports: Nodes.
+                                                     Does not support: Name, Attributes, Text, Tag data. */
+    M_XML_NODE_TYPE_ELEMENT                = 2, /*!< Element (tag).
+                                                     E.g: \code{xml}<name key="val" />, <name>...</name>\endcode.
+                                                     Supports: Attributes, Nodes, Name.
+                                                     Does not support: Text, Tag data. */
+    M_XML_NODE_TYPE_TEXT                   = 3, /*!< Text.
+                                                     E.g: abc.
+                                                     Supports: Text.
+                                                     Does not support: Nodes, Name, Attributes, Tag data. */
+    M_XML_NODE_TYPE_PROCESSING_INSTRUCTION = 4, /*!< Conveys information.
+                                                     E.g: \code{xml}<?xml version="1.0" encoding="UTF-8" ?>\endcode
+                                                     Supports: Name, Attributes, Tag data.
+                                                     Does not support: Nodes, Text. */
+    M_XML_NODE_TYPE_DECLARATION            = 5, /*!< HTML/DTD declaration.
+                                                     E.g: \code{xml}<!DOCTYPE html>, <!ELEMENT element-name category>, <!ATTLIST payment type CDATA "check">\endcode
+                                                     Supports: Name, Tag data.
+                                                     Does not support: Nodes, Attributes, text. */
+    M_XML_NODE_TYPE_COMMENT                = 6  /*!< Comment.
+                                                     E.g: \code{xml}<!-- comment -->\endcode
+                                                     Supports: Tag data.
+                                                     Does not support: Nodes, Name, Attributes, Text. */
 } M_xml_node_type_t;
 
 
 /*! Flags to control the behavior of the XML writer. */
 typedef enum {
-	M_XML_READER_NONE              = 0,      /*!< Normal operation. */
-	M_XML_READER_IGNORE_COMMENTS   = 1 << 0, /*!< Don't include comments as part of the output during parse. */
-	M_XML_READER_TAG_CASECMP       = 1 << 1, /*!< Compare open and close tags case insensitive. */
-	M_XML_READER_DONT_DECODE_TEXT  = 1 << 2, /*!< By default text data will be xml entity decoded.
-	                                              This prevents the decode from taking place. It should be paired
-	                                              with the equivalent don't encode option when writing. */
-	M_XML_READER_DONT_DECODE_ATTRS = 1 << 3  /*!< By default attribute values will be attribute entity decoded.
-	                                              This prevents the decode from taking place. It should be paired
-	                                              with the equivalent don't encode option when writing. */
+    M_XML_READER_NONE              = 0,      /*!< Normal operation. */
+    M_XML_READER_IGNORE_COMMENTS   = 1 << 0, /*!< Don't include comments as part of the output during parse. */
+    M_XML_READER_TAG_CASECMP       = 1 << 1, /*!< Compare open and close tags case insensitive. */
+    M_XML_READER_DONT_DECODE_TEXT  = 1 << 2, /*!< By default text data will be xml entity decoded.
+                                                  This prevents the decode from taking place. It should be paired
+                                                  with the equivalent don't encode option when writing. */
+    M_XML_READER_DONT_DECODE_ATTRS = 1 << 3  /*!< By default attribute values will be attribute entity decoded.
+                                                  This prevents the decode from taking place. It should be paired
+                                                  with the equivalent don't encode option when writing. */
 } M_xml_reader_flags_t;
 
 
 /*! Flags to control the behavior of the XML reader. */
 typedef enum {
-	M_XML_WRITER_NONE              = 0,      /*!< No indent. All data on a single line. */
-	M_XML_WRITER_IGNORE_COMMENTS   = 1 << 0, /*!< Comments are not included. */
-	M_XML_WRITER_LOWER_TAGS        = 1 << 1, /*!< All tags are written lower case. */
-	M_XML_WRITER_LOWER_ATTRS       = 1 << 2, /*!< All attribute keys are written lower case. */
-	M_XML_WRITER_DONT_ENCODE_TEXT  = 1 << 3, /*!< By default text data will be xml entity encoded.
-	                                              This prevents the encode from taking place. It should be paired
-	                                              with the equivalent don't decode option when reading. */
-	M_XML_WRITER_DONT_ENCODE_ATTRS = 1 << 4, /*!< By default attribute values will be attribute entity encoded.
-	                                              This prevents the encode from taking place. It should be paired
-	                                              with the equivalent don't decode option when reading. */
-	M_XML_WRITER_PRETTYPRINT_SPACE = 1 << 5, /*!< 2 space indent. */
-	M_XML_WRITER_PRETTYPRINT_TAB   = 1 << 6, /*!< Tab indent. */
-	M_XML_WRITER_SELFCLOSE_SPACE   = 1 << 7  /*!< Add a space before the closing slash for self closing tags. */
+    M_XML_WRITER_NONE              = 0,      /*!< No indent. All data on a single line. */
+    M_XML_WRITER_IGNORE_COMMENTS   = 1 << 0, /*!< Comments are not included. */
+    M_XML_WRITER_LOWER_TAGS        = 1 << 1, /*!< All tags are written lower case. */
+    M_XML_WRITER_LOWER_ATTRS       = 1 << 2, /*!< All attribute keys are written lower case. */
+    M_XML_WRITER_DONT_ENCODE_TEXT  = 1 << 3, /*!< By default text data will be xml entity encoded.
+                                                  This prevents the encode from taking place. It should be paired
+                                                  with the equivalent don't decode option when reading. */
+    M_XML_WRITER_DONT_ENCODE_ATTRS = 1 << 4, /*!< By default attribute values will be attribute entity encoded.
+                                                  This prevents the encode from taking place. It should be paired
+                                                  with the equivalent don't decode option when reading. */
+    M_XML_WRITER_PRETTYPRINT_SPACE = 1 << 5, /*!< 2 space indent. */
+    M_XML_WRITER_PRETTYPRINT_TAB   = 1 << 6, /*!< Tab indent. */
+    M_XML_WRITER_SELFCLOSE_SPACE   = 1 << 7  /*!< Add a space before the closing slash for self closing tags. */
 } M_xml_writer_flags_t;
 
 
 /*! Error codes. */
 typedef enum {
-	M_XML_ERROR_SUCCESS = 0,                        /*!< success */
-	M_XML_ERROR_GENERIC,                            /*!< generic error */
-	M_XML_ERROR_MISUSE,                             /*!< API misuse */
-	M_XML_ERROR_ATTR_EXISTS,                        /*!< the attribute already exists on the node */
-	M_XML_ERROR_NO_ELEMENTS,                        /*!< unexpected end of XML, no elements in data */
-	M_XML_ERROR_INVALID_START_TAG,                  /*!< invalid tag start character */
-	M_XML_ERROR_INVALID_CHAR_IN_START_TAG,          /*!< invalid character '<' found in tag */
-	M_XML_ERROR_EMPTY_START_TAG,                    /*!< only whitespace after tag start */
-	M_XML_ERROR_MISSING_DECLARATION_NAME,           /*!< missing name after ! */
-	M_XML_ERROR_INELIGIBLE_FOR_CLOSE,               /*!< cannot close element of this type */
-	M_XML_ERROR_UNEXPECTED_CLOSE,                   /*!< cannot close element with the given tag */
-	M_XML_ERROR_MISSING_CLOSE_TAG,                  /*!< missing closing element statement(s) */
-	M_XML_ERROR_MISSING_PROCESSING_INSTRUCTION_END, /*!< missing processing instruction close */
-	M_XML_ERROR_EXPECTED_END                        /*!< expected end but more data found */
+    M_XML_ERROR_SUCCESS = 0,                        /*!< success */
+    M_XML_ERROR_GENERIC,                            /*!< generic error */
+    M_XML_ERROR_MISUSE,                             /*!< API misuse */
+    M_XML_ERROR_ATTR_EXISTS,                        /*!< the attribute already exists on the node */
+    M_XML_ERROR_NO_ELEMENTS,                        /*!< unexpected end of XML, no elements in data */
+    M_XML_ERROR_INVALID_START_TAG,                  /*!< invalid tag start character */
+    M_XML_ERROR_INVALID_CHAR_IN_START_TAG,          /*!< invalid character '<' found in tag */
+    M_XML_ERROR_EMPTY_START_TAG,                    /*!< only whitespace after tag start */
+    M_XML_ERROR_MISSING_DECLARATION_NAME,           /*!< missing name after ! */
+    M_XML_ERROR_INELIGIBLE_FOR_CLOSE,               /*!< cannot close element of this type */
+    M_XML_ERROR_UNEXPECTED_CLOSE,                   /*!< cannot close element with the given tag */
+    M_XML_ERROR_MISSING_CLOSE_TAG,                  /*!< missing closing element statement(s) */
+    M_XML_ERROR_MISSING_PROCESSING_INSTRUCTION_END, /*!< missing processing instruction close */
+    M_XML_ERROR_EXPECTED_END                        /*!< expected end but more data found */
 } M_xml_error_t;
 
 
@@ -375,7 +375,7 @@ M_API M_xml_node_t *M_xml_read_file(const char *path, M_uint32 flags, size_t max
  * This writes nodes to a string. The string may not be directly usable by M_xml_read.
  * E.g. If you are only writing a string node.
  *
- * \param[in]  node  The node to write. This will write the node and any nodes under it. 
+ * \param[in]  node  The node to write. This will write the node and any nodes under it.
  * \param[in]  flags M_xml_writer_flags_t flags to control writing.
  * \param[out] len   The length of the string that was returned. Optional, pass NULL if not needed.
  *
@@ -403,7 +403,7 @@ M_API M_bool M_xml_write_buf(M_buf_t *buf, const M_xml_node_t *node, M_uint32 fl
  * This writes nodes to a string. The string may not be directly usable by M_xml_read_file.
  * E.g. If you are only writing a string node.
  *
- * \param[in] node  The node to write. This will write the node and any nodes under it. 
+ * \param[in] node  The node to write. This will write the node and any nodes under it.
  * \param[in] path  The filename and path to write the data to.
  * \param[in] flags M_xml_writer_flags_t flags to control writing.
  *
@@ -482,7 +482,7 @@ M_API M_xml_node_type_t M_xml_node_type(const M_xml_node_t *node);
  * \param[out] num_matches Number of matches found
  *
  * \return array of M_xml_node_t pointers on success (must free array, but not internal pointers), NULL on failure
- */ 
+ */
 M_API M_xml_node_t **M_xml_xpath(M_xml_node_t *node, const char *search, M_uint32 flags, size_t *num_matches) M_MALLOC;
 
 
@@ -498,7 +498,7 @@ M_API M_xml_node_t **M_xml_xpath(M_xml_node_t *node, const char *search, M_uint3
  * \param[in]  search      search expression
  *
  * \return Text on success otherwise  NULL.
- */ 
+ */
 M_API const char *M_xml_xpath_text_first(M_xml_node_t *node, const char *search);
 
 

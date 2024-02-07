@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -94,7 +94,7 @@ __BEGIN_DECLS
  *     }
  *
  *     int main(int argc, char **argv) {
- *         M_getopt_t *g; 
+ *         M_getopt_t *g;
  *         char       *help;
  *         const char *fail;
  *
@@ -113,7 +113,7 @@ __BEGIN_DECLS
  *
  *         M_getopt_destroy(g);
  *         return 0;
- *     } 
+ *     }
  * \endcode
  *
  * @{
@@ -127,54 +127,54 @@ typedef struct M_getopt M_getopt_t;
 
 /*! Error codes. */
 typedef enum {
-	M_GETOPT_ERROR_SUCCESS = 0,
-	M_GETOPT_ERROR_INVALIDOPT,
-	M_GETOPT_ERROR_INVALIDDATATYPE,
-	M_GETOPT_ERROR_INVALIDORDER,
-	M_GETOPT_ERROR_MISSINGVALUE,
-	M_GETOPT_ERROR_NONOPTION
+    M_GETOPT_ERROR_SUCCESS = 0,
+    M_GETOPT_ERROR_INVALIDOPT,
+    M_GETOPT_ERROR_INVALIDDATATYPE,
+    M_GETOPT_ERROR_INVALIDORDER,
+    M_GETOPT_ERROR_MISSINGVALUE,
+    M_GETOPT_ERROR_NONOPTION
 } M_getopt_error_t;
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
- 
+
 /*! Callback for non-option parameters */
 typedef M_bool (*M_getopt_nonopt_cb)(size_t idx, const char *option, void *thunk);
 
 
 /*! Callback for integer data type */
 typedef M_bool (*M_getopt_integer_cb)(char short_opt, const char *long_opt, M_int64 *integer, void *thunk);
- 
+
 
 /*! Callback for decimal data type */
 typedef M_bool (*M_getopt_decimal_cb)(char short_opt, const char *long_opt, M_decimal_t *decimal, void *thunk);
- 
+
 
 /*! Callback for string data type */
 typedef M_bool (*M_getopt_string_cb)(char short_opt, const char *long_opt, const char *string, void *thunk);
- 
+
 
 /*! Callback for boolean data type */
 typedef M_bool (*M_getopt_boolean_cb)(char short_opt, const char *long_opt, M_bool boolean, void *thunk);
- 
- 
+
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Create a new getopt object.
- * 
+ *
  * \param cb Callback to be called with non-option parameters. NULL if non-option parameters are not allowed.
  *
  * \return Getopt object.
  */
 M_API M_getopt_t *M_getopt_create(M_getopt_nonopt_cb cb);
- 
+
 
 /*! Destroy a getopt object
  *
  * \param[in] g Getopt object to destroy.
  */
 M_API void M_getopt_destroy(M_getopt_t *g);
- 
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -197,7 +197,7 @@ M_API void M_getopt_destroy(M_getopt_t *g);
  * \param[in] g Getopt object.
  */
 M_API char *M_getopt_help(const M_getopt_t *g);
- 
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -214,7 +214,7 @@ M_API char *M_getopt_help(const M_getopt_t *g);
  * \return M_TRUE on success, M_FALSE on failure.
  */
 M_API M_bool M_getopt_addinteger(M_getopt_t *g, char short_opt, const char *long_opt, M_bool val_required, const char *description, M_getopt_integer_cb cb);
- 
+
 
 /*! Add a decimal parameter.
  *
@@ -229,7 +229,7 @@ M_API M_bool M_getopt_addinteger(M_getopt_t *g, char short_opt, const char *long
  * \return M_TRUE on success, M_FALSE on failure.
  */
 M_API M_bool M_getopt_adddecimal(M_getopt_t *g, char short_opt, const char *long_opt, M_bool val_required, const char *description, M_getopt_decimal_cb cb);
- 
+
 
 /*! Add a string parameter.
  *
@@ -244,7 +244,7 @@ M_API M_bool M_getopt_adddecimal(M_getopt_t *g, char short_opt, const char *long
  * \return M_TRUE on success, M_FALSE on failure.
  */
 M_API M_bool M_getopt_addstring(M_getopt_t *g, char short_opt, const char *long_opt, M_bool val_required, const char *description, M_getopt_string_cb cb);
- 
+
 
 /*! Add a boolean parameter.
  *
@@ -264,7 +264,7 @@ M_API M_bool M_getopt_addboolean(M_getopt_t *g, char short_opt, const char *long
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
- 
+
 /*! Parse command line arguments.
  *
  * \param[in] g        Getopt object

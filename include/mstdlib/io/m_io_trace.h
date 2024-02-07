@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,7 +33,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_io_trace Addon for event and I/O tracing
  *  \ingroup m_eventio_base_addon
- * 
+ *
  * Event and I/O tracing addon
  *
  * Allows data to be traced as it flows through the trace layer. For example communication
@@ -47,9 +47,9 @@ __BEGIN_DECLS
 
 /*! Trace even type. */
 enum M_io_trace_type {
-	M_IO_TRACE_TYPE_READ  = 1,
-	M_IO_TRACE_TYPE_WRITE = 2,
-	M_IO_TRACE_TYPE_EVENT = 3
+    M_IO_TRACE_TYPE_READ  = 1,
+    M_IO_TRACE_TYPE_WRITE = 2,
+    M_IO_TRACE_TYPE_EVENT = 3
 };
 typedef enum M_io_trace_type M_io_trace_type_t;
 
@@ -63,7 +63,7 @@ typedef enum M_io_trace_type M_io_trace_type_t;
  *  \param[in] data       Data that is passing though this trace layer.
  *  \param[in] data_len   Length of data.
  */
-typedef void (*M_io_trace_cb_t)(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_type, const unsigned char *data, size_t data_len); 
+typedef void (*M_io_trace_cb_t)(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_type, const unsigned char *data, size_t data_len);
 
 /*! Definition for a function that duplicates a callback argument.
  *

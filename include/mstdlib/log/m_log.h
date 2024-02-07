@@ -208,63 +208,63 @@ typedef void (*M_log_destroy_cb)(void *thunk);
 
 /*! Error codes for the logging system. */
 typedef enum {
-	M_LOG_SUCCESS = 0,         /*!< Operation succeeded. */
+    M_LOG_SUCCESS = 0,         /*!< Operation succeeded. */
 
-	M_LOG_INVALID_PARAMS,      /*!< Given parameters invalid (usually a NULL pointer) */
-	M_LOG_INVALID_PATH,        /*!< Given filesystem path couldn't be normalized */
-	M_LOG_INVALID_TAG,         /*!< Single tags must be non-zero and a power of two */
-	M_LOG_NO_EVENT_LOOP,       /*!< No event loop specified for log, can't use event-based modules. */
-	M_LOG_SUSPENDED,           /*!< Log has been suspended, can't take the requested action until resume is called */
-	M_LOG_DUPLICATE_TAG_NAME,  /*!< Given name has already been assigned to a different tag */
-	M_LOG_UNREACHABLE,         /*!< Requested resource unreachable (can't connect to host, can't open file on disk) */
-	M_LOG_INVALID_TIME_FORMAT, /*!< Given time format string is invalid (can't be parsed) */
-	M_LOG_MODULE_UNSUPPORTED,  /*!< The given module type is not supported on this OS */
-	M_LOG_MODULE_NOT_FOUND,    /*!< The requested module has already been removed from the logger */
-	M_LOG_WRONG_MODULE,        /*!< Module-specific function was run on the wrong module */
-	M_LOG_GENERIC_FAIL         /*!< Generic internal module failure occurred (usually an IO error) */
+    M_LOG_INVALID_PARAMS,      /*!< Given parameters invalid (usually a NULL pointer) */
+    M_LOG_INVALID_PATH,        /*!< Given filesystem path couldn't be normalized */
+    M_LOG_INVALID_TAG,         /*!< Single tags must be non-zero and a power of two */
+    M_LOG_NO_EVENT_LOOP,       /*!< No event loop specified for log, can't use event-based modules. */
+    M_LOG_SUSPENDED,           /*!< Log has been suspended, can't take the requested action until resume is called */
+    M_LOG_DUPLICATE_TAG_NAME,  /*!< Given name has already been assigned to a different tag */
+    M_LOG_UNREACHABLE,         /*!< Requested resource unreachable (can't connect to host, can't open file on disk) */
+    M_LOG_INVALID_TIME_FORMAT, /*!< Given time format string is invalid (can't be parsed) */
+    M_LOG_MODULE_UNSUPPORTED,  /*!< The given module type is not supported on this OS */
+    M_LOG_MODULE_NOT_FOUND,    /*!< The requested module has already been removed from the logger */
+    M_LOG_WRONG_MODULE,        /*!< Module-specific function was run on the wrong module */
+    M_LOG_GENERIC_FAIL         /*!< Generic internal module failure occurred (usually an IO error) */
 } M_log_error_t;
 
 
 /*! Logging module types. */
 typedef enum {
-	M_LOG_MODULE_NULL   = 0, /*!< Type that represents invalid or unset module type*/
-	M_LOG_MODULE_STREAM,     /*!< Module that outputs to stdout or stderr */
-	M_LOG_MODULE_NSLOG,      /*!< Module that outputs to macOS/iOS logging system (NSLog) */
-	M_LOG_MODULE_ANDROID,    /*!< Module that outputs to android logging system */
-	M_LOG_MODULE_FILE,       /*!< Module that outputs to a set of files on the filesystem */
-	M_LOG_MODULE_SYSLOG,     /*!< Module that outputs directly to a local syslog daemon */
-	M_LOG_MODULE_TSYSLOG,    /*!< Module that outputs to a remove syslog daemon using TCP */
-	M_LOG_MODULE_MEMBUF      /*!< Module that outputs to a temporary memory buffer */
+    M_LOG_MODULE_NULL   = 0, /*!< Type that represents invalid or unset module type*/
+    M_LOG_MODULE_STREAM,     /*!< Module that outputs to stdout or stderr */
+    M_LOG_MODULE_NSLOG,      /*!< Module that outputs to macOS/iOS logging system (NSLog) */
+    M_LOG_MODULE_ANDROID,    /*!< Module that outputs to android logging system */
+    M_LOG_MODULE_FILE,       /*!< Module that outputs to a set of files on the filesystem */
+    M_LOG_MODULE_SYSLOG,     /*!< Module that outputs directly to a local syslog daemon */
+    M_LOG_MODULE_TSYSLOG,    /*!< Module that outputs to a remove syslog daemon using TCP */
+    M_LOG_MODULE_MEMBUF      /*!< Module that outputs to a temporary memory buffer */
 } M_log_module_type_t;
 
 
 /*! Control what type of line endings get automatically appended to log messages. */
 typedef enum {
-	M_LOG_LINE_END_NATIVE, /*!< \c '\\n' if running on Unix, \c '\\r\\n' if running on Windows */
-	M_LOG_LINE_END_UNIX,   /*!< always use \c '\\n' */
-	M_LOG_LINE_END_WINDOWS /*!< always use \c '\\r\\n' */
+    M_LOG_LINE_END_NATIVE, /*!< \c '\\n' if running on Unix, \c '\\r\\n' if running on Windows */
+    M_LOG_LINE_END_UNIX,   /*!< always use \c '\\n' */
+    M_LOG_LINE_END_WINDOWS /*!< always use \c '\\r\\n' */
 } M_log_line_end_mode_t;
 
 
 /*! Types of output streams that can be used for the stream module. */
 typedef enum {
-	M_STREAM_STDOUT, /*!< Output log messages to \c stdout */
-	M_STREAM_STDERR  /*!< Output log messages to \c stderr */
+    M_STREAM_STDOUT, /*!< Output log messages to \c stdout */
+    M_STREAM_STDERR  /*!< Output log messages to \c stderr */
 } M_stream_type_t;
 
 
 /*! Standard facility types for syslog and tcp_syslog modules. */
 typedef enum {
-	M_SYSLOG_FACILITY_USER   =  1 << 3,
-	M_SYSLOG_FACILITY_DAEMON =  3 << 3,
-	M_SYSLOG_FACILITY_LOCAL0 = 16 << 3,
-	M_SYSLOG_FACILITY_LOCAL1 = 17 << 3,
-	M_SYSLOG_FACILITY_LOCAL2 = 18 << 3,
-	M_SYSLOG_FACILITY_LOCAL3 = 19 << 3,
-	M_SYSLOG_FACILITY_LOCAL4 = 20 << 3,
-	M_SYSLOG_FACILITY_LOCAL5 = 21 << 3,
-	M_SYSLOG_FACILITY_LOCAL6 = 22 << 3,
-	M_SYSLOG_FACILITY_LOCAL7 = 23 << 3
+    M_SYSLOG_FACILITY_USER   =  1 << 3,
+    M_SYSLOG_FACILITY_DAEMON =  3 << 3,
+    M_SYSLOG_FACILITY_LOCAL0 = 16 << 3,
+    M_SYSLOG_FACILITY_LOCAL1 = 17 << 3,
+    M_SYSLOG_FACILITY_LOCAL2 = 18 << 3,
+    M_SYSLOG_FACILITY_LOCAL3 = 19 << 3,
+    M_SYSLOG_FACILITY_LOCAL4 = 20 << 3,
+    M_SYSLOG_FACILITY_LOCAL5 = 21 << 3,
+    M_SYSLOG_FACILITY_LOCAL6 = 22 << 3,
+    M_SYSLOG_FACILITY_LOCAL7 = 23 << 3
 } M_syslog_facility_t;
 
 
@@ -279,14 +279,14 @@ typedef enum {
  * \see M_log_module_tcp_syslog_set_tag_priority
  */
 typedef enum {
-	M_SYSLOG_EMERG   = 0,
-	M_SYSLOG_ALERT   = 1,
-	M_SYSLOG_CRIT    = 2,
-	M_SYSLOG_ERR     = 3,
-	M_SYSLOG_WARNING = 4,
-	M_SYSLOG_NOTICE  = 5,
-	M_SYSLOG_INFO    = 6,
-	M_SYSLOG_DEBUG   = 7
+    M_SYSLOG_EMERG   = 0,
+    M_SYSLOG_ALERT   = 1,
+    M_SYSLOG_CRIT    = 2,
+    M_SYSLOG_ERR     = 3,
+    M_SYSLOG_WARNING = 4,
+    M_SYSLOG_NOTICE  = 5,
+    M_SYSLOG_INFO    = 6,
+    M_SYSLOG_DEBUG   = 7
 } M_syslog_priority_t; /* Note: enum values can't exceed 78, since we append them to msg as a writable char */
 
 
@@ -297,12 +297,12 @@ typedef enum {
  * \see M_log_module_android_set_tag_priority
  */
 typedef enum {
-	M_ANDROID_LOG_FATAL   = 0,
-	M_ANDROID_LOG_ERROR   = 1,
-	M_ANDROID_LOG_WARN    = 2,
-	M_ANDROID_LOG_INFO    = 3,
-	M_ANDROID_LOG_DEBUG   = 4,
-	M_ANDROID_LOG_VERBOSE = 5
+    M_ANDROID_LOG_FATAL   = 0,
+    M_ANDROID_LOG_ERROR   = 1,
+    M_ANDROID_LOG_WARN    = 2,
+    M_ANDROID_LOG_INFO    = 3,
+    M_ANDROID_LOG_DEBUG   = 4,
+    M_ANDROID_LOG_VERBOSE = 5
 } M_android_log_priority_t; /* Note: enum values can't exceed 78, since we append them to msg as a writable char */
 
 
@@ -425,7 +425,7 @@ M_API void M_log_destroy_blocking(M_log_t *log, M_uint64 timeout_ms);
  *   - %%Z -- timezone offset (with colon)
  *
  * For example "[%D/%a/%Y:%H:%m:%s.%l %z]" might give a prefix like:
- *	[11/Jan/2008:09:19:11.654 -0500]
+ *  [11/Jan/2008:09:19:11.654 -0500]
  *
  * \param[in] log logger object
  * \param[in] fmt time format string
@@ -699,7 +699,7 @@ M_API M_log_error_t M_log_module_get_accepted_tags(M_log_t *log, M_log_module_t 
  * \return                     error code
  */
 M_API M_log_error_t M_log_module_set_prefix(M_log_t *log, M_log_module_t *module, M_log_prefix_cb prefix_cb,
-	void *prefix_thunk, M_log_destroy_cb thunk_destroy_cb);
+    void *prefix_thunk, M_log_destroy_cb thunk_destroy_cb);
 
 
 /* Associate a prefix callback with the log system.
@@ -738,7 +738,7 @@ M_API M_log_error_t M_log_set_prefix(M_log_t *log, M_log_prefix_cb prefix_cb,
  * \return                     error code
  */
 M_API M_log_error_t M_log_module_set_filter(M_log_t *log, M_log_module_t *module, M_log_filter_cb filter_cb,
-	void *filter_thunk, M_log_destroy_cb thunk_destroy_cb);
+    void *filter_thunk, M_log_destroy_cb thunk_destroy_cb);
 
 
 /*! Trigger a disconnect/reconnect of the given module's internal resource.
@@ -800,7 +800,7 @@ M_API M_log_error_t M_log_module_remove(M_log_t *log, M_log_module_t *module);
  * \return                    error code
  */
 M_API M_log_error_t M_log_module_add_stream(M_log_t *log, M_stream_type_t type, size_t max_queue_bytes,
-	M_log_module_t **out_mod);
+    M_log_module_t **out_mod);
 
 /*! @} */ /* End of Stream group */
 
@@ -862,7 +862,7 @@ M_API M_log_error_t M_log_module_add_nslog(M_log_t *log, size_t max_queue_bytes,
  * \return                     error code
  */
 M_API M_log_error_t M_log_module_add_android(M_log_t *log, const char *product, size_t max_queue_bytes,
-	M_log_module_t **out_mod);
+    M_log_module_t **out_mod);
 
 
 /*! Associate the given user-defined tag(s) with an Android log priority.
@@ -883,7 +883,7 @@ M_API M_log_error_t M_log_module_add_android(M_log_t *log, const char *product, 
  * \return             error code
  */
 M_API M_log_error_t M_log_module_android_set_tag_priority(M_log_t *log, M_log_module_t *module, M_uint64 tags,
-	M_android_log_priority_t priority);
+    M_android_log_priority_t priority);
 
 /*! @} */ /* End of Android group */
 
@@ -926,8 +926,8 @@ M_API M_log_error_t M_log_module_android_set_tag_priority(M_log_t *log, M_log_mo
  * \return                       error code
  */
 M_API M_log_error_t M_log_module_add_file(M_log_t *log, const char *log_file_path, size_t num_to_keep,
-	M_uint64 autorotate_size, M_uint64 autorotate_time_s, size_t max_queue_bytes, const char *archive_cmd,
-	const char *archive_file_ext, M_log_module_t **out_mod);
+    M_uint64 autorotate_size, M_uint64 autorotate_time_s, size_t max_queue_bytes, const char *archive_cmd,
+    const char *archive_file_ext, M_log_module_t **out_mod);
 
 
 /*! Manually trigger a file rotation.
@@ -974,7 +974,7 @@ M_API M_log_error_t M_log_module_file_rotate(M_log_t *log, M_log_module_t *modul
  * \return                     error code
  */
 M_API M_log_error_t M_log_module_add_syslog(M_log_t *log, const char *product, M_syslog_facility_t facility,
-	size_t max_queue_bytes, M_log_module_t **out_mod);
+    size_t max_queue_bytes, M_log_module_t **out_mod);
 
 
 /*! Associate the given user-defined tag(s) with a syslog priority.
@@ -995,7 +995,7 @@ M_API M_log_error_t M_log_module_add_syslog(M_log_t *log, const char *product, M
  * \return             error code
  */
 M_API M_log_error_t M_log_module_syslog_set_tag_priority(M_log_t *log, M_log_module_t *module, M_uint64 tags,
-	M_syslog_priority_t priority);
+    M_syslog_priority_t priority);
 
 /*! @} */ /* End of syslog group */
 
@@ -1037,7 +1037,7 @@ M_API M_log_error_t M_log_module_syslog_set_tag_priority(M_log_t *log, M_log_mod
  * \return                     error code
  */
 M_API M_log_error_t M_log_module_add_tcp_syslog(M_log_t *log, const char *product, M_syslog_facility_t facility,
-	const char *host, M_uint16 port, M_dns_t *dns, size_t max_queue_bytes, M_log_module_t **out_mod);
+    const char *host, M_uint16 port, M_dns_t *dns, size_t max_queue_bytes, M_log_module_t **out_mod);
 
 
 /*! Set TCP connection timeout.
@@ -1051,7 +1051,7 @@ M_API M_log_error_t M_log_module_add_tcp_syslog(M_log_t *log, const char *produc
  * \return               error code
  */
 M_API M_log_error_t M_log_module_tcp_syslog_set_connect_timeout_ms(M_log_t *log, M_log_module_t *module,
-	M_uint64 timeout_ms);
+    M_uint64 timeout_ms);
 
 
 /*! Set TCP keep alive parameters for the connection.
@@ -1069,7 +1069,7 @@ M_API M_log_error_t M_log_module_tcp_syslog_set_connect_timeout_ms(M_log_t *log,
  * \return                 error code
  */
 M_API M_log_error_t M_log_module_tcp_syslog_set_keepalives(M_log_t *log, M_log_module_t *module, M_uint64 idle_time_s,
-	M_uint64 retry_time_s, M_uint64 retry_count);
+    M_uint64 retry_time_s, M_uint64 retry_count);
 
 
 /*! Associate the given user-defined tag(s) with a syslog priority tag.
@@ -1090,7 +1090,7 @@ M_API M_log_error_t M_log_module_tcp_syslog_set_keepalives(M_log_t *log, M_log_m
  * \return             error code
  */
 M_API M_log_error_t M_log_module_tcp_syslog_set_tag_priority(M_log_t *log, M_log_module_t *module, M_uint64 tags,
-	M_syslog_priority_t priority);
+    M_syslog_priority_t priority);
 
 /*! @} */ /* End of tcp_syslog group */
 
@@ -1125,7 +1125,7 @@ M_API M_log_error_t M_log_module_tcp_syslog_set_tag_priority(M_log_t *log, M_log
  * \return                   error code
  */
 M_API M_log_error_t M_log_module_add_membuf(M_log_t *log, size_t buf_size, M_uint64 buf_time_s,
-	M_log_expire_cb expire_cb, void *expire_thunk, M_log_module_t **out_mod);
+    M_log_expire_cb expire_cb, void *expire_thunk, M_log_module_t **out_mod);
 
 
 /*! Remove a membuf module from the log and return the internal memory store.

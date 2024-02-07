@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2018 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -45,17 +45,17 @@ __BEGIN_DECLS
  * a single utf-8 display character.
  *
  * @{
- */ 
+ */
 
 /*! Error codes. */
 typedef enum {
-	M_UTF8_ERROR_SUCCESS,         /*!< Success. */
-	M_UTF8_ERROR_BAD_START,       /*!< Start of byte sequence is invalid. */
-	M_UTF8_ERROR_TRUNCATED,       /*!< The utf-8 character length exceeds the data length. */
-	M_UTF8_ERROR_EXPECT_CONTINUE, /*!< A conurbation marker was expected but not found. */
-	M_UTF8_ERROR_BAD_CODE_POINT,  /*!< Code point is invalid. */
-	M_UTF8_ERROR_OVERLONG,        /*!< Overlong encoding encountered. */
-	M_UTF8_ERROR_INVALID_PARAM    /*!< Input parameter is invalid. */
+    M_UTF8_ERROR_SUCCESS,         /*!< Success. */
+    M_UTF8_ERROR_BAD_START,       /*!< Start of byte sequence is invalid. */
+    M_UTF8_ERROR_TRUNCATED,       /*!< The utf-8 character length exceeds the data length. */
+    M_UTF8_ERROR_EXPECT_CONTINUE, /*!< A conurbation marker was expected but not found. */
+    M_UTF8_ERROR_BAD_CODE_POINT,  /*!< Code point is invalid. */
+    M_UTF8_ERROR_OVERLONG,        /*!< Overlong encoding encountered. */
+    M_UTF8_ERROR_INVALID_PARAM    /*!< Input parameter is invalid. */
 } M_utf8_error_t;
 
 
@@ -416,7 +416,7 @@ M_API M_utf8_error_t M_utf8_totitle_buf(const char *str, M_buf_t *buf);
  *
  * Validate if a UTF-8 sequence or string is comprised
  * of a given type of characters.
- * 
+ *
  * @{
  */
 

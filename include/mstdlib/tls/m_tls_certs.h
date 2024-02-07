@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,7 +35,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_tls_certs TLS Certificates
  *  \ingroup m_tls
- * 
+ *
  * Basic TLS certificate functionality. This is primary used
  * to aid in generating self signed certificates programmatically.
  *
@@ -49,9 +49,9 @@ __BEGIN_DECLS
  * \code{.c}
  *     #include <mstdlib/mstdlib.h>
  *     #include <mstdlib/mstdlib_tls.h>
- *     
+ *
  *     #define VALID_SEC (5*365*24*60*60)
- *     
+ *
  *     int main(int argc, char **argv)
  *     {
  *         char         *CA_privkey;
@@ -62,34 +62,34 @@ __BEGIN_DECLS
  *         M_tls_x509_t *Server_csr_x509;
  *         char         *Server_crt;
  *         char         *Server_csr;
- *     
- *         // Generate our certificate authority. 
+ *
+ *         // Generate our certificate authority.
  *         CA_privkey = M_tls_rsa_generate_key(2048);
  *         CA_x509    = M_tls_x509_new(CA_privkey);
  *         M_tls_x509_txt_add(CA_x509, M_TLS_X509_TXT_COMMONNAME, "MY CA", M_FALSE);
  *         M_tls_x509_txt_add(CA_x509, M_TLS_X509_TXT_ORGANIZATION, "MY ORG", M_FALSE);
  *         M_tls_x509_txt_SAN_add(CA_x509, M_TLS_X509_SAN_TYPE_DNS, "ca.myorg.local", M_FALSE);
  *         CA_crt = M_tls_x509_selfsign(CA_x509, VALID_SEC);
- *     
+ *
  *         // Generate the server x509
  *         Server_privkey = M_tls_rsa_generate_key(2048);
  *         Server_x509    = M_tls_x509_new(Server_privkey);
  *         M_tls_x509_txt_add(Server_x509, M_TLS_X509_TXT_COMMONNAME, "MY Server", M_FALSE);
  *         M_tls_x509_txt_add(Server_x509, M_TLS_X509_TXT_ORGANIZATION, "MY ORG", M_FALSE);
  *         M_tls_x509_txt_SAN_add(Server_x509, M_TLS_X509_SAN_TYPE_DNS, "server.myorg.local", M_FALSE);
- *     
+ *
  *         // Generate a server CSR from the server x509.
  *         // Sign the CSR creating a server certificate.
  *         Server_csr      = M_tls_x509_write_csr(Server_x509);
  *         Server_csr_x509 = M_tls_x509_read_csr(Server_csr);
  *         Server_crt      = M_tls_x509_sign(Server_csr_x509, CA_crt, CA_privkey, VALID_SEC);
- *     
+ *
  *         M_printf("CA Priv Key:\n%s\n", CA_privkey);
  *         M_printf("CA CRT:\n%s\n", CA_crt);
  *         M_printf("Server Priv Key:\n%s\n", Server_privkey);
  *         M_printf("Server CSR:\n%s\n", Server_csr);
  *         M_printf("Server CRT:\n%s\n", Server_crt);
- *     
+ *
  *         M_free(Server_csr);
  *         M_free(Server_crt);
  *         M_free(Server_privkey);
@@ -109,27 +109,27 @@ typedef struct M_tls_x509 M_tls_x509_t;
 
 /*! X509 certificate text attributes. */
 typedef enum {
-	M_TLS_X509_TXT_COMMONNAME         = 1, /*!< (CN) Name of certificate. */
-	M_TLS_X509_TXT_ORGANIZATION       = 2, /*!< (O) Organization owning certificate. */
-	M_TLS_X509_TXT_COUNTRY            = 3, /*!< (C) County where the organization is located. */
-	M_TLS_X509_TXT_STATE              = 4, /*!< (S) State or providence where the organization is located. */
-	M_TLS_X509_TXT_ORGANIZATIONALUNIT = 5, /*!< (OU) Group within the organization owning the certificate. */
-	M_TLS_X509_TXT_LOCALITY           = 6  /*!< (L) State, township, county, etc. where the organizational unit
-	                                            is located. */
+    M_TLS_X509_TXT_COMMONNAME         = 1, /*!< (CN) Name of certificate. */
+    M_TLS_X509_TXT_ORGANIZATION       = 2, /*!< (O) Organization owning certificate. */
+    M_TLS_X509_TXT_COUNTRY            = 3, /*!< (C) County where the organization is located. */
+    M_TLS_X509_TXT_STATE              = 4, /*!< (S) State or providence where the organization is located. */
+    M_TLS_X509_TXT_ORGANIZATIONALUNIT = 5, /*!< (OU) Group within the organization owning the certificate. */
+    M_TLS_X509_TXT_LOCALITY           = 6  /*!< (L) State, township, county, etc. where the organizational unit
+                                                is located. */
 } M_tls_x509_txt_t;
 
 
 /*! Certificate hash algorithm. */
 typedef enum {
-	M_TLS_X509_SIG_ALG_SHA1   = 1, /*!< SHA 1. */
-	M_TLS_X509_SIG_ALG_SHA256 = 2  /*!< SHA 256. */
+    M_TLS_X509_SIG_ALG_SHA1   = 1, /*!< SHA 1. */
+    M_TLS_X509_SIG_ALG_SHA256 = 2  /*!< SHA 256. */
 } M_tls_x509_sig_alg_t;
 
 
 /*! Type of subject alternative name. */
 enum M_tls_x509_san_type {
-	M_TLS_X509_SAN_TYPE_DNS = 1, /*!< Name is a host name that can be retrieved by DNS. */
-	M_TLS_X509_SAN_TYPE_IP  = 2  /*!< Name is an ip address. */
+    M_TLS_X509_SAN_TYPE_DNS = 1, /*!< Name is a host name that can be retrieved by DNS. */
+    M_TLS_X509_SAN_TYPE_IP  = 2  /*!< Name is an ip address. */
 };
 typedef enum M_tls_x509_san_type M_tls_x509_san_type_t;
 

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -47,18 +47,14 @@ typedef M_time_tz_t *(*M_time_tzs_lazy_load_t)(const char *name, void *data);
    typedef long M_time_tv_usec_t;
 #else
    typedef time_t M_time_tv_sec_t;
-#  if defined(_SCO_ELF) || defined(__SCO_VERSION__)
-     typedef long M_time_tv_usec_t;
-#  else
-     typedef suseconds_t M_time_tv_usec_t;
-#  endif  
+   typedef suseconds_t M_time_tv_usec_t;
 #endif
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 typedef enum {
-	M_TIME_TZ_RULE_OLSON = 1,  /*! Olson type rule */
-	M_TIME_TZ_RULE_TZ    = 2   /*! Standard timezone rule */
+    M_TIME_TZ_RULE_OLSON = 1,  /*! Olson type rule */
+    M_TIME_TZ_RULE_TZ    = 2   /*! Standard timezone rule */
 } M_time_tz_rule_format_t;
 
 /*! Timezone data.
@@ -69,12 +65,12 @@ typedef enum {
  * format are set in the structure for use with the data.
  */
 struct M_time_tz {
-	M_time_tz_rule_format_t type;
-	void                   *data; /*!< The data in the source format. */
-	/* Callbacks */
-	void        (*destroy)(void *data); /*!< Destroy the void pointer data object. */
-	M_time_t    (*adjust_fromlocal)(const void *data, const M_time_localtm_t *ltime); /*!< Get the amount of time a time in local time needs to be adjusted to UTC. */
-	M_time_t    (*adjust_tolocal)(const void *data, M_time_t gmt, M_bool *isdst, const char **abbr); /*!< Get the amount of time a time in UTC needs to be adjusted for the timezone. */
+    M_time_tz_rule_format_t type;
+    void                   *data; /*!< The data in the source format. */
+    /* Callbacks */
+    void        (*destroy)(void *data); /*!< Destroy the void pointer data object. */
+    M_time_t    (*adjust_fromlocal)(const void *data, const M_time_localtm_t *ltime); /*!< Get the amount of time a time in local time needs to be adjusted to UTC. */
+    M_time_t    (*adjust_tolocal)(const void *data, M_time_t gmt, M_bool *isdst, const char **abbr); /*!< Get the amount of time a time in UTC needs to be adjusted for the timezone. */
 };
 
 /*! A list of DST rule adjustments. */
@@ -89,14 +85,14 @@ typedef struct M_time_tz_olson_transitions M_time_tz_olson_transitions_t;
 
 /*! A time zone using rules for determining DST. */
 typedef struct {
-	char                  *name;     /*!< Unique identifier for the timezone. Typically this will be a 3+
-	                                      character timezone identifier. For example, EST5DST or EST5. */
-	char                  *abbr;     /*<! The timezone abbreviation in use for standard time. */
-	char                  *abbr_dst; /*<! The timezone abbreviation in use for DST time. */
-	M_time_t               offset;   /*<! The timezone offset that the UTC time should be adjusted by. This is
-	                                      only used if there are no adjustments. */
-	M_time_tz_dst_rules_t *adjusts;  /*!< A list of DST adjustment rules. If a DST rule applies its offset
-	                                      will be used instead of the above offset. */
+    char                  *name;     /*!< Unique identifier for the timezone. Typically this will be a 3+
+                                          character timezone identifier. For example, EST5DST or EST5. */
+    char                  *abbr;     /*<! The timezone abbreviation in use for standard time. */
+    char                  *abbr_dst; /*<! The timezone abbreviation in use for DST time. */
+    M_time_t               offset;   /*<! The timezone offset that the UTC time should be adjusted by. This is
+                                          only used if there are no adjustments. */
+    M_time_tz_dst_rules_t *adjusts;  /*!< A list of DST adjustment rules. If a DST rule applies its offset
+                                          will be used instead of the above offset. */
 } M_time_tz_rule_t;
 
 
@@ -104,44 +100,44 @@ typedef struct {
  * This is in local time (already adjusted for timezone offset).
  */
 typedef struct {
-	int month; /*!< Month. 1-12. Use 0 to specify that DST always applies. */
-	int wday;  /*!< Day of week. 0=Sun ... 6=Sat. */
-	int occur; /*!< The occurrence of the month the day falls on. E.g. 2 is the second occurrence of the month. -2 for
-	                the second to last occurrence of the month. */
-	int hour;  /*!< The hour of DST. 24 hr format. 0=midnight, 23=11pm */
-	int min;   /*!< The minute of DST. 00-59. */
-	int sec;   /*!< The second of DST. 00-59. */
+    int month; /*!< Month. 1-12. Use 0 to specify that DST always applies. */
+    int wday;  /*!< Day of week. 0=Sun ... 6=Sat. */
+    int occur; /*!< The occurrence of the month the day falls on. E.g. 2 is the second occurrence of the month. -2 for
+                    the second to last occurrence of the month. */
+    int hour;  /*!< The hour of DST. 24 hr format. 0=midnight, 23=11pm */
+    int min;   /*!< The minute of DST. 00-59. */
+    int sec;   /*!< The second of DST. 00-59. */
 } M_time_tz_dst_change_t;
 
 
 /*! DST adjustment rule. */
 typedef struct {
-	M_int64                year;       /*<! The year the rule starts. */
-	M_time_t               offset;     /*<! The timezone offset that the UTC time should be adjusted by. */
-	M_time_t               offset_dst; /*<! The amount of time the timezone adjust time should be adjusted when
-	                                        DST is in effect. This include the timezone offset and is not an
-	                                        adjustment to the offset. */
-	M_time_tz_dst_change_t start;      /*!< DST start. If start mon=0 than DST is always in effect for the
-	                                        entire year. */
-	M_time_tz_dst_change_t end;        /*!< DST end. */
+    M_int64                year;       /*<! The year the rule starts. */
+    M_time_t               offset;     /*<! The timezone offset that the UTC time should be adjusted by. */
+    M_time_t               offset_dst; /*<! The amount of time the timezone adjust time should be adjusted when
+                                            DST is in effect. This include the timezone offset and is not an
+                                            adjustment to the offset. */
+    M_time_tz_dst_change_t start;      /*!< DST start. If start mon=0 than DST is always in effect for the
+                                            entire year. */
+    M_time_tz_dst_change_t end;        /*!< DST end. */
 } M_time_tz_dst_rule_t;
 
 
 /*! Precomputed TZ/Zoneinfo/Olson database tranition. */
 typedef struct {
-	M_time_t    start;  /*!< Time in UTC when the transition takes effect. */
-	M_time_t    offset; /*!< The offset that UTC needs to be adjusted by to be local time. */
-	M_bool      isdst;  /*!< Is this a DST transition. */
-	const char *abbr;   /*!< The abbreviation to use for this time. */
+    M_time_t    start;  /*!< Time in UTC when the transition takes effect. */
+    M_time_t    offset; /*!< The offset that UTC needs to be adjusted by to be local time. */
+    M_bool      isdst;  /*!< Is this a DST transition. */
+    const char *abbr;   /*!< The abbreviation to use for this time. */
 } M_time_tz_olson_transition_t;
 
 
 /*! A mapping with olson, and Windows names with additional information about zone and if it's a main name. */
 struct M_time_tz_info_map {
-	const char        *olson_name;
-	const char        *win_name;
-	M_time_tz_zones_t  zone;
-	M_bool             main;
+    const char        *olson_name;
+    const char        *win_name;
+    M_time_tz_zones_t  zone;
+    M_bool             main;
 };
 typedef struct M_time_tz_info_map M_time_tz_info_map_t;
 

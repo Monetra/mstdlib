@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -43,22 +43,22 @@ M_BEGIN_IGNORE_REDECLARATIONS
 #    ifdef htonl
 #      undef htonl
 #    else
-	M_DEPRECATED_FOR(M_hton32, M_uint32  htonl(M_uint32  hostlong))
+    M_DEPRECATED_FOR(M_hton32, M_uint32  htonl(M_uint32  hostlong))
 #    endif
 #    ifdef htons
 #      undef htons
 #    else
-	M_DEPRECATED_FOR(M_hton16, M_uint16 htons(M_uint16 hostshort))
+    M_DEPRECATED_FOR(M_hton16, M_uint16 htons(M_uint16 hostshort))
 #    endif
 #    ifdef ntohl
 #      undef ntohl
 #    else
-	M_DEPRECATED_FOR(M_ntoh32, M_uint32  ntohl(M_uint32  netlong))
+    M_DEPRECATED_FOR(M_ntoh32, M_uint32  ntohl(M_uint32  netlong))
 #    endif
 #    ifdef ntohs
 #      undef ntohs
 #    else
-	M_DEPRECATED_FOR(M_ntoh16, M_uint16 ntohs(M_uint16 netshort))
+    M_DEPRECATED_FOR(M_ntoh16, M_uint16 ntohs(M_uint16 netshort))
 #    endif
 #  endif
 M_END_IGNORE_REDECLARATIONS
@@ -74,8 +74,8 @@ M_END_IGNORE_REDECLARATIONS
 
 /*! Endianness */
 typedef enum {
-	M_ENDIAN_BIG,
-	M_ENDIAN_LITTLE
+    M_ENDIAN_BIG,
+    M_ENDIAN_LITTLE
 } M_endian_t;
 
 

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -113,23 +113,23 @@ typedef struct M_ini_kvs_enum M_ini_kvs_enum_t;
  *                keys are stored using the full internal format. Values are stored in minimal format.
  *
  *   *ignore_whitespace: Determines whether whitespace "([ -_\t])" should be ignored when comparing keys.
- */ 
+ */
 struct M_ini {
-	M_ini_elements_t *elements; /*!< A tree of elements used to maintain order when writing. */
-	M_hash_strvp_t   *sections; /*!< Access to sections within the tree for fast access instead of having to
-	                                 traverse the tree to find the section. */
-	M_ini_kvs_t      *kvs;
-	M_hash_dict_t    *key_lookup;
-	M_bool            ignore_whitespace;
+    M_ini_elements_t *elements; /*!< A tree of elements used to maintain order when writing. */
+    M_hash_strvp_t   *sections; /*!< Access to sections within the tree for fast access instead of having to
+                                     traverse the tree to find the section. */
+    M_ini_kvs_t      *kvs;
+    M_hash_dict_t    *key_lookup;
+    M_bool            ignore_whitespace;
 };
 
 /*! Types of elements. */
 typedef enum {
-	M_INI_ELEMENT_TYPE_UNKNOWN = 0, /*!< Unknown. */
-	M_INI_ELEMENT_TYPE_COMMENT,     /*!< Comment. */
-	M_INI_ELEMENT_TYPE_EMPTY_LINE,  /*!< Empty line */
-	M_INI_ELEMENT_TYPE_SECTION,     /*!< Section */
-	M_INI_ELEMENT_TYPE_KV           /*!< Key and/or value and/or comment */
+    M_INI_ELEMENT_TYPE_UNKNOWN = 0, /*!< Unknown. */
+    M_INI_ELEMENT_TYPE_COMMENT,     /*!< Comment. */
+    M_INI_ELEMENT_TYPE_EMPTY_LINE,  /*!< Empty line */
+    M_INI_ELEMENT_TYPE_SECTION,     /*!< Section */
+    M_INI_ELEMENT_TYPE_KV           /*!< Key and/or value and/or comment */
 } M_ini_element_type_t;
 
 
@@ -384,7 +384,7 @@ M_API M_ini_element_t *M_ini_elements_at(const M_ini_elements_t *d, size_t idx);
 M_API M_ini_element_t *M_ini_elements_take_at(M_ini_elements_t *d, size_t idx);
 
 /*! Remove an element at a given index from the list.
- * The value will at index will be freed. 
+ * The value will at index will be freed.
  * \param[in] d The list.
  * \param[in] idx The index to remove.
  * \return True if the idx was removed. Otherwise false.

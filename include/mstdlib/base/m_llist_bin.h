@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -70,15 +70,15 @@ typedef struct M_llist_bin_node M_llist_bin_node_t;
 
 /*! Flags for controlling the behavior of the list. */
 typedef enum {
-	M_LLIST_BIN_NONE     = 0,     /*!< List mode. */
-	M_LLIST_BIN_CIRCULAR = 1 << 0 /*!< Circular list. */
+    M_LLIST_BIN_NONE     = 0,     /*!< List mode. */
+    M_LLIST_BIN_CIRCULAR = 1 << 0 /*!< Circular list. */
 } M_llist_bin_flags_t;
 
 
 /*! Type of matching that should be used when searching/modifying a value in the list. */
 typedef enum {
-	M_LLIST_BIN_MATCH_VAL = 0,      /*!< Match based on the value. */
-	M_LLIST_BIN_MATCH_ALL = 1 << 0  /*!< Include all instances. */
+    M_LLIST_BIN_MATCH_VAL = 0,      /*!< Match based on the value. */
+    M_LLIST_BIN_MATCH_ALL = 1 << 0  /*!< Include all instances. */
 } M_llist_bin_match_type_t;
 
 

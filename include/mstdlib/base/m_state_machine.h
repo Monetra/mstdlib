@@ -129,9 +129,9 @@ __BEGIN_DECLS
  *
  * \code{.c}
  * #include <mstdlib/mstdlib.h>
- * 
+ *
  * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * 
+ *
  * typedef struct {
  *     size_t cnt;
  *     size_t a1_wait_cnt;
@@ -145,63 +145,63 @@ __BEGIN_DECLS
  *     size_t c2_wait_cnt;
  *     size_t c3_wait_cnt;
  * } data_obj_t;
- * 
+ *
  * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * 
+ *
  * void trace(M_state_machine_trace_t trace, M_uint64 mndescr, const char *mdescr, M_uint64 sndescr, const char *sdescr, const char *fdescr, M_uint64 id, M_state_machine_status_t status, M_bool run_sub, M_uint64 next_id, void *thunk)
  * {
  *     if (trace == M_STATE_MACHINE_TRACE_STATE_START)
  *         M_printf("STATE: %s\n", fdescr);
- * 
+ *
  *     if (trace == M_STATE_MACHINE_TRACE_STATE_FINISH && status == M_STATE_MACHINE_STATUS_WAIT)
  *         M_printf("STATE: %s - WAIT\n", fdescr);
  * }
- * 
+ *
  * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * // CSM
- * 
+ *
  * typedef enum {
  *     STATE_CL = 1
  * } state_cl_b_t;
- * 
+ *
  * static M_state_machine_status_t state_csm(void *data, M_state_machine_cleanup_reason_t reason, M_uint64 *next)
  * {
  *     (void)data;
  *     (void)reason;
  *     (void)next;
- * 
+ *
  *     M_printf("Calling func: %s\n", __func__);
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_cleanup_t *create_csm(void)
  * {
  *     M_state_machine_cleanup_t *csm;
- * 
+ *
  *     csm = M_state_machine_cleanup_create(0, "CSM", M_STATE_MACHINE_LINEAR_END);
- * 
+ *
  *     M_state_machine_cleanup_insert_state(csm, STATE_CL, 0, "CL1", state_csm, NULL, NULL);
- * 
+ *
  *     return csm;
  * }
- * 
+ *
  * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * // SM A
- * 
+ *
  * typedef enum {
  *     STATE_A1 = 1,
  *     STATE_A2,
  *     STATE_A3
  * } states_a_t;
- * 
+ *
  * static M_state_machine_status_t state_a1(void *data, M_uint64 *next)
  * {
  *     data_obj_t *obj = data;
- * 
+ *
  *     (void)next;
- * 
+ *
  *     M_printf("Calling func: %s\n", __func__);
- * 
+ *
  *     if (obj->a1_wait_cnt < 4) {
  *         obj->a1_wait_cnt++;
  *         return M_STATE_MACHINE_STATUS_WAIT;
@@ -209,15 +209,15 @@ __BEGIN_DECLS
  *     obj->a1_wait_cnt = 0;
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_status_t state_a2(void *data, M_uint64 *next)
  * {
  *     data_obj_t *obj = data;
- * 
+ *
  *     (void)next;
- * 
+ *
  *     M_printf("Calling func: %s\n", __func__);
- * 
+ *
  *     if (obj->a2_wait_cnt < 3) {
  *         obj->a2_wait_cnt++;
  *         return M_STATE_MACHINE_STATUS_WAIT;
@@ -225,15 +225,15 @@ __BEGIN_DECLS
  *     obj->a2_wait_cnt = 0;
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_status_t state_a3(void *data, M_uint64 *next)
  * {
  *     data_obj_t *obj = data;
- * 
+ *
  *     (void)next;
- * 
+ *
  *     M_printf("Calling func: %s\n", __func__);
- * 
+ *
  *     if (obj->a3_wait_cnt < 2) {
  *         obj->a3_wait_cnt++;
  *         return M_STATE_MACHINE_STATUS_WAIT;
@@ -241,23 +241,23 @@ __BEGIN_DECLS
  *     obj->a3_wait_cnt = 0;
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_t *create_sm_a(void)
  * {
  *     M_state_machine_t *sm;
- *  
+ *
  *     sm = M_state_machine_create(0, "SM A", M_STATE_MACHINE_LINEAR_END);
- *  
+ *
  *     M_state_machine_insert_state(sm, STATE_A1, 0, "A1", state_a1, NULL, NULL);
  *     M_state_machine_insert_state(sm, STATE_A2, 0, "A2", state_a2, NULL, NULL);
  *     M_state_machine_insert_state(sm, STATE_A3, 0, "A3", state_a3, NULL, NULL);
- *  
+ *
  *     return sm;
  * }
- * 
+ *
  * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * // SM B
- * 
+ *
  * typedef enum {
  *     STATE_B1 = 1,
  *     STATE_B2,
@@ -266,15 +266,15 @@ __BEGIN_DECLS
  *     STATE_B5,
  *     STATE_B6
  * } states_b_t;
- * 
+ *
  * static M_state_machine_status_t state_b1(void *data, M_uint64 *next)
  * {
  *     data_obj_t *obj = data;
- * 
+ *
  *     (void)next;
- * 
+ *
  *     M_printf("Calling func: %s\n", __func__);
- * 
+ *
  *     if (obj->b1_wait_cnt < 2) {
  *         obj->b1_wait_cnt++;
  *         return M_STATE_MACHINE_STATUS_WAIT;
@@ -282,15 +282,15 @@ __BEGIN_DECLS
  *     obj->b1_wait_cnt = 0;
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_status_t state_b2(void *data, M_uint64 *next)
  * {
  *     data_obj_t *obj = data;
- * 
+ *
  *     (void)next;
- * 
+ *
  *     M_printf("Calling func: %s\n", __func__);
- * 
+ *
  *     if (obj->b2_wait_cnt < 3) {
  *         obj->b2_wait_cnt++;
  *         return M_STATE_MACHINE_STATUS_WAIT;
@@ -298,15 +298,15 @@ __BEGIN_DECLS
  *     obj->b2_wait_cnt = 0;
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_status_t state_b3(void *data, M_uint64 *next)
  * {
  *     data_obj_t *obj = data;
- * 
+ *
  *     (void)next;
- * 
+ *
  *     M_printf("Calling func: %s\n", __func__);
- * 
+ *
  *     if (obj->b3_wait_cnt < 4) {
  *         obj->b3_wait_cnt++;
  *         return M_STATE_MACHINE_STATUS_WAIT;
@@ -314,25 +314,25 @@ __BEGIN_DECLS
  *     obj->b3_wait_cnt = 0;
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_status_t state_b4(void *data, M_uint64 *next)
  * {
  *     (void)data;
  *     (void)next;
- * 
+ *
  *     M_printf("Calling func: %s\n", __func__);
- * 
+ *
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_status_t state_b5(void *data, M_uint64 *next)
  * {
  *     data_obj_t *obj = data;
- * 
+ *
  *     (void)next;
- * 
+ *
  *     M_printf("Calling func: %s\n", __func__);
- * 
+ *
  *     if (obj->b5_wait_cnt < 5) {
  *         obj->b5_wait_cnt++;
  *         return M_STATE_MACHINE_STATUS_WAIT;
@@ -340,24 +340,24 @@ __BEGIN_DECLS
  *     obj->b5_wait_cnt = 0;
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_status_t state_b6(void *data, M_uint64 *next)
  * {
  *     (void)data;
  *     (void)next;
- * 
+ *
  *     M_printf("Calling func: %s\n", __func__);
- * 
+ *
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_t *create_sm_b(void)
  * {
  *     M_state_machine_t         *sm;
  *     M_state_machine_cleanup_t *csm;
- *  
+ *
  *     sm = M_state_machine_create(0, "SM B", M_STATE_MACHINE_LINEAR_END|M_STATE_MACHINE_DONE_CLEANUP);
- *  
+ *
  *     csm = create_csm();
  *     M_state_machine_insert_state(sm, STATE_B1, 0, "B1", state_b1, csm, NULL);
  *     M_state_machine_insert_state(sm, STATE_B1, 0, "B1", state_b1, NULL, NULL);
@@ -367,27 +367,27 @@ __BEGIN_DECLS
  *     M_state_machine_insert_state(sm, STATE_B4, 0, "B4", state_b4, NULL, NULL);
  *     M_state_machine_insert_state(sm, STATE_B5, 0, "B5", state_b5, NULL, NULL);
  *     M_state_machine_insert_state(sm, STATE_B6, 0, "B6", state_b6, NULL, NULL);
- *  
+ *
  *     return sm;
  * }
- * 
+ *
  * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * // SM C
- * 
+ *
  * typedef enum {
  *     STATE_C1 = 1,
  *     STATE_C2,
  *     STATE_C3
  * } states_c_t;
- * 
+ *
  * static M_state_machine_status_t state_c1(void *data, M_uint64 *next)
  * {
  *     data_obj_t *obj = data;
- * 
+ *
  *     (void)next;
- * 
+ *
  *     M_printf("Calling func: %s\n", __func__);
- * 
+ *
  *     if (obj->c1_wait_cnt < 4) {
  *         obj->c1_wait_cnt++;
  *         return M_STATE_MACHINE_STATUS_WAIT;
@@ -395,15 +395,15 @@ __BEGIN_DECLS
  *     obj->c1_wait_cnt = 0;
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_status_t state_c2(void *data, M_uint64 *next)
  * {
  *     data_obj_t *obj = data;
- * 
+ *
  *     (void)next;
- * 
+ *
  *     M_printf("Calling func: %s\n", __func__);
- * 
+ *
  *     if (obj->c2_wait_cnt < 0) {
  *         obj->c2_wait_cnt++;
  *         return M_STATE_MACHINE_STATUS_WAIT;
@@ -411,15 +411,15 @@ __BEGIN_DECLS
  *     obj->c2_wait_cnt = 0;
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_status_t state_c3(void *data, M_uint64 *next)
  * {
  *     data_obj_t *obj = data;
- * 
+ *
  *     (void)next;
- * 
+ *
  *     M_printf("Calling func: %s\n", __func__);
- * 
+ *
  *     if (obj->c3_wait_cnt < 1) {
  *         obj->c3_wait_cnt++;
  *         return M_STATE_MACHINE_STATUS_WAIT;
@@ -427,38 +427,38 @@ __BEGIN_DECLS
  *     obj->c3_wait_cnt = 0;
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_t *create_sm_c(void)
  * {
  *     M_state_machine_t         *sm;
  *     M_state_machine_cleanup_t *csm;
- *  
+ *
  *     sm = M_state_machine_create(0, "SM C", M_STATE_MACHINE_LINEAR_END|M_STATE_MACHINE_DONE_CLEANUP);
- *  
+ *
  *     csm = create_csm();
  *     M_state_machine_insert_state(sm, STATE_C1, 0, "C1", state_c1, csm, NULL);
  *     M_state_machine_cleanup_destroy(csm);
  *     M_state_machine_insert_state(sm, STATE_C2, 0, "C2", state_c2, NULL, NULL);
  *     M_state_machine_insert_state(sm, STATE_C3, 0, "C3", state_c3, NULL, NULL);
- *  
+ *
  *     return sm;
  * }
- * 
+ *
  * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * // SM MAIN
- * 
+ *
  * typedef enum {
  *     STATE_MA = 1,
  *     STATE_MB, // Interleaved state.
  *     STATE_MC
  * } states_m_t;
- * 
+ *
  * static M_state_machine_status_t state_ma(void *data, M_uint64 *next)
  * {
  *     M_printf("Calling func: %s\n", __func__);
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_bool inter_pre(void *data, M_state_machine_status_t *status, M_uint64 *next)
  * {
  *     (void)data;
@@ -467,44 +467,44 @@ __BEGIN_DECLS
  *     M_printf("Calling func: %s\n", __func__);
  *     return M_TRUE;
  * }
- * 
+ *
  * static M_state_machine_status_t inter_post(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
  * {
  *     (void)data;
  *     (void)next;
- * 
+ *
  *     M_printf("Calling func: %s with sub status %u\n", __func__, sub_status);
- * 
+ *
  *     if (sub_status != M_STATE_MACHINE_STATUS_DONE)
  *         return sub_status;
- * 
+ *
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_status_t state_mc(void *data, M_uint64 *next)
  * {
  *     data_obj_t *obj = data;
- * 
+ *
  *     M_printf("Calling func: %s\n", __func__);
- * 
+ *
  *     if (obj->cnt < 3) {
  *         *next = STATE_MA;
- * 
+ *
  *         obj->cnt++;
  *         M_printf("Going back to main cnt: %zu\n", obj->cnt);
  *     }
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_t *create_sm_m(void)
  * {
  *     M_state_machine_t *sm;
  *     M_state_machine_t *subm;
- *  
+ *
  *     sm = M_state_machine_create(0, "SM M", M_STATE_MACHINE_LINEAR_END|M_STATE_MACHINE_INTERNOABORT);
- *  
+ *
  *     M_state_machine_insert_state(sm, STATE_MA, 0, "SA", state_ma, NULL, NULL);
- * 
+ *
  *     M_state_machine_insert_state_interleaved(sm, STATE_MB, 0, "SIB", inter_pre, inter_post, NULL, NULL);
  *     subm = create_sm_a();
  *     M_state_machine_insert_sub_state_machine_interleaved(sm, STATE_MB, subm);
@@ -515,34 +515,34 @@ __BEGIN_DECLS
  *     subm = create_sm_c();
  *     M_state_machine_insert_sub_state_machine_interleaved(sm, STATE_MB, subm);
  *     M_state_machine_destroy(subm);
- * 
+ *
  *     M_state_machine_insert_state(sm, STATE_MC, 0, "SC", state_mc, NULL, NULL);
- *  
+ *
  *     return sm;
  * }
- * 
+ *
  * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * 
+ *
  * int main(int argc, char **argv)
  * {
  *     M_state_machine_t        *sm;
  *     data_obj_t               *obj;
  *     M_state_machine_status_t  status;
- * 
+ *
  *     sm  = create_sm_m();
  *     obj = M_malloc_zero(sizeof(*obj));
  *     M_state_machine_enable_trace(sm, trace, NULL);
- *  
+ *
  *     do {
  *         status = M_state_machine_run(sm, obj);
  *     } while (status == M_STATE_MACHINE_STATUS_WAIT);
- *  
+ *
  *     if (status != M_STATE_MACHINE_STATUS_DONE) {
  *         M_printf("state machine failure\n");
  *     } else {
  *         M_printf("state machine success\n");
  *     }
- *  
+ *
  *     M_state_machine_destroy(sm);
  *     M_free(obj);
  *     return 0;
@@ -563,199 +563,199 @@ typedef struct M_state_machine_cleanup M_state_machine_cleanup_t;
 
 /*! Status of the state machine while running though states. */
 typedef enum {
-	/* State specific status. Only states can return these. */
-	M_STATE_MACHINE_STATUS_NONE = 0,        /*!< Invalid status. */
-	M_STATE_MACHINE_STATUS_NEXT,            /*!< Success continue to the next state.
-	                                             The state was run and should be recorded as well as cleanup added
-	                                             to the cleanup list. */
-	M_STATE_MACHINE_STATUS_PREV,            /*!< A recoverable error occurred. Go to the last successful (non-continue)
-	                                             state.
+    /* State specific status. Only states can return these. */
+    M_STATE_MACHINE_STATUS_NONE = 0,        /*!< Invalid status. */
+    M_STATE_MACHINE_STATUS_NEXT,            /*!< Success continue to the next state.
+                                                 The state was run and should be recorded as well as cleanup added
+                                                 to the cleanup list. */
+    M_STATE_MACHINE_STATUS_PREV,            /*!< A recoverable error occurred. Go to the last successful (non-continue)
+                                                 state.
 
-	                                             This should be treated as a special case and is primarily a
-	                                             convenience when using the state machine in a linear manner. It should
-	                                             not be used in stead of specifying an id and calling next if it is
-	                                             possible to do so.
+                                                 This should be treated as a special case and is primarily a
+                                                 convenience when using the state machine in a linear manner. It should
+                                                 not be used in stead of specifying an id and calling next if it is
+                                                 possible to do so.
 
-										     	 This does not back out states. State cleanups will not be called when
-	                                             skipping back over states. Also, the list of cleanups will not be
-	                                             modified to remove cleanups for states that have been called. Further,
-	                                             This can result in a state having it's cleanup registered multiple
-	                                             times as a result of multiple successful calls. */
-	M_STATE_MACHINE_STATUS_CONTINUE,        /*!< Success continue to the next state.
-	                                             The state was skipped and should be treated as such. The cleanup
-	                                             for this state will not be added to the cleanup list.
+                                                 This does not back out states. State cleanups will not be called when
+                                                 skipping back over states. Also, the list of cleanups will not be
+                                                 modified to remove cleanups for states that have been called. Further,
+                                                 This can result in a state having it's cleanup registered multiple
+                                                 times as a result of multiple successful calls. */
+    M_STATE_MACHINE_STATUS_CONTINUE,        /*!< Success continue to the next state.
+                                                 The state was skipped and should be treated as such. The cleanup
+                                                 for this state will not be added to the cleanup list.
 
-	                                             This should not be treated as next without cleanup. It is for
-	                                             signifying that the state was skipped. If you need next without
-	                                             cleanup the state should be registered without a cleanup state
-	                                             machine. Even if that means having two ids for the same state function
-	                                             one with and one without a cleanup registered. */
+                                                 This should not be treated as next without cleanup. It is for
+                                                 signifying that the state was skipped. If you need next without
+                                                 cleanup the state should be registered without a cleanup state
+                                                 machine. Even if that means having two ids for the same state function
+                                                 one with and one without a cleanup registered. */
 
-	/* Shared status. States and the state machine can return these. */
-	M_STATE_MACHINE_STATUS_ERROR_STATE,     /*!< An unrecoverable error occurred within a state. Exit and clean up.
-	                                             The state is responsible for error reporting though the void data
-	                                             pointer passed to the state function. */
-	M_STATE_MACHINE_STATUS_WAIT,            /*!< The state is processing in a non-blocking fashion. More calls to run
-	                                             are required to continue the operation. The state that returned
-	                                             WAIT will be called when the state machine is run. */
-	M_STATE_MACHINE_STATUS_PAUSE,           /*!< The state is processing in a non-blocking fashion. More calls to run
-	                                             are required to continue the operation. The next state (set
-	                                             explicit or implicitly) will be run when the state machine is run.
-	                                             An error will be returned by run instead of pause if continuing
-	                                             would cause an error. In the same way as with the state returning
-	                                             next. If there is no state to continue to run will return done if
-	                                             doing so is not an error. Such as if linear end flag is set. */
-	M_STATE_MACHINE_STATUS_DONE,            /*!< The sequence completed successfully. */
+    /* Shared status. States and the state machine can return these. */
+    M_STATE_MACHINE_STATUS_ERROR_STATE,     /*!< An unrecoverable error occurred within a state. Exit and clean up.
+                                                 The state is responsible for error reporting though the void data
+                                                 pointer passed to the state function. */
+    M_STATE_MACHINE_STATUS_WAIT,            /*!< The state is processing in a non-blocking fashion. More calls to run
+                                                 are required to continue the operation. The state that returned
+                                                 WAIT will be called when the state machine is run. */
+    M_STATE_MACHINE_STATUS_PAUSE,           /*!< The state is processing in a non-blocking fashion. More calls to run
+                                                 are required to continue the operation. The next state (set
+                                                 explicit or implicitly) will be run when the state machine is run.
+                                                 An error will be returned by run instead of pause if continuing
+                                                 would cause an error. In the same way as with the state returning
+                                                 next. If there is no state to continue to run will return done if
+                                                 doing so is not an error. Such as if linear end flag is set. */
+    M_STATE_MACHINE_STATUS_DONE,            /*!< The sequence completed successfully. */
 
-	/* State machine specific status. Only the state machine can return these. */
-	M_STATE_MACHINE_STATUS_STOP_CLEANUP,     /*< Used by cleanup state machines to stop processing further cleanup
-	                                             state machines within a state machine. */
- 	/* All of these are unrecoverable errors. */
-	M_STATE_MACHINE_STATUS_ERROR_INVALID,   /*!< The state machine was called with an invalid parameter. */
-	M_STATE_MACHINE_STATUS_ERROR_BAD_ID,    /*!< Invalid transition specified. Id not found. Most likely the state
-	                                             specified an id to transition to that doesn't exist. */
-	M_STATE_MACHINE_STATUS_ERROR_NO_NEXT,   /*!< Invalid transition specified. An next id was not specified. This can
-	                                             happen when running in a linear manner and the last state in the
-	                                             sequence does not return done. There are no states after the last
-	                                             state so we cannot continue with the sequence. */
-	M_STATE_MACHINE_STATUS_ERROR_BAD_NEXT,  /*!< Invalid transition specified. The specified next id is not valid (not
-	                                             listed in the states list of next ids) for the state. */
-	M_STATE_MACHINE_STATUS_ERROR_SELF_NEXT, /*!< Invalid transition specified. The specified next id is the current id.
-	                                             Use the continue_loop flag to disable this check. */
-	M_STATE_MACHINE_STATUS_ERROR_NO_PREV,   /*!< Invalid transition specified. There are no previous states to
-	                                             transition to. */
-	M_STATE_MACHINE_STATUS_ERROR_INF_CONT   /*!< A possible infinite continuation loop has been encountered. */
+    /* State machine specific status. Only the state machine can return these. */
+    M_STATE_MACHINE_STATUS_STOP_CLEANUP,     /*< Used by cleanup state machines to stop processing further cleanup
+                                                 state machines within a state machine. */
+    /* All of these are unrecoverable errors. */
+    M_STATE_MACHINE_STATUS_ERROR_INVALID,   /*!< The state machine was called with an invalid parameter. */
+    M_STATE_MACHINE_STATUS_ERROR_BAD_ID,    /*!< Invalid transition specified. Id not found. Most likely the state
+                                                 specified an id to transition to that doesn't exist. */
+    M_STATE_MACHINE_STATUS_ERROR_NO_NEXT,   /*!< Invalid transition specified. An next id was not specified. This can
+                                                 happen when running in a linear manner and the last state in the
+                                                 sequence does not return done. There are no states after the last
+                                                 state so we cannot continue with the sequence. */
+    M_STATE_MACHINE_STATUS_ERROR_BAD_NEXT,  /*!< Invalid transition specified. The specified next id is not valid (not
+                                                 listed in the states list of next ids) for the state. */
+    M_STATE_MACHINE_STATUS_ERROR_SELF_NEXT, /*!< Invalid transition specified. The specified next id is the current id.
+                                                 Use the continue_loop flag to disable this check. */
+    M_STATE_MACHINE_STATUS_ERROR_NO_PREV,   /*!< Invalid transition specified. There are no previous states to
+                                                 transition to. */
+    M_STATE_MACHINE_STATUS_ERROR_INF_CONT   /*!< A possible infinite continuation loop has been encountered. */
 } M_state_machine_status_t;
 
 
 /*! Options to control the behavior of the state machine. */
 typedef enum {
-	M_STATE_MACHINE_NONE          = 0,      /*!< Normal operation. */
-	M_STATE_MACHINE_SINGLE_PREV   = 1 << 1, /*!< Do not allow multiple states to return STATUS_PREV in a row.
-	                                             Only one PREV return is allowed between NEXT calls. */
-	M_STATE_MACHINE_CONTINUE_LOOP = 1 << 2, /*!< Normally continuations are tracked for the continuation cycle
-	                                             and any continuation that is repeated is treated as an internal
-	                                             error in order to detect and prevent accidental infinite loops.
+    M_STATE_MACHINE_NONE          = 0,      /*!< Normal operation. */
+    M_STATE_MACHINE_SINGLE_PREV   = 1 << 1, /*!< Do not allow multiple states to return STATUS_PREV in a row.
+                                                 Only one PREV return is allowed between NEXT calls. */
+    M_STATE_MACHINE_CONTINUE_LOOP = 1 << 2, /*!< Normally continuations are tracked for the continuation cycle
+                                                 and any continuation that is repeated is treated as an internal
+                                                 error in order to detect and prevent accidental infinite loops.
 
-	                                             This option disables this check and allows continuations to call
-	                                             continuations that have been called previously. */
-	M_STATE_MACHINE_SELF_CALL     = 1 << 3, /*!< Normally states cannot call themselves. This flag also
-	                                             allows states to call themselves. */
-	M_STATE_MACHINE_DONE_CLEANUP  = 1 << 4, /*!< State cleanups should be called on done. */
-	M_STATE_MACHINE_ONE_CLEANUP   = 1 << 5, /*!< State cleanup should be called once no matter how many times the
-	                                             state was called. */
-	M_STATE_MACHINE_EXPLICIT_NEXT = 1 << 6, /*!< Normally the state machine defaults to using the next state in
-	                                             the order states were added if a state isn't explicits specified
-	                                             by the current state. This requires that a state specify the next
-	                                             (transition) state.
+                                                 This option disables this check and allows continuations to call
+                                                 continuations that have been called previously. */
+    M_STATE_MACHINE_SELF_CALL     = 1 << 3, /*!< Normally states cannot call themselves. This flag also
+                                                 allows states to call themselves. */
+    M_STATE_MACHINE_DONE_CLEANUP  = 1 << 4, /*!< State cleanups should be called on done. */
+    M_STATE_MACHINE_ONE_CLEANUP   = 1 << 5, /*!< State cleanup should be called once no matter how many times the
+                                                 state was called. */
+    M_STATE_MACHINE_EXPLICIT_NEXT = 1 << 6, /*!< Normally the state machine defaults to using the next state in
+                                                 the order states were added if a state isn't explicits specified
+                                                 by the current state. This requires that a state specify the next
+                                                 (transition) state.
 
-	                                             This will force the state machine to function purely as a non-linear
-	                                             state machine. The linear / linear hybrid functionality will be
-	                                             disabled. This option cannot be used in conjunction with linear_end.
-	                                             The linear_end flag will be ignored if this flag is set. */
-	M_STATE_MACHINE_LINEAR_END    = 1 << 7, /*!< Normally a state machine is done when the done status is returned
-	                                             by a state. This allows the state machine to be considered done if
-	                                             a state does not specify a transition, it returns next or continue
-	                                             and the current state is the last state in the ordered state list. */
-	M_STATE_MACHINE_INTERNOABORT  = 1 << 8  /*!< Interleaved sub state machines should continue processing until done
-	                                             even when another sub state machine errors. Prevents aborting other
-	                                             interleaved sub state machines from aborting. An error will still
-	                                             be returned as the result of the interleaved state (sent to the post
-	                                             callback) but only after all sub state machines have finished. If
-	                                             multiple sub state machines failed, the error status for the first
-	                                             added will be used. */
+                                                 This will force the state machine to function purely as a non-linear
+                                                 state machine. The linear / linear hybrid functionality will be
+                                                 disabled. This option cannot be used in conjunction with linear_end.
+                                                 The linear_end flag will be ignored if this flag is set. */
+    M_STATE_MACHINE_LINEAR_END    = 1 << 7, /*!< Normally a state machine is done when the done status is returned
+                                                 by a state. This allows the state machine to be considered done if
+                                                 a state does not specify a transition, it returns next or continue
+                                                 and the current state is the last state in the ordered state list. */
+    M_STATE_MACHINE_INTERNOABORT  = 1 << 8  /*!< Interleaved sub state machines should continue processing until done
+                                                 even when another sub state machine errors. Prevents aborting other
+                                                 interleaved sub state machines from aborting. An error will still
+                                                 be returned as the result of the interleaved state (sent to the post
+                                                 callback) but only after all sub state machines have finished. If
+                                                 multiple sub state machines failed, the error status for the first
+                                                 added will be used. */
 } M_state_machine_flags_t;
 
 
 /*! Status of the state machine which caused the cleanup routines to trigger. */
 typedef enum {
-	M_STATE_MACHINE_CLEANUP_REASON_NONE = 0, /*!< Cleanup should not be run. When calling reset this will not run
-	                                              cleanup. */
-	M_STATE_MACHINE_CLEANUP_REASON_DONE,     /*!< State machine finished successfully. */
-	M_STATE_MACHINE_CLEANUP_REASON_ERROR,    /*!< State machine stopped due to error. */
-	M_STATE_MACHINE_CLEANUP_REASON_RESET,    /*!< State machine should be reset so it can run again. This is a reason
-	                                              why cleanup is being run. */
-	M_STATE_MACHINE_CLEANUP_REASON_CANCEL    /*!< State machine was canceled. This will reset the machine so it can
-	                                              run again but should be considered that it will not be run again.
-	                                              Use reset for restarting instead. */
+    M_STATE_MACHINE_CLEANUP_REASON_NONE = 0, /*!< Cleanup should not be run. When calling reset this will not run
+                                                  cleanup. */
+    M_STATE_MACHINE_CLEANUP_REASON_DONE,     /*!< State machine finished successfully. */
+    M_STATE_MACHINE_CLEANUP_REASON_ERROR,    /*!< State machine stopped due to error. */
+    M_STATE_MACHINE_CLEANUP_REASON_RESET,    /*!< State machine should be reset so it can run again. This is a reason
+                                                  why cleanup is being run. */
+    M_STATE_MACHINE_CLEANUP_REASON_CANCEL    /*!< State machine was canceled. This will reset the machine so it can
+                                                  run again but should be considered that it will not be run again.
+                                                  Use reset for restarting instead. */
 } M_state_machine_cleanup_reason_t;
 
 
 /*! Tracing information. */
 typedef enum {
-	M_STATE_MACHINE_TRACE_NONE = 0,     /*!< Invalid. */
-	M_STATE_MACHINE_TRACE_MACHINEENTER, /*!< About to enter a given state machine (could be sub)
-	                                         Will provide the following information:
-											 * mndescr
-	                                         * mdescr
-	                                         * fdescr */
-	M_STATE_MACHINE_TRACE_MACHINEEXIT,  /*!< Machine exited.
-	                                         Will provide the following information:
-											 * mndescr
-	                                         * mdescr
-	                                         * fdescr
-	                                         * status */
-	M_STATE_MACHINE_TRACE_STATE_START,  /*!< State is about to run.
-	                                         Will provide the following information:
-											 * mndescr
-	                                         * mdescr
-											 * sndescr
-											 * sdescr
-	                                         * fdescr
-	                                         * id
-	                                         */
-	M_STATE_MACHINE_TRACE_STATE_FINISH, /*!< State finished running.
-	                                         Will provide the following information:
-											 * mndescr
-	                                         * mdescr
-											 * sndescr
-											 * sdescr
-	                                         * fdescr
-	                                         * id
-	                                         * next_id
-	                                         * status */
-	M_STATE_MACHINE_TRACE_PRE_START,    /*!< Pre function will run before entering a sub machine.
-	                                         Will provide the following information:
-											 * mndescr
-	                                         * mdescr
-											 * sndescr
-											 * sdescr
-	                                         * fdescr
-	                                         * id
-	                                         */
-	M_STATE_MACHINE_TRACE_PRE_FINISH,   /*!< Pre functoin finished running.
-	                                         Will provide the following information:
-											 * mndescr
-	                                         * mdescr
-											 * sndescr
-											 * sdescr
-	                                         * fdescr
-	                                         * id
-	                                         * run_sub
-	                                         * status */
-	M_STATE_MACHINE_TRACE_POST_START,   /*!< Sub machine finished but before post function runs.
-	                                         Will provide the following information:
-											 * mndescr
-	                                         * mdescr
-											 * sndescr
-											 * sdescr
-	                                         * fdescr
-	                                         * id */
-	M_STATE_MACHINE_TRACE_POST_FINISH,  /*!< Sub machine finished running but after post function ran.
-	                                         Will provide the following information:
-											 * mndescr
-	                                         * mdescr
-											 * sndescr
-											 * sdescr
-	                                         * fdescr
-	                                         * id
-	                                         * status */
-	M_STATE_MACHINE_TRACE_CLEANUP       /*!< Cleanup function ran.
-	                                         Will provide the following information:
-											 * mndescr
-	                                         * mdescr
-											 * sndescr
-											 * sdescr */
+    M_STATE_MACHINE_TRACE_NONE = 0,     /*!< Invalid. */
+    M_STATE_MACHINE_TRACE_MACHINEENTER, /*!< About to enter a given state machine (could be sub)
+                                             Will provide the following information:
+                                             * mndescr
+                                             * mdescr
+                                             * fdescr */
+    M_STATE_MACHINE_TRACE_MACHINEEXIT,  /*!< Machine exited.
+                                             Will provide the following information:
+                                             * mndescr
+                                             * mdescr
+                                             * fdescr
+                                             * status */
+    M_STATE_MACHINE_TRACE_STATE_START,  /*!< State is about to run.
+                                             Will provide the following information:
+                                             * mndescr
+                                             * mdescr
+                                             * sndescr
+                                             * sdescr
+                                             * fdescr
+                                             * id
+                                             */
+    M_STATE_MACHINE_TRACE_STATE_FINISH, /*!< State finished running.
+                                             Will provide the following information:
+                                             * mndescr
+                                             * mdescr
+                                             * sndescr
+                                             * sdescr
+                                             * fdescr
+                                             * id
+                                             * next_id
+                                             * status */
+    M_STATE_MACHINE_TRACE_PRE_START,    /*!< Pre function will run before entering a sub machine.
+                                             Will provide the following information:
+                                             * mndescr
+                                             * mdescr
+                                             * sndescr
+                                             * sdescr
+                                             * fdescr
+                                             * id
+                                             */
+    M_STATE_MACHINE_TRACE_PRE_FINISH,   /*!< Pre functoin finished running.
+                                             Will provide the following information:
+                                             * mndescr
+                                             * mdescr
+                                             * sndescr
+                                             * sdescr
+                                             * fdescr
+                                             * id
+                                             * run_sub
+                                             * status */
+    M_STATE_MACHINE_TRACE_POST_START,   /*!< Sub machine finished but before post function runs.
+                                             Will provide the following information:
+                                             * mndescr
+                                             * mdescr
+                                             * sndescr
+                                             * sdescr
+                                             * fdescr
+                                             * id */
+    M_STATE_MACHINE_TRACE_POST_FINISH,  /*!< Sub machine finished running but after post function ran.
+                                             Will provide the following information:
+                                             * mndescr
+                                             * mdescr
+                                             * sndescr
+                                             * sdescr
+                                             * fdescr
+                                             * id
+                                             * status */
+    M_STATE_MACHINE_TRACE_CLEANUP       /*!< Cleanup function ran.
+                                             Will provide the following information:
+                                             * mndescr
+                                             * mdescr
+                                             * sndescr
+                                             * sdescr */
 } M_state_machine_trace_t;
 
 

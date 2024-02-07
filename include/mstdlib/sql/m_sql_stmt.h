@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -52,13 +52,13 @@ typedef struct M_sql_stmt M_sql_stmt_t;
  *  Use the \link m_sql_stmt_bind M_sql_stmt_bind_*() \endlink series of functions to bind data to the statement handle
  *  matching the number of bound parameters referenced in the query.  When binding parameters,
  *  they must be bound in order of appearance in the query.
- * 
+ *
  *  \return Initialized #M_sql_stmt_t object
  */
 M_API M_sql_stmt_t *M_sql_stmt_create(void);
 
-/*! Destroy a prepared statement object 
- * 
+/*! Destroy a prepared statement object
+ *
  *  \param[in] stmt Initialized #M_sql_stmt_t object
  */
 M_API void M_sql_stmt_destroy(M_sql_stmt_t *stmt);
@@ -111,9 +111,9 @@ M_API M_sql_error_t M_sql_stmt_prepare_buf(M_sql_stmt_t *stmt, M_buf_t *query);
  *  efficient to group them together which could result in a single round trip and
  *  transaction instead of dozens or even hundreds.
  *
- *  This implementation will generate a hashtable entry in the pool with the query 
+ *  This implementation will generate a hashtable entry in the pool with the query
  *  as the key and the statement handle as the value.  If the entry already exists,
- *  it will use the existing statement handle and simply prepare it to take a 
+ *  it will use the existing statement handle and simply prepare it to take a
  *  new row then once M_sql_stmt_execute() is called, it wait on a thread conditional
  *  rather than trying to directly execute the statement, which will wake when a
  *  result is ready.  If the entry is not already in the hashtable, it will add
@@ -123,12 +123,12 @@ M_API M_sql_error_t M_sql_stmt_prepare_buf(M_sql_stmt_t *stmt, M_buf_t *query);
  *  is ready.
  *
  *  All threads must still call M_sql_stmt_destroy() as it becomes reference counted
- *  when this function is used.  All normal M_sql_stmt_*() functions, except 
+ *  when this function is used.  All normal M_sql_stmt_*() functions, except
  *  M_sql_stmt_prepare() and M_sql_stmt_prepare_buf() may be called.  It should be
  *  advised that M_sql_stmt_result_affected_rows() may not return an expected count
  *  since it would reflect the overall count of grouped rows.  Also, if an error
  *  such as #M_SQL_ERROR_QUERY_CONSTRAINT is returned, the error maybe for another
- *  row, so it is advisable to simply re-run the query without using 
+ *  row, so it is advisable to simply re-run the query without using
  *  M_sql_stmt_groupinsert_prepare() so you know if the record being inserted is
  *  the culprit or not.
  *
@@ -149,7 +149,7 @@ M_API M_sql_stmt_t *M_sql_stmt_groupinsert_prepare(M_sql_connpool_t *pool, const
 
 /*! Create a "grouped" SQL statement for optimizing server round-trips and commits
  *  for "like" INSERT statements using an M_buf_t as the query string.
- * 
+ *
  *  See M_sql_stmt_groupinsert_prepare() for additional information.
  *  \param[in] pool   Initialized connection pool.
  *  \param[in] query  Query string to execute
@@ -441,12 +441,12 @@ M_API M_sql_error_t M_sql_stmt_bind_binary_dup(M_sql_stmt_t *stmt, const M_uint8
 
 /*! Retrieve the number of rows affected by the executed statement.
  *
- *  Does not apply to SELECT statements, used often on UPDATE and DELETE 
+ *  Does not apply to SELECT statements, used often on UPDATE and DELETE
  *  statements to reflect how many rows were affected.
  *
  *  NOTE: On update, if updating a row in the database, and the passed in
  *  fields being updated are the same as the database already contains, depending
- *  on the backend database driver, that row may or may not be included.  
+ *  on the backend database driver, that row may or may not be included.
  *  Developers should not rely on this behavior.
  *
  * \param[in] stmt Initialized #M_sql_stmt_t object.
@@ -455,7 +455,7 @@ M_API M_sql_error_t M_sql_stmt_bind_binary_dup(M_sql_stmt_t *stmt, const M_uint8
 M_API size_t M_sql_stmt_result_affected_rows(M_sql_stmt_t *stmt);
 
 
-/*! Retrieve the number of cached rows in statement handle.   
+/*! Retrieve the number of cached rows in statement handle.
  *
  *  There may be additional rows yet to be fetched if not retrieving all rows
  *  at once.  This function will return only the number of cached rows client-side,
@@ -468,7 +468,7 @@ M_API size_t M_sql_stmt_result_affected_rows(M_sql_stmt_t *stmt);
 M_API size_t M_sql_stmt_result_num_rows(M_sql_stmt_t *stmt);
 
 
-/*! Retrieve the number of total rows that have been fetched so far.  
+/*! Retrieve the number of total rows that have been fetched so far.
  *
  *  This number may be greater than or equal to M_sql_stmt_result_num_rows()
  *  as each call to M_sql_stmt_fetch() will clear the current cached rows
@@ -480,7 +480,7 @@ M_API size_t M_sql_stmt_result_num_rows(M_sql_stmt_t *stmt);
 M_API size_t M_sql_stmt_result_total_rows(M_sql_stmt_t *stmt);
 
 
-/*! Retrieve the number of columns returned from the server in response to a query.  
+/*! Retrieve the number of columns returned from the server in response to a query.
  *
  * \param[in] stmt Initialized #M_sql_stmt_t object.
  * \return column count.

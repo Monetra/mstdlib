@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,7 +31,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_dns DNS Functions
  *  \ingroup m_io_net
- * 
+ *
  * It's intended that a single global DNS object will be created to allow for
  * caching. Aiding with caching, Happy eyeballs is used to aid in choosing the
  * best server when DNS resolves multiple addresses.
@@ -49,20 +49,20 @@ typedef struct M_dns M_dns_t;
  * connections for optimizing future connection attempts. This DNS handle will
  * be passed into functions that require DNS resolution like
  * M_io_net_client_create().
- * 
+ *
  *  It is recommended to create a single DNS resolver handle at startup and
  *  pass the same handle to all functions which need it, and destroy the handle
  *  at shutdown.
- * 
+ *
  *  \return Initialized DNS handle
  */
 M_API M_dns_t *M_dns_create(M_event_t *event);
 
 
-/*! Destroys the memory associated with a DNS handle.  
+/*! Destroys the memory associated with a DNS handle.
  *
  * DNS uses reference counters, and will delay destruction until after last consumer is destroyed.
- * 
+ *
  *  \param[in] dns Handle initialized via M_dns_create().
  *  \return M_TRUE on success, M_FALSE if handle is actively being used.
  */
@@ -87,7 +87,7 @@ M_API M_bool M_dns_set_query_timeout(M_dns_t *dns, M_uint64 timeout_ms);
 
 /*! Set the maximum amount of time a DNS query can be cached for where results are
  *  served out of the cache rather than querying a remote DNS server.
- * 
+ *
  *  \param[in] dns           Initialized DNS object
  *  \param[in] max_timeout_s Specify the maximum timeout of the cached results, even if no
  *                           DNS server is reachable.  Stale results can no longer be delivered

@@ -73,9 +73,9 @@ typedef struct M_bit_buf M_bit_buf_t;
 
 /*! Enumeration for byte-alignment padding mode for M_bit_buf_add().*/
 typedef enum {
-	M_BIT_BUF_PAD_NONE   = 0, /*!< Don't add any padding. */
-	M_BIT_BUF_PAD_BEFORE,     /*!< Pad with zero bits before new value, so that bit stream after add is byte-aligned */
-	M_BIT_BUF_PAD_AFTER       /*!< Pad with zero bits after new value, so that bit stream after add is byte-aligned */
+    M_BIT_BUF_PAD_NONE   = 0, /*!< Don't add any padding. */
+    M_BIT_BUF_PAD_BEFORE,     /*!< Pad with zero bits before new value, so that bit stream after add is byte-aligned */
+    M_BIT_BUF_PAD_AFTER       /*!< Pad with zero bits after new value, so that bit stream after add is byte-aligned */
 } M_bit_buf_pad_t;
 
 

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -93,48 +93,48 @@ typedef M_bool (*M_log_destroy_flush_blocking_cb)(void *thunk, M_bool flush, M_u
 
 
 struct M_log {
-	M_llist_t                      *modules;
-	M_async_writer_line_end_mode_t  line_end_writer_mode;
-	M_bool                          flush_on_destroy;     /* Flush message queue (if any) when destroying a module? */
-	const char                     *line_end_str;
-	char                           *time_format;          /* Will get passed to M_time_to_str(). */
-	M_hash_u64str_t                *tag_to_name;
-	M_hash_multi_t                 *name_to_tag;
-	M_thread_rwlock_t              *rwlock;               /* Lock for list of modules, and per-module settings. */
-	size_t                          max_name_width;       /* Keeps track of length of longest loaded tag name. */
-	M_bool                          pad_names;            /* If true, tag names will be padded out to constant width. */
-	M_event_t                      *event;                /* Event loop to use for event-based modules. */
-	M_bool                          suspended;
+    M_llist_t                      *modules;
+    M_async_writer_line_end_mode_t  line_end_writer_mode;
+    M_bool                          flush_on_destroy;     /* Flush message queue (if any) when destroying a module? */
+    const char                     *line_end_str;
+    char                           *time_format;          /* Will get passed to M_time_to_str(). */
+    M_hash_u64str_t                *tag_to_name;
+    M_hash_multi_t                 *name_to_tag;
+    M_thread_rwlock_t              *rwlock;               /* Lock for list of modules, and per-module settings. */
+    size_t                          max_name_width;       /* Keeps track of length of longest loaded tag name. */
+    M_bool                          pad_names;            /* If true, tag names will be padded out to constant width. */
+    M_event_t                      *event;                /* Event loop to use for event-based modules. */
+    M_bool                          suspended;
 
-	M_log_prefix_cb                 prefix_cb;
-	void                           *prefix_thunk;
-	M_log_destroy_cb                destroy_prefix_thunk_cb;
+    M_log_prefix_cb                 prefix_cb;
+    void                           *prefix_thunk;
+    M_log_destroy_cb                destroy_prefix_thunk_cb;
 } /* M_log_t */;
 
 
 struct M_log_module {
-	/* General module options (set by general option calls). */
-	M_log_filter_cb   filter_cb;
-	void             *filter_thunk;
-	M_log_destroy_cb  destroy_filter_thunk_cb;
+    /* General module options (set by general option calls). */
+    M_log_filter_cb   filter_cb;
+    void             *filter_thunk;
+    M_log_destroy_cb  destroy_filter_thunk_cb;
 
-	M_uint64          accepted_tags;
+    M_uint64          accepted_tags;
 
-	/* Module specific stuff. */
-	M_log_module_type_t              type;
-	M_bool                           flush_on_destroy;
-	void                            *module_thunk;
-	M_log_check_cb                   module_check_cb;
-	M_log_write_cb                   module_write_cb;
-	M_log_reopen_cb                  module_reopen_cb;
-	M_log_suspend_cb                 module_suspend_cb;
-	M_log_resume_cb                  module_resume_cb;
-	M_log_emergency_cb               module_emergency_cb;
-	M_log_destroy_flush_cb           destroy_module_thunk_cb;
-	M_log_destroy_flush_blocking_cb  destroy_module_thunk_blocking_cb;
+    /* Module specific stuff. */
+    M_log_module_type_t              type;
+    M_bool                           flush_on_destroy;
+    void                            *module_thunk;
+    M_log_check_cb                   module_check_cb;
+    M_log_write_cb                   module_write_cb;
+    M_log_reopen_cb                  module_reopen_cb;
+    M_log_suspend_cb                 module_suspend_cb;
+    M_log_resume_cb                  module_resume_cb;
+    M_log_emergency_cb               module_emergency_cb;
+    M_log_destroy_flush_cb           destroy_module_thunk_cb;
+    M_log_destroy_flush_blocking_cb  destroy_module_thunk_blocking_cb;
 
-	M_log_expire_cb                  module_expire_cb;
-	void                            *module_expire_thunk; /* Not owned by module. */
+    M_log_expire_cb                  module_expire_cb;
+    void                            *module_expire_thunk; /* Not owned by module. */
 
 } /* M_log_module_t */;
 
@@ -161,14 +161,14 @@ void module_remove_locked(M_log_t *log, M_log_module_t *module);
  * applying commands meant for one module type to another module type.
  */
 typedef enum {
-	/* General */
-	M_LOG_CMD_SUSPEND           = 1 << 0,
-	M_LOG_CMD_RESUME            = 1 << 1,
-	/* Module-specific */
-	M_LOG_CMD_FILE_REOPEN       = 1 << 2,
-	M_LOG_CMD_FILE_ROTATE       = 1 << 3,
-	M_LOG_CMD_SYSLOG_REOPEN     = 1 << 4,
-	M_LOG_CMD_TCP_SYSLOG_REOPEN = 1 << 5
+    /* General */
+    M_LOG_CMD_SUSPEND           = 1 << 0,
+    M_LOG_CMD_RESUME            = 1 << 1,
+    /* Module-specific */
+    M_LOG_CMD_FILE_REOPEN       = 1 << 2,
+    M_LOG_CMD_FILE_ROTATE       = 1 << 3,
+    M_LOG_CMD_SYSLOG_REOPEN     = 1 << 4,
+    M_LOG_CMD_TCP_SYSLOG_REOPEN = 1 << 5
 } M_log_commands_t;
 
 

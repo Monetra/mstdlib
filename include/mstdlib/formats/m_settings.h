@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -90,22 +90,22 @@ typedef struct M_settings M_settings_t;
 
 /*! The visibility of the settings. */
 typedef enum {
-	M_SETTINGS_SCOPE_USER = 0, /*!< The settings are local to the current user.
-	                                - Windows:
-	                                  - HKEY_CURRENT_USER -- When type is registry.
-	                                  - "$HOME\Application Data\" -- Any other type.
-	                                - Apple's OS X
-	                                  - $HOME/Library/Preferences/
-	                                - Other OS (Unix/Linux):
-	                                  - $HOME/.config/ */
-	M_SETTINGS_SCOPE_SYSTEM    /*!< The settings are global or system level.
-	                                - Windows:
-	                                  - HKEY_LOCAL_MACHINE -- When type is registry.
-	                                  - Directory where the running process is located -- Any other type.
-	                                - Apple's OS X
-	                                  - /Library/Preferences/
-	                                - Other OS (Unix/Linux):
-	                                  - /etc/ */
+    M_SETTINGS_SCOPE_USER = 0, /*!< The settings are local to the current user.
+                                    - Windows:
+                                      - HKEY_CURRENT_USER -- When type is registry.
+                                      - "$HOME\Application Data\" -- Any other type.
+                                    - Apple's OS X
+                                      - $HOME/Library/Preferences/
+                                    - Other OS (Unix/Linux):
+                                      - $HOME/.config/ */
+    M_SETTINGS_SCOPE_SYSTEM    /*!< The settings are global or system level.
+                                    - Windows:
+                                      - HKEY_LOCAL_MACHINE -- When type is registry.
+                                      - Directory where the running process is located -- Any other type.
+                                    - Apple's OS X
+                                      - /Library/Preferences/
+                                    - Other OS (Unix/Linux):
+                                      - /etc/ */
 } M_settings_scope_t;
 
 
@@ -120,37 +120,37 @@ typedef enum {
  * being cross platform as well.
  * */
 typedef enum {
-	M_SETTINGS_TYPE_NATIVE = 0, /*!< The OS preferred format.
-	                                 - Windows:
-	                                   - Registry.
-	                                 - Apple's OS X
-	                                   - JSON
-	                                 - Other OS (Unix/Linux):
-	                                   - INI */
-	M_SETTINGS_TYPE_INI,        /*!< INI file. */
-	/*!< JSON file. */
-	M_SETTINGS_TYPE_JSON
+    M_SETTINGS_TYPE_NATIVE = 0, /*!< The OS preferred format.
+                                     - Windows:
+                                       - Registry.
+                                     - Apple's OS X
+                                       - JSON
+                                     - Other OS (Unix/Linux):
+                                       - INI */
+    M_SETTINGS_TYPE_INI,        /*!< INI file. */
+    /*!< JSON file. */
+    M_SETTINGS_TYPE_JSON
 #ifdef _WIN32
-	,
-	M_SETTINGS_TYPE_REGISTRY    /*!< The Windows Registry. This is only valid and available on Windows. */
+    ,
+    M_SETTINGS_TYPE_REGISTRY    /*!< The Windows Registry. This is only valid and available on Windows. */
 #endif
 } M_settings_type_t;
 
 
 /*! Access permissions for a settings. */
 typedef enum {
-	M_SETTINGS_ACCESS_NONE   = 0,      /*!< Cannot read or write. */
-	M_SETTINGS_ACCESS_EXISTS = 1 << 0, /*!< File exists. */
-	M_SETTINGS_ACCESS_READ   = 1 << 1, /*!< Can read. */
-	M_SETTINGS_ACCESS_WRITE  = 1 << 2  /*!< Can write. */
+    M_SETTINGS_ACCESS_NONE   = 0,      /*!< Cannot read or write. */
+    M_SETTINGS_ACCESS_EXISTS = 1 << 0, /*!< File exists. */
+    M_SETTINGS_ACCESS_READ   = 1 << 1, /*!< Can read. */
+    M_SETTINGS_ACCESS_WRITE  = 1 << 2  /*!< Can write. */
 } M_settings_access_t;
 
 
 /*! Flags to control the behavior of the settings reader. */
 typedef enum {
-	M_SETTINGS_READER_NONE    = 0,      /*!< Normal operation. */
-	M_SETTINGS_READER_CASECMP = 1 << 0  /*!< Key compare is case insensitive. The dictionary returned by read
-	                                         will be created with case insensitive key compare. */
+    M_SETTINGS_READER_NONE    = 0,      /*!< Normal operation. */
+    M_SETTINGS_READER_CASECMP = 1 << 0  /*!< Key compare is case insensitive. The dictionary returned by read
+                                             will be created with case insensitive key compare. */
 } M_settings_reader_flags_t;
 
 

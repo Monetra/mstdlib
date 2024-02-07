@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -50,7 +50,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_hashtable_generic Hashtable generic/base implementation
  *  \ingroup m_hashtable
- * 
+ *
  * Hashtable, meant for storing key/value pairs.
  *
  * This should not be used directly. It is a base implementation that should
@@ -74,7 +74,7 @@ __BEGIN_DECLS
  * - Qt4's hash function
  * - djb2
  *
- * Overall performance was tested. We looked at time to generate the hash, 
+ * Overall performance was tested. We looked at time to generate the hash,
  * time for insert, and lookup time. The insert and lookup are
  * specific to see how chaining due to increased collisions impacted overall
  * performance.
@@ -87,7 +87,7 @@ __BEGIN_DECLS
  * FNV1a was found to have few enough collisions to keep any chains sort and the
  * combined hash generation and chaining time (when chaining happened) was overall
  * faster than the other hash's times.
- * 
+ *
  * In order to prevent denial of service attacks by an attacker causing generation
  * of extremely large chains FNV1a was modified. A random hash seed that is unique
  * per hashtable object (each hashtable created using _create(...)) is used as
@@ -98,7 +98,7 @@ __BEGIN_DECLS
  * "In the general case, almost any offset_basis will serve so long as it is non-zero."
  * This information can also be found on Noll's website
  * http://isthe.com/chongo/tech/comp/fnv/index.html in the section,
- * "Parameters of the FNV-1/FNV-1a hash". 
+ * "Parameters of the FNV-1/FNV-1a hash".
  *
  * In our variation care has been taken to ensure the bias is never 0.
  *
@@ -126,20 +126,20 @@ typedef struct M_hashtable M_hashtable_t;
 /*! State tracking object for enumerating a Hashtable.  This is explicitly
  * not hidden so it doesn't require a malloc() */
 struct M_hashtable_enum {
-	union {
-		struct {
-			M_uint32 hash;     /*!< Hash of last processed entry */
-			size_t   chainid;  /*!< 1-based offset within linked list of clashes of last
-	                                processed entry.  This value is 1-based specifically
-	                                so when starting an enumeration, a 0,0 value would
-	                                indicate this */
-		} unordered;
-		struct {
-			M_llist_node_t *keynode; /*!< When ordered keys are in use this is the node of the key
-			                              currently being processed. */
-		} ordered;
-	} entry;
-	size_t valueidx;           /*!< When multi-value is in use which index of next value. */
+    union {
+        struct {
+            M_uint32 hash;     /*!< Hash of last processed entry */
+            size_t   chainid;  /*!< 1-based offset within linked list of clashes of last
+                                    processed entry.  This value is 1-based specifically
+                                    so when starting an enumeration, a 0,0 value would
+                                    indicate this */
+        } unordered;
+        struct {
+            M_llist_node_t *keynode; /*!< When ordered keys are in use this is the node of the key
+                                          currently being processed. */
+        } ordered;
+    } entry;
+    size_t valueidx;           /*!< When multi-value is in use which index of next value. */
 };
 typedef struct M_hashtable_enum M_hashtable_enum_t;
 
@@ -177,41 +177,41 @@ typedef void (*M_hashtable_free_func)(void *);
  * the fist few bytes of the value itself.
  */
 struct M_hashtable_callbacks {
-	M_hashtable_duplicate_func key_duplicate_insert;   /*!< Callback to duplicate a key on insert. Default if
-	                                                    *   NULL is pass-thru pointer */
-	M_hashtable_duplicate_func key_duplicate_copy;     /*!< Callback to duplicate a key on copy. Default if
-	                                                    *   NULL is pass-thru pointer */
-	M_hashtable_free_func      key_free;               /*!< Callback to free a key. Default if NULL
-	                                                    *   is no-op */
-	M_hashtable_duplicate_func value_duplicate_insert; /*!< Callback to duplicate a value on insert. Default
-	                                                    *   if NULL is pass-thru pointer */
-	M_hashtable_duplicate_func value_duplicate_copy;   /*!< Callback to duplicate a value on copy. Default
-	                                                    *   if NULL is pass-thru pointer */
-	M_sort_compar_t            value_equality;         /*!< Callback used to determine if two values are equal.
-	                                                        Primarily used for sorting muli-values stores. Default
-	                                                        is all values are equal. */
-	M_hashtable_free_func      value_free;             /*!< Callback to free a value. Default if
-	                                                    *   NULL is a no-op */
+    M_hashtable_duplicate_func key_duplicate_insert;   /*!< Callback to duplicate a key on insert. Default if
+                                                        *   NULL is pass-thru pointer */
+    M_hashtable_duplicate_func key_duplicate_copy;     /*!< Callback to duplicate a key on copy. Default if
+                                                        *   NULL is pass-thru pointer */
+    M_hashtable_free_func      key_free;               /*!< Callback to free a key. Default if NULL
+                                                        *   is no-op */
+    M_hashtable_duplicate_func value_duplicate_insert; /*!< Callback to duplicate a value on insert. Default
+                                                        *   if NULL is pass-thru pointer */
+    M_hashtable_duplicate_func value_duplicate_copy;   /*!< Callback to duplicate a value on copy. Default
+                                                        *   if NULL is pass-thru pointer */
+    M_sort_compar_t            value_equality;         /*!< Callback used to determine if two values are equal.
+                                                            Primarily used for sorting muli-values stores. Default
+                                                            is all values are equal. */
+    M_hashtable_free_func      value_free;             /*!< Callback to free a value. Default if
+                                                        *   NULL is a no-op */
 };
 
 /*! Flags for controlling the behavior of the hash */
 typedef enum {
-	M_HASHTABLE_NONE          = 0,      /*!< Case sensitive single value (new values replace). */
-	M_HASHTABLE_KEYS_ORDERED  = 1 << 0, /*!< Keys should be ordered. Default is insertion order unless the
-	                                         sorted option is specified. */
-	M_HASHTABLE_KEYS_SORTED   = 1 << 1, /*!< When the keys are ordered sort them using the key_equality function. */
-	M_HASHTABLE_MULTI_VALUE   = 1 << 2, /*!< Allow keys to contain multiple values.
-	                                          Sorted in insertion order another sorting is specified. */
-	M_HASHTABLE_MULTI_SORTED  = 1 << 3, /*!< Allow keys to contain multiple values sorted in ascending order */
-	M_HASHTABLE_MULTI_GETLAST = 1 << 4, /*!< When using the get function will get the last value from the list
-	                                         when allowing multiple values. The default is to get the first value. */
-	M_HASHTABLE_STATIC_SEED   = 1 << 5  /*!< Use a static seed for hash function initialization. This greatly reduces
-	                                         the security of the hashtable and removes collision attack protections.
-	                                         This should only be used as a performance optimization when creating
-	                                         millions of hashtables with static data specifically for quick look up.
-	                                         DO _NOT_ use this flag with any hashtable that could store user
-	                                         generated data! Be very careful about duplicating a hashtable that
-	                                         was created with this flag. All duplicates will use the static seed. */
+    M_HASHTABLE_NONE          = 0,      /*!< Case sensitive single value (new values replace). */
+    M_HASHTABLE_KEYS_ORDERED  = 1 << 0, /*!< Keys should be ordered. Default is insertion order unless the
+                                             sorted option is specified. */
+    M_HASHTABLE_KEYS_SORTED   = 1 << 1, /*!< When the keys are ordered sort them using the key_equality function. */
+    M_HASHTABLE_MULTI_VALUE   = 1 << 2, /*!< Allow keys to contain multiple values.
+                                              Sorted in insertion order another sorting is specified. */
+    M_HASHTABLE_MULTI_SORTED  = 1 << 3, /*!< Allow keys to contain multiple values sorted in ascending order */
+    M_HASHTABLE_MULTI_GETLAST = 1 << 4, /*!< When using the get function will get the last value from the list
+                                             when allowing multiple values. The default is to get the first value. */
+    M_HASHTABLE_STATIC_SEED   = 1 << 5  /*!< Use a static seed for hash function initialization. This greatly reduces
+                                             the security of the hashtable and removes collision attack protections.
+                                             This should only be used as a performance optimization when creating
+                                             millions of hashtables with static data specifically for quick look up.
+                                             DO _NOT_ use this flag with any hashtable that could store user
+                                             generated data! Be very careful about duplicating a hashtable that
+                                             was created with this flag. All duplicates will use the static seed. */
 } M_hashtable_flags_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -230,7 +230,7 @@ typedef enum {
  *                         value must be between 1 and 99 (recommended: 75).
  * \param[in] key_hash     The function to use for hashing a key.  If not specified will use
  *                         the pointer address as the key and use FNV1a.
- * \param[in] key_equality The function to use to determine if two keys are equal.  If not 
+ * \param[in] key_equality The function to use to determine if two keys are equal.  If not
  *                         specified, will compare pointer addresses.
  * \param[in] flags        M_hash_strvp_flags_t flags for modifying behavior.
  * \param[in] callbacks    Register callbacks for overriding default behavior.
@@ -240,8 +240,8 @@ typedef enum {
  * \see M_hashtable_destroy
  */
 M_API M_hashtable_t *M_hashtable_create(size_t size, M_uint8 fillpct,
-		M_hashtable_hash_func key_hash, M_sort_compar_t key_equality,
-		M_uint32 flags, const struct M_hashtable_callbacks *callbacks) M_MALLOC;
+        M_hashtable_hash_func key_hash, M_sort_compar_t key_equality,
+        M_uint32 flags, const struct M_hashtable_callbacks *callbacks) M_MALLOC;
 
 
 /*! Destroy the h.
@@ -279,7 +279,7 @@ M_API M_bool M_hashtable_insert(M_hashtable_t *h, const void *key, const void *v
 M_API M_bool M_hashtable_remove(M_hashtable_t *h, const void *key, M_bool destroy_vals);
 
 
-/*! Retrieve the value for a key from the h. 
+/*! Retrieve the value for a key from the h.
  *
  * \param[in] h      Hashtable being referenced.
  * \param[in] key    Key for value.
@@ -303,7 +303,7 @@ M_bool M_hashtable_is_multi(const M_hashtable_t *h);
 /*! Get the number of values for a given key.
  *
  * \param[in]  h   Hashtable being referenced.
- * \param[in]  key Key for value to retrieve. 
+ * \param[in]  key Key for value to retrieve.
  * \param[out] len The number of values.
  *
  * \return M_TRUE if length is retrieved, M_FALSE if key does not exist.

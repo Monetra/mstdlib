@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -50,62 +50,62 @@ __BEGIN_DECLS
 
 struct M_fs_file {
 #ifdef _WIN32
-	HANDLE    fd;
+    HANDLE    fd;
 #else
-	int       fd;
+    int       fd;
 #endif
-	size_t    buf_size;   /* Configured buffer size for buffered read/write */
-	M_buf_t  *read_buf;   /* Read buffer. Store read ahead data. */
-	M_buf_t  *write_buf;  /* Write buffer. Store data to be written which will be written at a later time as
-	                         one large block instead of many small ones. */
-	M_int64  read_offset; /* Read offset from where the caller expects a read to have put the location vs where
-	                         it really is. Read buffering will read more than requested and advance in the file
-	                         further than expected. This is used to move the offset back to the correct location
-	                         for seek and write operations. */
+    size_t    buf_size;   /* Configured buffer size for buffered read/write */
+    M_buf_t  *read_buf;   /* Read buffer. Store read ahead data. */
+    M_buf_t  *write_buf;  /* Write buffer. Store data to be written which will be written at a later time as
+                             one large block instead of many small ones. */
+    M_int64  read_offset; /* Read offset from where the caller expects a read to have put the location vs where
+                             it really is. Read buffering will read more than requested and advance in the file
+                             further than expected. This is used to move the offset back to the correct location
+                             for seek and write operations. */
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Perms */
 
 struct M_fs_perms {
-	/* user and group. If these are NULL then they were not set. */
-	char           *user;
-	char           *group;
+    /* user and group. If these are NULL then they were not set. */
+    char           *user;
+    char           *group;
 
-	/* Cache the system specific values so we don't have to do multiple lookups.
- 	 * This also means we can verify the account info when set instead of when
-	 * trying to write the perms to the file. */
+    /* Cache the system specific values so we don't have to do multiple lookups.
+     * This also means we can verify the account info when set instead of when
+     * trying to write the perms to the file. */
 #ifdef _WIN32
-	SID             user_sid[UNLEN+1];
-	SID             group_sid[UNLEN+1];
-	/* This will be set to UNLEN+1 in M_fs_perms_create. */
-	DWORD           sid_len;
+    SID             user_sid[UNLEN+1];
+    SID             group_sid[UNLEN+1];
+    /* This will be set to UNLEN+1 in M_fs_perms_create. */
+    DWORD           sid_len;
 #else
-	uid_t           uid;
-	gid_t           gid;
+    uid_t           uid;
+    gid_t           gid;
 #endif
 
-	/* user/group/other permissions */
-	M_bool            user_set;
-	M_fs_perms_mode_t user_mode;
-	M_fs_perms_type_t user_type;
-	M_bool            group_set;
-	M_fs_perms_mode_t group_mode;
-	M_fs_perms_type_t group_type;
-	M_bool            other_set;
-	M_fs_perms_mode_t other_mode;
-	M_fs_perms_type_t other_type;
+    /* user/group/other permissions */
+    M_bool            user_set;
+    M_fs_perms_mode_t user_mode;
+    M_fs_perms_type_t user_type;
+    M_bool            group_set;
+    M_fs_perms_mode_t group_mode;
+    M_fs_perms_type_t group_type;
+    M_bool            other_set;
+    M_fs_perms_mode_t other_mode;
+    M_fs_perms_type_t other_type;
 
-	/* directory override user/group/other permissions */
-	M_bool            dir_user_set;
-	M_fs_perms_mode_t dir_user_mode;
-	M_fs_perms_type_t dir_user_type;
-	M_bool            dir_group_set;
-	M_fs_perms_mode_t dir_group_mode;
-	M_fs_perms_type_t dir_group_type;
-	M_bool            dir_other_set;
-	M_fs_perms_mode_t dir_other_mode;
-	M_fs_perms_type_t dir_other_type;
+    /* directory override user/group/other permissions */
+    M_bool            dir_user_set;
+    M_fs_perms_mode_t dir_user_mode;
+    M_fs_perms_type_t dir_user_type;
+    M_bool            dir_group_set;
+    M_fs_perms_mode_t dir_group_mode;
+    M_fs_perms_type_t dir_group_type;
+    M_bool            dir_other_set;
+    M_fs_perms_mode_t dir_other_mode;
+    M_fs_perms_type_t dir_other_type;
 };
 
 

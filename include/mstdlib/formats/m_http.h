@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2018 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -82,78 +82,78 @@ __BEGIN_DECLS
  * IP before forwarding the message.
  */
 typedef enum {
-	M_HTTP_ERROR_SUCCESS = 0,                /*!< Success. Data fully parsed and all data is present. */
-	M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE,      /*!< Success but more data possible. No content length was sent or chunking was used. The only way to know all data was received is by a disconnect. */
-	M_HTTP_ERROR_MOREDATA,                   /*!< Incomplete message, more data required. Not necessarily an error if parsing as data is streaming. */
-	M_HTTP_ERROR_STOP,                       /*!< Stop processing (Used by callback functions to indicate non-error but stop processing). */
-	M_HTTP_ERROR_INVALIDUSE,                 /*!< Invalid use. */
-	M_HTTP_ERROR_LENGTH_REQUIRED,            /*!< Content-Length is required but not provided. 411 code. */
-	M_HTTP_ERROR_CHUNK_EXTENSION_NOTALLOWED, /*!< Chunk extensions are present but not allowed. */
-	M_HTTP_ERROR_TRAILER_NOTALLOWED,         /*!< Chunk trailer present but not allowed. */
-	M_HTTP_ERROR_URI,                        /*!< Invalid URI. 400 code. */
-	M_HTTP_ERROR_STARTLINE_LENGTH,           /*!< Start line exceed maximum length (6k limit). 414 code. */
-	M_HTTP_ERROR_STARTLINE_MALFORMED,        /*!< Start line is malformed. 400 code. */
-	M_HTTP_ERROR_UNKNOWN_VERSION,            /*!< Unknown or unsupported HTTP version. */
-	M_HTTP_ERROR_REQUEST_METHOD,             /*!< Invalid request method. 501 code. */
-	M_HTTP_ERROR_HEADER_LENGTH,              /*!< Header exceeds maximum length (8k limit). 413 code. */
-	M_HTTP_ERROR_HEADER_FOLD,                /*!< Header folded. Folding is deprecated and should not be used. 400/502 code. */
-	M_HTTP_ERROR_HEADER_INVALID,             /*!< Header is malformed. 400 code. */
-	M_HTTP_ERROR_HEADER_DUPLICATE,           /*!< Duplicate header present. 400 code. */
-	M_HTTP_ERROR_CHUNK_STARTLINE_LENGTH,     /*!< Chunk start line exceed maximum length (6k limit). 414 code. */
-	M_HTTP_ERROR_CHUNK_LENGTH,               /*!< Failed to parse chunk length. */
-	M_HTTP_ERROR_CHUNK_MALFORMED,            /*!< Chunk is malformed. */ 
-	M_HTTP_ERROR_CHUNK_EXTENSION,            /*!< Chunk extensions present but malformed. */
-	M_HTTP_ERROR_CHUNK_DATA_MALFORMED,       /*!< Chunk data malformed. */
-	M_HTTP_ERROR_CONTENT_LENGTH_MALFORMED,   /*!< Content-Length present but malformed. */
-	M_HTTP_ERROR_NOT_HTTP,                   /*!< Not an HTTP message. */
-	M_HTTP_ERROR_MULTIPART_NOBOUNDARY,       /*!< Multipart message missing boundary. */
-	M_HTTP_ERROR_MULTIPART_MISSING,          /*!< Multipart message but multipart missing. */
-	M_HTTP_ERROR_MULTIPART_MISSING_DATA,     /*!< Multipart data missing. */
-	M_HTTP_ERROR_MULTIPART_INVALID,          /*!< Multipart is invalid. */
-	M_HTTP_ERROR_UNSUPPORTED_DATA,           /*!< Data received is unsupported. */
-	M_HTTP_ERROR_TEXTCODEC_FAILURE,          /*!< Text decode failure. */
-	M_HTTP_ERROR_USER_FAILURE                /*!< Generic callback generated failure. */
+    M_HTTP_ERROR_SUCCESS = 0,                /*!< Success. Data fully parsed and all data is present. */
+    M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE,      /*!< Success but more data possible. No content length was sent or chunking was used. The only way to know all data was received is by a disconnect. */
+    M_HTTP_ERROR_MOREDATA,                   /*!< Incomplete message, more data required. Not necessarily an error if parsing as data is streaming. */
+    M_HTTP_ERROR_STOP,                       /*!< Stop processing (Used by callback functions to indicate non-error but stop processing). */
+    M_HTTP_ERROR_INVALIDUSE,                 /*!< Invalid use. */
+    M_HTTP_ERROR_LENGTH_REQUIRED,            /*!< Content-Length is required but not provided. 411 code. */
+    M_HTTP_ERROR_CHUNK_EXTENSION_NOTALLOWED, /*!< Chunk extensions are present but not allowed. */
+    M_HTTP_ERROR_TRAILER_NOTALLOWED,         /*!< Chunk trailer present but not allowed. */
+    M_HTTP_ERROR_URI,                        /*!< Invalid URI. 400 code. */
+    M_HTTP_ERROR_STARTLINE_LENGTH,           /*!< Start line exceed maximum length (6k limit). 414 code. */
+    M_HTTP_ERROR_STARTLINE_MALFORMED,        /*!< Start line is malformed. 400 code. */
+    M_HTTP_ERROR_UNKNOWN_VERSION,            /*!< Unknown or unsupported HTTP version. */
+    M_HTTP_ERROR_REQUEST_METHOD,             /*!< Invalid request method. 501 code. */
+    M_HTTP_ERROR_HEADER_LENGTH,              /*!< Header exceeds maximum length (8k limit). 413 code. */
+    M_HTTP_ERROR_HEADER_FOLD,                /*!< Header folded. Folding is deprecated and should not be used. 400/502 code. */
+    M_HTTP_ERROR_HEADER_INVALID,             /*!< Header is malformed. 400 code. */
+    M_HTTP_ERROR_HEADER_DUPLICATE,           /*!< Duplicate header present. 400 code. */
+    M_HTTP_ERROR_CHUNK_STARTLINE_LENGTH,     /*!< Chunk start line exceed maximum length (6k limit). 414 code. */
+    M_HTTP_ERROR_CHUNK_LENGTH,               /*!< Failed to parse chunk length. */
+    M_HTTP_ERROR_CHUNK_MALFORMED,            /*!< Chunk is malformed. */
+    M_HTTP_ERROR_CHUNK_EXTENSION,            /*!< Chunk extensions present but malformed. */
+    M_HTTP_ERROR_CHUNK_DATA_MALFORMED,       /*!< Chunk data malformed. */
+    M_HTTP_ERROR_CONTENT_LENGTH_MALFORMED,   /*!< Content-Length present but malformed. */
+    M_HTTP_ERROR_NOT_HTTP,                   /*!< Not an HTTP message. */
+    M_HTTP_ERROR_MULTIPART_NOBOUNDARY,       /*!< Multipart message missing boundary. */
+    M_HTTP_ERROR_MULTIPART_MISSING,          /*!< Multipart message but multipart missing. */
+    M_HTTP_ERROR_MULTIPART_MISSING_DATA,     /*!< Multipart data missing. */
+    M_HTTP_ERROR_MULTIPART_INVALID,          /*!< Multipart is invalid. */
+    M_HTTP_ERROR_UNSUPPORTED_DATA,           /*!< Data received is unsupported. */
+    M_HTTP_ERROR_TEXTCODEC_FAILURE,          /*!< Text decode failure. */
+    M_HTTP_ERROR_USER_FAILURE                /*!< Generic callback generated failure. */
 } M_http_error_t;
 
 
 /*! Message type. */
 typedef enum {
-	M_HTTP_MESSAGE_TYPE_UNKNOWN = 0, /*!< Unknown message type. */
-	M_HTTP_MESSAGE_TYPE_REQUEST,     /*!< Request message. */
-	M_HTTP_MESSAGE_TYPE_RESPONSE     /*!< Response message. */
+    M_HTTP_MESSAGE_TYPE_UNKNOWN = 0, /*!< Unknown message type. */
+    M_HTTP_MESSAGE_TYPE_REQUEST,     /*!< Request message. */
+    M_HTTP_MESSAGE_TYPE_RESPONSE     /*!< Response message. */
 } M_http_message_type_t;
 
 
 /*! HTTP version in use. */
 typedef enum {
-	M_HTTP_VERSION_UNKNOWN = 0, /*!< Unknown. */
-	M_HTTP_VERSION_1_0,         /*!< 1.0 */
-	M_HTTP_VERSION_1_1,         /*!< 1.1 */
+    M_HTTP_VERSION_UNKNOWN = 0, /*!< Unknown. */
+    M_HTTP_VERSION_1_0,         /*!< 1.0 */
+    M_HTTP_VERSION_1_1,         /*!< 1.1 */
 } M_http_version_t;
 
 
 /*! HTTP methods. */
 typedef enum {
-	M_HTTP_METHOD_UNKNOWN = 0, /*!< Unknown method (null value). */
-	M_HTTP_METHOD_OPTIONS,     /*!< Options. */
-	M_HTTP_METHOD_GET,         /*!< Get. */
-	M_HTTP_METHOD_HEAD,        /*!< Head. */
-	M_HTTP_METHOD_POST,        /*!< Post. */
-	M_HTTP_METHOD_PUT,         /*!< Put. */
-	M_HTTP_METHOD_DELETE,      /*!< Delete. */
-	M_HTTP_METHOD_TRACE,       /*!< Trace. */
-	M_HTTP_METHOD_CONNECT,     /*!< Connect. */
-	M_HTTP_METHOD_PATCH        /*!< Patch. */
+    M_HTTP_METHOD_UNKNOWN = 0, /*!< Unknown method (null value). */
+    M_HTTP_METHOD_OPTIONS,     /*!< Options. */
+    M_HTTP_METHOD_GET,         /*!< Get. */
+    M_HTTP_METHOD_HEAD,        /*!< Head. */
+    M_HTTP_METHOD_POST,        /*!< Post. */
+    M_HTTP_METHOD_PUT,         /*!< Put. */
+    M_HTTP_METHOD_DELETE,      /*!< Delete. */
+    M_HTTP_METHOD_TRACE,       /*!< Trace. */
+    M_HTTP_METHOD_CONNECT,     /*!< Connect. */
+    M_HTTP_METHOD_PATCH        /*!< Patch. */
 } M_http_method_t;
 
 
 /*! HTTP Content type. */
 typedef enum {
-	M_HTTP_DATA_FORMAT_UNKNOWN = 0, /*! Could not determine the format of the data. */
-	M_HTTP_DATA_FORMAT_NONE,        /*!< There is no data, Content-Length = 0. */
-	M_HTTP_DATA_FORMAT_BODY,        /*!< Body. */
-	M_HTTP_DATA_FORMAT_CHUNKED,     /*!< Data is chunked. */
-	M_HTTP_DATA_FORMAT_MULTIPART    /*!< Data is multipart. */
+    M_HTTP_DATA_FORMAT_UNKNOWN = 0, /*! Could not determine the format of the data. */
+    M_HTTP_DATA_FORMAT_NONE,        /*!< There is no data, Content-Length = 0. */
+    M_HTTP_DATA_FORMAT_BODY,        /*!< Body. */
+    M_HTTP_DATA_FORMAT_CHUNKED,     /*!< Data is chunked. */
+    M_HTTP_DATA_FORMAT_MULTIPART    /*!< Data is multipart. */
 } M_http_data_format_t;
 
 
@@ -658,37 +658,37 @@ typedef M_http_error_t (*M_http_reader_trailer_done_func)(void *thunk);
 
 /*! Flags controlling reader behavior. */
 typedef enum {
-	M_HTTP_READER_NONE = 0,  /*!< Default operation. */
-	M_HTTP_READER_SKIP_START /*!< Skip parsing start line. Data starts with headers. */
+    M_HTTP_READER_NONE = 0,  /*!< Default operation. */
+    M_HTTP_READER_SKIP_START /*!< Skip parsing start line. Data starts with headers. */
 } M_http_reader_flags_t;
 
 
 /*! Callbacks for various stages of parsing. */
 struct M_http_reader_callbacks {
-	M_http_reader_start_func                   start_func;
-	M_http_reader_header_full_func             header_full_func;
-	M_http_reader_header_func                  header_func;
-	M_http_reader_header_done_func             header_done_func;
-	M_http_reader_body_func                    body_func;
-	M_http_reader_body_done_func               body_done_func;
-	M_http_reader_chunk_extensions_func        chunk_extensions_func;
-	M_http_reader_chunk_extensions_done_func   chunk_extensions_done_func;
-	M_http_reader_chunk_data_func              chunk_data_func;
-	M_http_reader_chunk_data_done_func         chunk_data_done_func;
-	M_http_reader_chunk_data_finished_func     chunk_data_finished_func;
-	M_http_reader_multipart_preamble_func      multipart_preamble_func;
-	M_http_reader_multipart_preamble_done_func multipart_preamble_done_func;
-	M_http_reader_multipart_header_full_func   multipart_header_full_func;
-	M_http_reader_multipart_header_func        multipart_header_func;
-	M_http_reader_multipart_header_done_func   multipart_header_done_func;
-	M_http_reader_multipart_data_func          multipart_data_func;
-	M_http_reader_multipart_data_done_func     multipart_data_done_func;
-	M_http_reader_multipart_data_finished_func multipart_data_finished_func;
-	M_http_reader_multipart_epilouge_func      multipart_epilouge_func;
-	M_http_reader_multipart_epilouge_done_func multipart_epilouge_done_func;
-	M_http_reader_trailer_full_func            trailer_full_func;
-	M_http_reader_trailer_func                 trailer_func;
-	M_http_reader_trailer_done_func            trailer_done_func;
+    M_http_reader_start_func                   start_func;
+    M_http_reader_header_full_func             header_full_func;
+    M_http_reader_header_func                  header_func;
+    M_http_reader_header_done_func             header_done_func;
+    M_http_reader_body_func                    body_func;
+    M_http_reader_body_done_func               body_done_func;
+    M_http_reader_chunk_extensions_func        chunk_extensions_func;
+    M_http_reader_chunk_extensions_done_func   chunk_extensions_done_func;
+    M_http_reader_chunk_data_func              chunk_data_func;
+    M_http_reader_chunk_data_done_func         chunk_data_done_func;
+    M_http_reader_chunk_data_finished_func     chunk_data_finished_func;
+    M_http_reader_multipart_preamble_func      multipart_preamble_func;
+    M_http_reader_multipart_preamble_done_func multipart_preamble_done_func;
+    M_http_reader_multipart_header_full_func   multipart_header_full_func;
+    M_http_reader_multipart_header_func        multipart_header_func;
+    M_http_reader_multipart_header_done_func   multipart_header_done_func;
+    M_http_reader_multipart_data_func          multipart_data_func;
+    M_http_reader_multipart_data_done_func     multipart_data_done_func;
+    M_http_reader_multipart_data_finished_func multipart_data_finished_func;
+    M_http_reader_multipart_epilouge_func      multipart_epilouge_func;
+    M_http_reader_multipart_epilouge_done_func multipart_epilouge_done_func;
+    M_http_reader_trailer_full_func            trailer_full_func;
+    M_http_reader_trailer_func                 trailer_func;
+    M_http_reader_trailer_done_func            trailer_done_func;
 };
 
 
@@ -758,7 +758,7 @@ M_API M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned c
  *
  * Will attempt to decode body data based on the detected charset
  * unless M_HTTP_SIMPLE_READ_NODECODE_BODY is set.
- * 
+ *
  * Use M_http_simple_read_is_body_form_data() to determine
  * which accessors to use. M_http_simple_read_codec will
  * dictated the current encoding of the body data. If
@@ -786,11 +786,11 @@ typedef struct M_http_simple_read M_http_simple_read_t;
 
 
 typedef enum {
-	M_HTTP_SIMPLE_READ_NONE = 0,
-	M_HTTP_SIMPLE_READ_NODECODE_BODY,  /*!< Do not attempt to decode the body data (from detected charset). */
-	M_HTTP_SIMPLE_READ_LEN_REQUIRED,   /*!< Require content-length, cannot be chunked data. */
-	M_HTTP_SIMPLE_READ_FAIL_EXTENSION, /*!< Fail if chunked extensions are specified. Otherwise, Ignore. */
-	M_HTTP_SIMPLE_READ_FAIL_TRAILERS   /*!< Fail if trailers sent. Otherwise, they are ignored. */
+    M_HTTP_SIMPLE_READ_NONE = 0,
+    M_HTTP_SIMPLE_READ_NODECODE_BODY,  /*!< Do not attempt to decode the body data (from detected charset). */
+    M_HTTP_SIMPLE_READ_LEN_REQUIRED,   /*!< Require content-length, cannot be chunked data. */
+    M_HTTP_SIMPLE_READ_FAIL_EXTENSION, /*!< Fail if chunked extensions are specified. Otherwise, Ignore. */
+    M_HTTP_SIMPLE_READ_FAIL_TRAILERS   /*!< Fail if trailers sent. Otherwise, they are ignored. */
 } M_http_simple_read_flags_t;
 
 
@@ -1145,7 +1145,7 @@ M_API const unsigned char *M_http_simple_read_body(const M_http_simple_read_t *s
 
 /*! Return the body of the parsed message (if any) if it was form data encoded.
  *
- * This will only be filled when the content-type is application/x-www-form-urlencoded 
+ * This will only be filled when the content-type is application/x-www-form-urlencoded
  * and there is key value pair body data. The data within the key value pairs will have
  * be represented by the codec from M_http_simple_read_codec().
  *
@@ -1257,9 +1257,9 @@ M_API const char *M_http_simple_read_charset(const M_http_simple_read_t *simple)
  * \return Allocated string containing HTTP request message. The string will be NULL terminated.
  */
 M_API unsigned char *M_http_simple_write_request(M_http_method_t method,
-	const char *host, unsigned short port, const char *uri,
-	const char *user_agent, const char *content_type, const M_hash_dict_t *headers,
-	const unsigned char *data, size_t data_len, const char *charset, size_t *len);
+    const char *host, unsigned short port, const char *uri,
+    const char *user_agent, const char *content_type, const M_hash_dict_t *headers,
+    const unsigned char *data, size_t data_len, const char *charset, size_t *len);
 
 
 /*! Create an HTTP/1.1 request message, add it to the given buffer.
@@ -1287,9 +1287,9 @@ M_API unsigned char *M_http_simple_write_request(M_http_method_t method,
  * \see M_http_simple_write_request
  */
 M_API M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t method,
-	const char *host, unsigned short port, const char *uri,
-	const char *user_agent, const char *content_type, const M_hash_dict_t *headers,
-	const unsigned char *data, size_t data_len, const char *charset);
+    const char *host, unsigned short port, const char *uri,
+    const char *user_agent, const char *content_type, const M_hash_dict_t *headers,
+    const unsigned char *data, size_t data_len, const char *charset);
 
 
 /*! Create an HTTP/1.1 response message, return as new string.
@@ -1318,8 +1318,8 @@ M_API M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t metho
  * \see M_http_simple_write_response_buf
  */
 M_API unsigned char *M_http_simple_write_response(M_uint32 code, const char *reason,
-	const char *content_type, const M_hash_dict_t *headers, const unsigned char *data, size_t data_len,
-	const char *charset, size_t *len);
+    const char *content_type, const M_hash_dict_t *headers, const unsigned char *data, size_t data_len,
+    const char *charset, size_t *len);
 
 
 /*! Create an HTTP/1.1 response message, add it to the given buffer.
@@ -1342,8 +1342,8 @@ M_API unsigned char *M_http_simple_write_response(M_uint32 code, const char *rea
  * \see M_http_simple_write_response
  */
 M_API M_bool M_http_simple_write_response_buf(M_buf_t *buf, M_uint32 code, const char *reason,
-	const char *content_type, const M_hash_dict_t *headers, const unsigned char *data, size_t data_len,
-	const char *charset);
+    const char *content_type, const M_hash_dict_t *headers, const unsigned char *data, size_t data_len,
+    const char *charset);
 
 /*! @} */
 

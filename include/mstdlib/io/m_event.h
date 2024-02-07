@@ -170,20 +170,20 @@ __BEGIN_DECLS
  * Events are enumerated in priority of delivery order
  */
 enum M_event_type {
-	M_EVENT_TYPE_CONNECTED    = 0, /*!< The connection has been completed                 */
-	M_EVENT_TYPE_ACCEPT,           /*!< A new incoming connection is ready to be accepted */
-	M_EVENT_TYPE_READ,             /*!< There is available data to be read                */
-	M_EVENT_TYPE_DISCONNECTED,     /*!< The connection has been successfully disconnected.
-	                                *    This is only triggered after a disconnect request,
-	                                *    Otherwise most failures are determined by a Read
-	                                *    event followed by a read failure.  The connection
-	                                *    object should be closed after this.              */
-	M_EVENT_TYPE_ERROR,            /*!< An error occurred.  Most likely during connection
-	                                    establishment by a higher-level protocol.  The
-	                                    connection object should be closed after this.    */
-	M_EVENT_TYPE_WRITE,            /*!< There is room available in the write buffer       */
-	M_EVENT_TYPE_OTHER             /*!< Some other event occurred, such as a triggered or
-	                                *   timer-based event                                 */
+    M_EVENT_TYPE_CONNECTED    = 0, /*!< The connection has been completed                 */
+    M_EVENT_TYPE_ACCEPT,           /*!< A new incoming connection is ready to be accepted */
+    M_EVENT_TYPE_READ,             /*!< There is available data to be read                */
+    M_EVENT_TYPE_DISCONNECTED,     /*!< The connection has been successfully disconnected.
+                                    *    This is only triggered after a disconnect request,
+                                    *    Otherwise most failures are determined by a Read
+                                    *    event followed by a read failure.  The connection
+                                    *    object should be closed after this.              */
+    M_EVENT_TYPE_ERROR,            /*!< An error occurred.  Most likely during connection
+                                        establishment by a higher-level protocol.  The
+                                        connection object should be closed after this.    */
+    M_EVENT_TYPE_WRITE,            /*!< There is room available in the write buffer       */
+    M_EVENT_TYPE_OTHER             /*!< Some other event occurred, such as a triggered or
+                                    *   timer-based event                                 */
 };
 /*! Events that can be generated. */
 typedef enum M_event_type M_event_type_t;
@@ -229,30 +229,30 @@ typedef void (*M_event_callback_t)(M_event_t *event, M_event_type_t type, M_io_t
 
 /*! Possible list of flags that can be used when initializing an event loop */
 enum M_EVENT_FLAGS {
-	M_EVENT_FLAG_NONE                 = 0,      /*!< No specialized flags */
-	M_EVENT_FLAG_NOWAKE               = 1 << 0, /*!< We will never need to wake the event loop from another thread. Not
+    M_EVENT_FLAG_NONE                 = 0,      /*!< No specialized flags */
+    M_EVENT_FLAG_NOWAKE               = 1 << 0, /*!< We will never need to wake the event loop from another thread. Not
                                                      *   recommended to use as some internal subsystems (like M_dns) may
                                                      *   need to use it without your knowledge. */
-	M_EVENT_FLAG_EXITONEMPTY          = 1 << 1, /*!< Exit the event loop when there are no registered events */
-	M_EVENT_FLAG_EXITONEMPTY_NOTIMERS = 1 << 2, /*!< When combined with M_EVENT_FLAG_EXITONEMPTY, will ignore timers */
-	M_EVENT_FLAG_NON_SCALABLE         = 1 << 3  /*!< Utilize the 'non-scalable/small' event subsystem, generally
-	                                             *   implemented using poll() instead of the more scalable solution
-	                                             *   using kqueue() or epoll().  The main reason one might want to use
-	                                             *   this is if a large number of event loops are being created such
-	                                             *   as when using the blocking APIs, using the scalable solution
-	                                             *   generally consumes additional file descriptors which may not be
-	                                             *   desirable.  Not all systems have different subsystems, in which
-	                                             *   case this flag will be ignored.
-	                                             */
+    M_EVENT_FLAG_EXITONEMPTY          = 1 << 1, /*!< Exit the event loop when there are no registered events */
+    M_EVENT_FLAG_EXITONEMPTY_NOTIMERS = 1 << 2, /*!< When combined with M_EVENT_FLAG_EXITONEMPTY, will ignore timers */
+    M_EVENT_FLAG_NON_SCALABLE         = 1 << 3  /*!< Utilize the 'non-scalable/small' event subsystem, generally
+                                                 *   implemented using poll() instead of the more scalable solution
+                                                 *   using kqueue() or epoll().  The main reason one might want to use
+                                                 *   this is if a large number of event loops are being created such
+                                                 *   as when using the blocking APIs, using the scalable solution
+                                                 *   generally consumes additional file descriptors which may not be
+                                                 *   desirable.  Not all systems have different subsystems, in which
+                                                 *   case this flag will be ignored.
+                                                 */
 };
 
 /*! Possible values to pass to M_event_get_statistic() */
 typedef enum {
-	M_EVENT_STATISTIC_WAKE_COUNT,       /*!< Get the number of times the event loop has woken due to some sort of event */
-	M_EVENT_STATISTIC_OSEVENT_COUNT,    /*!< Get the number of OS-delivered events */
-	M_EVENT_STATISTIC_SOFTEVENT_COUNT,  /*!< Get the number of soft-events delivered */
-	M_EVENT_STATISTIC_TIMER_COUNT,      /*!< Get the number of timer (or queued) events delivered */
-	M_EVENT_STATISTIC_PROCESS_TIME_MS   /*!< Get the about of non-idle time spent by the event loop in ms */
+    M_EVENT_STATISTIC_WAKE_COUNT,       /*!< Get the number of times the event loop has woken due to some sort of event */
+    M_EVENT_STATISTIC_OSEVENT_COUNT,    /*!< Get the number of OS-delivered events */
+    M_EVENT_STATISTIC_SOFTEVENT_COUNT,  /*!< Get the number of soft-events delivered */
+    M_EVENT_STATISTIC_TIMER_COUNT,      /*!< Get the number of timer (or queued) events delivered */
+    M_EVENT_STATISTIC_PROCESS_TIME_MS   /*!< Get the about of non-idle time spent by the event loop in ms */
 } M_event_statistic_t;
 
 
@@ -560,14 +560,14 @@ M_API M_bool M_event_timer_set_autoremove(M_event_timer_t *timer, M_bool enabled
 
 /*! Timer modes of operation */
 enum M_event_timer_modes {
-	M_EVENT_TIMER_MODE_RELATIVE  = 1, /*!< The interval will be added on to the end of the last actual run time */
-	M_EVENT_TIMER_MODE_MONOTONIC = 2  /*!< The interval will be added on to the last scheduled run time, even if that
-	                                   *   time has already passed.  This means you could have events that run closer
-	                                   *   together than the specified interval if it is trying to "catch up" due to a
-	                                   *   long running event handler.  In general this is more useful for needing an
-	                                   *   event to run as close to a certain interval as possible without skewing
-	                                   *   the interval between events by the amount of time it takes to handle event
-	                                   *   callbacks. */
+    M_EVENT_TIMER_MODE_RELATIVE  = 1, /*!< The interval will be added on to the end of the last actual run time */
+    M_EVENT_TIMER_MODE_MONOTONIC = 2  /*!< The interval will be added on to the last scheduled run time, even if that
+                                       *   time has already passed.  This means you could have events that run closer
+                                       *   together than the specified interval if it is trying to "catch up" due to a
+                                       *   long running event handler.  In general this is more useful for needing an
+                                       *   event to run as close to a certain interval as possible without skewing
+                                       *   the interval between events by the amount of time it takes to handle event
+                                       *   callbacks. */
 };
 /*! Timer modes of operation */
 typedef enum M_event_timer_modes M_event_timer_mode_t;
@@ -679,11 +679,11 @@ M_API M_bool M_event_queue_task(M_event_t *event, M_event_callback_t callback, v
 
 /*! Possible event status codes for an event loop or pool */
 enum M_event_status {
-	M_EVENT_STATUS_RUNNING = 0, /*!< The event loop is current running and processing events */
-	M_EVENT_STATUS_PAUSED  = 1, /*!< The event loop is not running due to not being started or a timeout occurring */
-	M_EVENT_STATUS_RETURN  = 2, /*!< The event loop was explicitly told to return using M_event_return() */
-	M_EVENT_STATUS_DONE    = 3  /*!< The event loop either exited due to M_event_done() or there were no objects
-	                             *   remaining as the event loop was initialized with M_EVENT_FLAG_EXITONEMPTY */
+    M_EVENT_STATUS_RUNNING = 0, /*!< The event loop is current running and processing events */
+    M_EVENT_STATUS_PAUSED  = 1, /*!< The event loop is not running due to not being started or a timeout occurring */
+    M_EVENT_STATUS_RETURN  = 2, /*!< The event loop was explicitly told to return using M_event_return() */
+    M_EVENT_STATUS_DONE    = 3  /*!< The event loop either exited due to M_event_done() or there were no objects
+                                 *   remaining as the event loop was initialized with M_EVENT_FLAG_EXITONEMPTY */
 };
 
 /*! Possible event status codes for an event loop or pool */
@@ -692,12 +692,12 @@ typedef enum M_event_status M_event_status_t;
 
 /*! Possible return codes for M_event_loop() */
 enum M_event_err {
-	M_EVENT_ERR_DONE    = 1, /*!< The event loop either exited due to M_event_done() or M_event_done_with_disconnect()
-	                          * or there were no objects remaining as the event loop was initialized with
-	                          * M_EVENT_FLAG_EXITONEMPTY */
-	M_EVENT_ERR_TIMEOUT = 2, /*!< The timeout specified in M_event_loop() has expired */
-	M_EVENT_ERR_RETURN  = 3, /*!< M_event_return() was explicitly called */
-	M_EVENT_ERR_MISUSE  = 4  /*!< Misuse, e.g. NULL event handle */
+    M_EVENT_ERR_DONE    = 1, /*!< The event loop either exited due to M_event_done() or M_event_done_with_disconnect()
+                              * or there were no objects remaining as the event loop was initialized with
+                              * M_EVENT_FLAG_EXITONEMPTY */
+    M_EVENT_ERR_TIMEOUT = 2, /*!< The timeout specified in M_event_loop() has expired */
+    M_EVENT_ERR_RETURN  = 3, /*!< M_event_return() was explicitly called */
+    M_EVENT_ERR_MISUSE  = 4  /*!< Misuse, e.g. NULL event handle */
 };
 
 /*! Possible return codes for M_event_loop() */

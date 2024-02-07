@@ -27,27 +27,27 @@
 #include "m_net_smtp_int.h"
 
 typedef struct {
-	const M_net_smtp_t                *sp;
-	size_t                             max_number_of_attempts;
-	M_list_t                          *retry_queue;
-	M_list_t                          *retry_timeout_queue;
-	M_thread_rwlock_t                 *retry_queue_rwlock;
-	M_list_str_t                      *internal_queue;
-	M_thread_rwlock_t                 *internal_queue_rwlock;
-	M_bool                             is_external_queue_enabled;
-	M_bool                             is_external_queue_pending;
-	size_t                             retry_default_ms;
-	char *                           (*external_queue_get_cb)(void);
+    const M_net_smtp_t                *sp;
+    size_t                             max_number_of_attempts;
+    M_list_t                          *retry_queue;
+    M_list_t                          *retry_timeout_queue;
+    M_thread_rwlock_t                 *retry_queue_rwlock;
+    M_list_str_t                      *internal_queue;
+    M_thread_rwlock_t                 *internal_queue_rwlock;
+    M_bool                             is_external_queue_enabled;
+    M_bool                             is_external_queue_pending;
+    size_t                             retry_default_ms;
+    char *                           (*external_queue_get_cb)(void);
 } M_net_smtp_queue_t;
 
 typedef struct {
-	const M_net_smtp_t *sp;
-	const char *msg;
-	const M_hash_dict_t *headers;
-	M_bool is_backout;
-	size_t num_tries;
-	const char* errmsg;
-	size_t retry_ms;
+    const M_net_smtp_t *sp;
+    const char *msg;
+    const M_hash_dict_t *headers;
+    M_bool is_backout;
+    size_t num_tries;
+    const char* errmsg;
+    size_t retry_ms;
 } M_net_smtp_queue_reschedule_msg_args_t;
 
 M_net_smtp_queue_t * M_net_smtp_queue_create(M_net_smtp_t *sp, size_t max_number_of_attempts, size_t retry_default_ms);

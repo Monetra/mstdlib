@@ -79,27 +79,27 @@ __BEGIN_DECLS
  * @{
  */
 
-/*! Data structure to be created as an array and filled in by caller.  Must be 
+/*! Data structure to be created as an array and filled in by caller.  Must be
  *  terminated by an entry where the name parameter is set to NULL */
 typedef struct {
-	M_uint64    id;   /*!< The bit to set, usually a power of 2 */
-	const char *name; /*!< Human-readable name associated with the flag/bit */ 
+    M_uint64    id;   /*!< The bit to set, usually a power of 2 */
+    const char *name; /*!< Human-readable name associated with the flag/bit */
 } M_bitlist_t;
 
 /*! Flags that may be passed on to the parser or human-readable generator */
 typedef enum {
-	M_BITLIST_FLAG_NONE                  = 0,    /*!< No Flags */
-	M_BITLIST_FLAG_DONT_TRIM_WHITESPACE  = 1<<0, /*!< Parse only. Don't trim whitespace that might surround flags. */
-	M_BITLIST_FLAG_CASE_SENSITIVE        = 1<<1, /*!< Parse only. Case sensitive flag matching. */
-	M_BITLIST_FLAG_IGNORE_DUPLICATE_ID   = 1<<2, /*!< Ignore duplicate ids.  May be used for aliases.  First value in list with ID will be used */
-	M_BITLIST_FLAG_IGNORE_UNKNOWN        = 1<<3, /*!< If a bit is set that is not known, ignore */
-	M_BITLIST_FLAG_DONT_REQUIRE_POWEROF2 = 1<<4  /*!< Don't require a field to be a power of 2. */
+    M_BITLIST_FLAG_NONE                  = 0,    /*!< No Flags */
+    M_BITLIST_FLAG_DONT_TRIM_WHITESPACE  = 1<<0, /*!< Parse only. Don't trim whitespace that might surround flags. */
+    M_BITLIST_FLAG_CASE_SENSITIVE        = 1<<1, /*!< Parse only. Case sensitive flag matching. */
+    M_BITLIST_FLAG_IGNORE_DUPLICATE_ID   = 1<<2, /*!< Ignore duplicate ids.  May be used for aliases.  First value in list with ID will be used */
+    M_BITLIST_FLAG_IGNORE_UNKNOWN        = 1<<3, /*!< If a bit is set that is not known, ignore */
+    M_BITLIST_FLAG_DONT_REQUIRE_POWEROF2 = 1<<4  /*!< Don't require a field to be a power of 2. */
 } M_bitlist_flags_t;
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Generate a human-readable list from the array provided and bits provided, 
+/*! Generate a human-readable list from the array provided and bits provided,
  *  delimited by the specified delimiter.  Note that there is not a 'hash' version
  *  of this function as it would likely be less efficient and would also not
  *  support the ability to handle aggregate entries that might contain more than

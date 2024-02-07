@@ -5,7 +5,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/")
 include(DefaultBuildType)
 
 project(Mstdlib
-	VERSION   1.24.0
+	VERSION   2.0.0
 	LANGUAGES C
 )
 
@@ -275,13 +275,6 @@ if (MSTDLIB_BUILD_THREAD)
 	find_package(Threads)
 	if (Threads_FOUND AND NOT WIN32)
 		set(HAVE_PTHREAD TRUE)
-
-		# Fix solaris9 bug due to libc having pthread_create() stubs that always fail.  CMake
-		# doesn't realize that the real pthread functions aren't in libc, so sets the pthread
-		# library CAKE_THREAD_LIBS_INIT variable to blank instead of to the correct "-lpthread".
-		if (CMAKE_SYSTEM_NAME STREQUAL "SunOS" AND NOT CMAKE_THREAD_LIBS_INIT)
-			set(CMAKE_THREAD_LIBS_INIT "-lpthread")
-		endif ()
 
 		# PThread functions.
 		check_include_files(pthread.h                                 HAVE_PTHREAD_H)

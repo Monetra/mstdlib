@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -89,32 +89,32 @@ typedef void (*M_llist_free_func)(void *);
 /*! Structure of callbacks that can be registered to override default
  *  behavior for llist implementation. */
 struct M_llist_callbacks {
-	M_sort_compar_t        equality;          /*!< Callback to check if two items in the list are equal.
-	                                               If NULL unsorted list */
-	M_llist_duplicate_func duplicate_insert;  /*!< Callback to duplicate a value on insert.
-	                                               If NULL is pass-thru pointer */
-	M_llist_duplicate_func duplicate_copy;    /*!< Callback to duplicate a value on copy.
-	                                               If NULL is pass-thru pointer */
-	M_llist_free_func      value_free;        /*!< Callback to free a value.
-	                                               If NULL is pass-thru pointer */
+    M_sort_compar_t        equality;          /*!< Callback to check if two items in the list are equal.
+                                                   If NULL unsorted list */
+    M_llist_duplicate_func duplicate_insert;  /*!< Callback to duplicate a value on insert.
+                                                   If NULL is pass-thru pointer */
+    M_llist_duplicate_func duplicate_copy;    /*!< Callback to duplicate a value on copy.
+                                                   If NULL is pass-thru pointer */
+    M_llist_free_func      value_free;        /*!< Callback to free a value.
+                                                   If NULL is pass-thru pointer */
 };
 
 
 /*! Flags for controlling the behavior of the list. */
 typedef enum {
-	M_LLIST_NONE     = 0,      /*!< LList mode (unsorted). */
-	M_LLIST_SORTED   = 1 << 0, /*!< Whether the data in the list should be kept in sorted order. callbacks cannot
-	                                be NULL and the equality function must be set if this is M_TRUE. */
-	M_LLIST_CIRCULAR = 1 << 1  /*!< Whether the nodes are linked in a circular manner. Last node points to first.
-	                                This cannot be used while sorted. */								 
+    M_LLIST_NONE     = 0,      /*!< LList mode (unsorted). */
+    M_LLIST_SORTED   = 1 << 0, /*!< Whether the data in the list should be kept in sorted order. callbacks cannot
+                                    be NULL and the equality function must be set if this is M_TRUE. */
+    M_LLIST_CIRCULAR = 1 << 1  /*!< Whether the nodes are linked in a circular manner. Last node points to first.
+                                    This cannot be used while sorted. */
 } M_llist_flags_t;
 
 
 /*! Type of matching that should be used when searching/modifying a value in the list. */
 typedef enum {
-	M_LLIST_MATCH_VAL = 0,      /*!< Match based on the value (equality function). */
-	M_LLIST_MATCH_PTR = 1 << 0, /*!< Math the pointer itself. */
-	M_LLIST_MATCH_ALL = 1 << 1  /*!< Include all instances. */
+    M_LLIST_MATCH_VAL = 0,      /*!< Match based on the value (equality function). */
+    M_LLIST_MATCH_PTR = 1 << 0, /*!< Math the pointer itself. */
+    M_LLIST_MATCH_ALL = 1 << 1  /*!< Include all instances. */
 } M_llist_match_type_t;
 
 

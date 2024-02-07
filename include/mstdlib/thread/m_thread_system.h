@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,18 +33,18 @@
 #  include <Winsock2.h>
 #  include <Windows.h>
 #  if _WIN32_WINNT < 0x0600
-	struct pollfd {
-		SOCKET fd;       /* file descriptor */
-		short  events;   /* events to look for */
-		short  revents;  /* events returned */
-	};
+    struct pollfd {
+        SOCKET fd;       /* file descriptor */
+        short  events;   /* events to look for */
+        short  revents;  /* events returned */
+    };
 #     define POLLIN          0x0001          /* any readable data available */
 #     define POLLOUT         0x0004          /* file descriptor is writeable */
 #     define POLLERR         0x0008          /* some poll error occurred */
 #     define POLLHUP         0x0010          /* file descriptor was "hung up" */
 #     define POLLNVAL        0x0020          /* requested events "invalid" */
 #  endif
-	typedef unsigned int nfds_t;
+    typedef unsigned int nfds_t;
 #else
 /* Need to include struct pollfd for M_thread_poll() */
 #  include <poll.h>

@@ -69,35 +69,7 @@ if (MSTDLIB_BUILD_SQL_DB2)
 endif ()
 
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# DB2 Pase module.
-if (CMAKE_SYSTEM_NAME STREQUAL "AIX")
-	find_package(DB2Pase)
-	set(has_deps TRUE)
-	set(reason)
-	if (NOT TARGET DB2Pase::db2)
-		set(has_deps FALSE)
-		set(reason "missing deps: DB2Pase::db2")
-	endif ()
-	conditional_option(MSTDLIB_BUILD_SQL_DB2Pase ${has_deps} "MSTDLIB DB2Pase plugin" "${reason}")
-else ()
-	set(MSTDLIB_BUILD_SQL_DB2Pase FALSE)
-endif ()
-
-if (MSTDLIB_BUILD_SQL_DB2Pase)	
-	add_library(mstdlib_sql_db2pase MODULE
-		mstdlib_sql_odbc.c
-	)
-
-	target_link_libraries(mstdlib_sql_db2pase PRIVATE
-		DB2Pase::db2
-	)
-
-	list(APPEND mods mstdlib_sql_db2pase)
-endif ()
-
-
-# Set properties that are shared between all three modules (ODBC, DB2 and DB2 Pase).
+# Set properties that are shared between both modules (ODBC and DB2).
 if (mods)
 	# Add common sources, libs and include dirs to each module.
 	foreach (mod ${mods})

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,7 +35,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_tls_funcs TLS functions
  *  \ingroup m_tls
- * 
+ *
  * TLS functions
  *
  * @{
@@ -50,12 +50,12 @@ typedef struct M_tls_serverctx M_tls_serverctx_t;
 
 /*! Supported TLS protocols. */
 typedef enum {
-	M_TLS_PROTOCOL_INVALID     = -1, /*!< Invalid protocol. */
-	M_TLS_PROTOCOL_TLSv1_0     = 1 << 0,
-	M_TLS_PROTOCOL_TLSv1_1     = 1 << 1,
-	M_TLS_PROTOCOL_TLSv1_2     = 1 << 2,
-	M_TLS_PROTOCOL_TLSv1_3     = 1 << 3,
-	M_TLS_PROTOCOL_DEFAULT     = (M_TLS_PROTOCOL_TLSv1_0 | M_TLS_PROTOCOL_TLSv1_1 | M_TLS_PROTOCOL_TLSv1_2 | M_TLS_PROTOCOL_TLSv1_3) /*!< While not a define passing 0 to a function that takes a protocol will be treated as default. */
+    M_TLS_PROTOCOL_INVALID     = -1, /*!< Invalid protocol. */
+    M_TLS_PROTOCOL_TLSv1_0     = 1 << 0,
+    M_TLS_PROTOCOL_TLSv1_1     = 1 << 1,
+    M_TLS_PROTOCOL_TLSv1_2     = 1 << 2,
+    M_TLS_PROTOCOL_TLSv1_3     = 1 << 3,
+    M_TLS_PROTOCOL_DEFAULT     = (M_TLS_PROTOCOL_TLSv1_0 | M_TLS_PROTOCOL_TLSv1_1 | M_TLS_PROTOCOL_TLSv1_2 | M_TLS_PROTOCOL_TLSv1_3) /*!< While not a define passing 0 to a function that takes a protocol will be treated as default. */
 } M_tls_protocols_t;
 
 
@@ -66,13 +66,13 @@ typedef enum {
  *
  */
 typedef enum {
-	M_TLS_VERIFY_NONE       = 0, /*!< Do not verify the certificate or hostname. */
-	M_TLS_VERIFY_CERT_ONLY  = 1, /*!< Only verify the certificate. The domain name is not checked.  */
-	M_TLS_VERIFY_CERT_FUZZY = 2, /*!< Verify the certificate and that the base domain name matches.
-	                                  Use this for servers that don't properly have a wild card cert
-	                                  but still use a sub domain. */
-	M_TLS_VERIFY_FULL       = 3  /*!< Default. Verify the certificate and full domain name matches */
-	/* XXX: OCSP, CRL? */
+    M_TLS_VERIFY_NONE       = 0, /*!< Do not verify the certificate or hostname. */
+    M_TLS_VERIFY_CERT_ONLY  = 1, /*!< Only verify the certificate. The domain name is not checked.  */
+    M_TLS_VERIFY_CERT_FUZZY = 2, /*!< Verify the certificate and that the base domain name matches.
+                                      Use this for servers that don't properly have a wild card cert
+                                      but still use a sub domain. */
+    M_TLS_VERIFY_FULL       = 3  /*!< Default. Verify the certificate and full domain name matches */
+    /* XXX: OCSP, CRL? */
 } M_tls_verify_level_t;
 
 
@@ -83,8 +83,8 @@ typedef enum {
  * been initialized.
  */
 typedef enum {
-	M_TLS_INIT_NORMAL   = 1, /*!< Fully initialize the TLS (OpenSSL stack) */
-	M_TLS_INIT_EXTERNAL = 2  /*!< TLS initialization is handled externally (use with caution) */
+    M_TLS_INIT_NORMAL   = 1, /*!< Fully initialize the TLS (OpenSSL stack) */
+    M_TLS_INIT_EXTERNAL = 2  /*!< TLS initialization is handled externally (use with caution) */
 } M_tls_init_t;
 
 
@@ -99,7 +99,7 @@ M_API void M_tls_init(M_tls_init_t type);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * Client Support 
+ * Client Support
  */
 
 
@@ -204,7 +204,7 @@ M_API M_bool M_tls_clientctx_set_cert_files(M_tls_clientctx_t *ctx, const char *
 
 
 /*! Load the OS CA trust list for validating the certificate presented by the server.
- * 
+ *
  * This will not clear existing CAs that were already loaded.
  *
  * \param[in] ctx Client context.
@@ -232,7 +232,7 @@ M_API M_bool M_tls_clientctx_set_trust_ca(M_tls_clientctx_t *ctx, const unsigned
  * This will not clear existing CAs that were already loaded.
  *
  * \param[in] ctx  Client context.
- * \param[in] path 
+ * \param[in] path
  *
  * \return M_TRUE on success, otherwise M_FALSE on error.
  */
@@ -353,7 +353,7 @@ M_API M_io_error_t M_io_tls_client_add(M_io_t *io, M_tls_clientctx_t *ctx, const
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * ServerSupport 
+ * ServerSupport
  */
 
 

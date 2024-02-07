@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -79,8 +79,8 @@ typedef struct M_csv M_csv_t;
 
 /*! Flags controlling parse behavior */
 enum M_CSV_FLAGS {
-	M_CSV_FLAG_NONE            = 0,     /*!< No Flags */
-	M_CSV_FLAG_TRIM_WHITESPACE = 1 << 0 /*!< If a cell is not quoted, trim leading and trailing whitespace */
+    M_CSV_FLAG_NONE            = 0,     /*!< No Flags */
+    M_CSV_FLAG_TRIM_WHITESPACE = 1 << 0 /*!< If a cell is not quoted, trim leading and trailing whitespace */
 };
 
 /*! Callback that can be used to filter rows from data returned by M_csv_output_rows_buf().
@@ -115,7 +115,7 @@ typedef M_bool (*M_csv_cell_writer_cb)(M_buf_t *buf, const char *cell, const cha
  * \param[in] flags Flags controlling parse behavior.
  *
  * \return CSV object.
- * 
+ *
  * \see M_csv_destroy
  */
 M_API M_csv_t *M_csv_parse(const char *data, size_t len, char delim, char quote, M_uint32 flags) M_MALLOC;
@@ -135,7 +135,7 @@ M_API M_csv_t *M_csv_parse(const char *data, size_t len, char delim, char quote,
  * \return            CSV object
  */
 M_API M_csv_t *M_csv_parse_add_headers(const char *data, size_t len, char delim, char quote, M_uint32 flags,
-	M_list_str_t *headers);
+    M_list_str_t *headers);
 
 
 /*! Parse a string into a CSV object.
@@ -150,7 +150,7 @@ M_API M_csv_t *M_csv_parse_add_headers(const char *data, size_t len, char delim,
  * \param[in] flags Flags controlling parse behavior.
  *
  * \return CSV object.
- * 
+ *
  * \see M_csv_destroy
  */
 M_API M_csv_t *M_csv_parse_inplace(char *data, size_t len, char delim, char quote, M_uint32 flags) M_MALLOC_ALIASED;
@@ -292,7 +292,7 @@ M_API const char *M_csv_get_cell(const M_csv_t *csv, size_t row, const char *col
  *
  * \return Column number for the given name on success. Otherwise -1.
  */
-M_API ssize_t M_csv_get_cell_num(const M_csv_t *csv, const char *colname); 
+M_API ssize_t M_csv_get_cell_num(const M_csv_t *csv, const char *colname);
 
 
 /*! Use different delim and quote characters for output than for parsing.
@@ -347,7 +347,7 @@ M_API void M_csv_output_headers_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str
  * \param[in]  writer_thunk pointer to pass to \a writer_cb (may be NULL).
  */
 M_API void M_csv_output_rows_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *headers,
-	M_csv_row_filter_cb filter_cb, void *filter_thunk, M_csv_cell_writer_cb writer_cb, void *writer_thunk);
+    M_csv_row_filter_cb filter_cb, void *filter_thunk, M_csv_cell_writer_cb writer_cb, void *writer_thunk);
 
 /*! @} */
 

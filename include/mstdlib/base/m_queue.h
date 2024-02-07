@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -43,7 +43,7 @@
  * or O(n) for unsorted lists.
  *
  * Usage Example:
- * 
+ *
  * \code{.c}
  *     M_queue_t         *queue;
  *     void              *member    = NULL;
@@ -63,7 +63,7 @@
  *     M_printf("queue members: %zu\n", M_queue_len(queue));
  *     M_queue_destroy(queue);
  * \endcode
- * 
+ *
  * @{
  */
 
@@ -81,7 +81,7 @@ typedef struct M_queue_foreach M_queue_foreach_t;
  *  stored may be kept in insertion order or sorted, depending on how the queue is
  *  initialized.
  * \param sort_cb  If the pointers should be stored in a sorted order, register this
- *                 callback with the routine for sorting.  If insertion order is 
+ *                 callback with the routine for sorting.  If insertion order is
  *                 desired, pass NULL.
  * \param free_cb  Upon removal of a pointer from the queue, this callback will be
  *                 called.  This applies to M_queue_destroy() and M_queue_remove().
@@ -137,7 +137,7 @@ M_API M_bool M_queue_take(M_queue_t *queue, const void *member);
 
 /*! Take control of the first queue member.  This will remove the object
  *  from the list without freeing the object (assuming free_cb was registered).
- * 
+ *
  * \param queue Initialized queue object returned by M_queue_create()
  * \return pointer to first queue object, NULL if none
  */
@@ -169,8 +169,8 @@ M_API void *M_queue_last(M_queue_t *queue);
  *  in a while() loop until it returns M_FALSE.  The q_foreach parameter will be
  *  automatically deallocated if this returns M_FALSE, otherwise if breaking out of
  *  the loop early, M_queue_foreach_free must be called.
- * 
- *  During an enumeration, it is allowable to remove the *current* member from the 
+ *
+ *  During an enumeration, it is allowable to remove the *current* member from the
  *  queue.  It is undefined behavior to remove any other member during an enumeration.
  *  Addition to the queue is also allowed during an enumeration, however it is not
  *  defined if the new value will end up in the enumerated set.

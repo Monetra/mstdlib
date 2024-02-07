@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,7 +35,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_list_bin List - Binary
  *  \ingroup m_list
- * 
+ *
  * Dynamic list (array) for storing binary values.
  *
  * References to the data will always be read-only.
@@ -83,21 +83,21 @@ typedef struct M_list_bin M_list_bin_t;
 
 /*! Flags for controlling the behavior of the list. */
 typedef enum {
-	M_LIST_BIN_NONE        = 1 << 0, /*!< Not sorting, asc compare. */
-	M_LIST_BIN_STACK       = 1 << 1, /*!< Last in First out mode. */
-	M_LIST_BIN_SET         = 1 << 2, /*!< Don't allow duplicates in the list.
-	                                      Insert is increased by an additional O(n) operation (on top of the insert
-	                                      itself) in order to determine if a value is a duplicate for unsorted.
-	                                      Insert is increased by an additional O(log(n)) operation (on top of the
-	                                      insert itself) in order to determine if a value is a duplicate for sorted. */
-	M_LIST_BIN_NEVERSHRINK = 1 << 3  /*!< Never allow the list to shrink. */
+    M_LIST_BIN_NONE        = 1 << 0, /*!< Not sorting, asc compare. */
+    M_LIST_BIN_STACK       = 1 << 1, /*!< Last in First out mode. */
+    M_LIST_BIN_SET         = 1 << 2, /*!< Don't allow duplicates in the list.
+                                          Insert is increased by an additional O(n) operation (on top of the insert
+                                          itself) in order to determine if a value is a duplicate for unsorted.
+                                          Insert is increased by an additional O(log(n)) operation (on top of the
+                                          insert itself) in order to determine if a value is a duplicate for sorted. */
+    M_LIST_BIN_NEVERSHRINK = 1 << 3  /*!< Never allow the list to shrink. */
 } M_list_bin_flags_t;
 
 
 /*! Type of matching that should be used when searching/modifying a value in the list. */
 typedef enum {
-	M_LIST_BIN_MATCH_VAL = 0,      /*!< Match based on the value (equality function). */
-	M_LIST_BIN_MATCH_ALL = 1 << 0  /*!< Include all instances. */
+    M_LIST_BIN_MATCH_VAL = 0,      /*!< Match based on the value (equality function). */
+    M_LIST_BIN_MATCH_ALL = 1 << 0  /*!< Include all instances. */
 } M_list_bin_match_type_t;
 
 
@@ -106,7 +106,7 @@ typedef enum {
 /*! Create a new dynamic list.
  *
  * A dynamic list is a dynamically expanding array. Meaning the array will expand to accommodate new elements.
- * The list can be, optionally, kept in sorted order. 
+ * The list can be, optionally, kept in sorted order.
  *
  * \param[in] flags M_list_bin_flags_t flags for controlling behavior.
  *

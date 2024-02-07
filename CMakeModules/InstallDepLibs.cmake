@@ -47,7 +47,7 @@ find_program(DLLTOOL dlltool)
 # used to extract SONAME from shared libs on ELF platforms.
 find_program(READELF
 	NAMES readelf
-	      elfdump  #on Solaris, "elfdump -d" gives very similar output to "readelf -d" on Linux.
+	      elfdump
 	DOC "readelf (unix/ELF only)"
 )
 
@@ -267,7 +267,6 @@ function(read_soname outvarname path)
 			return()
 		endif ()
 	else ()
-		# Solaris (elfdump) format: [8] SONAME 0x49c1 libssl.so.1.0.0
 		if (NOT header MATCHES "\\[[0-9]+\\][ \t]+SONAME[ \t]+[x0-9a-fA-F]+[ \t]+([^\n]+)")
 			return()
 		endif ()
@@ -314,12 +313,6 @@ function(_install_deplibs_internal lib_dest runtime_dest component version do_co
 			continue()
 		endif ()
 
-		# AIX apparently links against the .so filename, not the one with versioning info.
-		set(aix_libname)
-		if (CMAKE_SYSTEM_NAME MATCHES "AIX")
-			get_filename_component(aix_libname "${path}" NAME)
-		endif ()
-
 		# If on Windows, try to replace import libraries with DLL's. Throws fatal error if it can't do it.
 		if (WIN32 AND (${path} MATCHES "\.lib$" OR ${path} MATCHES "\.a$"))
 			get_dll_from_implib(path "${path}" "${version}")
@@ -327,12 +320,6 @@ function(_install_deplibs_internal lib_dest runtime_dest component version do_co
 
 		# Resolve any symlinks in path to get actual physical name. If relative, evaluate relative to current binary dir.
 		get_filename_component(path "${path}" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-
-		# If we're on AIX, we need our own special install handling. Run it, then skip to next iteration.
-		if (aix_libname AND do_install)
-			install(FILES "${path}" RENAME "${aix_libname}" DESTINATION "${lib_dest}" ${component})
-			continue()
-		endif ()
 
 		# Figure out the destination (DLL's and manifest files go to runtime_dest, everything else goes to lib_dest).
 		if (path MATCHES "\.[dD][lL][lL]$" OR path MATCHES "\.[mM][aA][nN][iI][fF][eE][sS][tT]$")
@@ -531,46 +518,6 @@ function(install_system_deplibs lib_dest runtime_dest)
 			if (MINGW_STDCXX_LIBRARY)
 				list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${MINGW_STDCXX_LIBRARY}")
 			endif ()
-		endif ()
-	endif ()
-
-	# If we're compiling on AIX or Solaris with GCC instead of the default system compiler, make sure to
-	# include GCC runtime libraries (libgcc_s, and libssp for stack protector).
-	if ((CMAKE_SYSTEM_NAME MATCHES "AIX" OR CMAKE_SYSTEM_NAME MATCHES "SunOS") AND CMAKE_C_COMPILER_ID MATCHES "GNU")
-		# Ask the compiler for the path to libgcc
-		EXEC_PROGRAM ("${CMAKE_C_COMPILER} ${CMAKE_C_FLAGS} -print-libgcc-file-name" OUTPUT_VARIABLE LIBGCC_PATH)
-		# Extract the directory from the path
-		get_filename_component(search_dir "${CMAKE_C_COMPILER}" DIRECTORY)
-
-		if (CMAKE_SYSTEM_NAME MATCHES "AIX")
-			set(ext .a)
-		else ()
-			set(ext .so)
-		endif ()
-
-		find_library(LIBGCC_S
-			NAMES libgcc_s${ext}
-			PATHS "${search_dir}"
-		)
-		if (LIBGCC_S)
-			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${LIBGCC_S}")
-		endif ()
-
-		find_library(LIBSSP
-			NAMES libssp${ext}
-			PATHS "${search_dir}"
-		)
-		if (LIBSSP)
-			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${LIBSSP}")
-		endif ()
-
-		# Not sure why, maybe its stdatomic, but libstdc++ is being brought in even there is no C++ code
-		find_library(LIBSTDCPP
-			NAMES libstdc++${ext}
-			PATHS "${search_dir}"
-		)
-		if (LIBSTDCPP)
-			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${LIBSTDCPP}")
 		endif ()
 	endif ()
 

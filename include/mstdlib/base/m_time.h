@@ -163,21 +163,21 @@ typedef M_int64 M_suseconds_t;
 
 /*! Broken down time stored as individual components. */
 struct M_time_tm {
-	M_int64  month;    /*!< Month. 1-12*/
-	M_int64  day;      /*!< Day of month. 1-X */
-	M_int64  year;     /*!< Year. Full year. E.g. 2013. */
-	M_int64  year2;    /*!< 2digit Year. E.g. 13. */
-	M_int64  hour;     /*!< hour. 0=Midnight ... 23=11PM. */
-	M_int64  min;      /*!< minute. 0-59. */
-	M_int64  sec;      /*!< second. 0-59. */
-	M_int64  wday;     /*!< day of week. 0=Sun ... 6=Sat */
-	M_int64  yday;     /*!< day of year. 0-364 (or 365 on leap years) */
-	/* Local time data */
-	M_int64  isdst;    /*!< -1=DST unknown, 0=not DST, 1=is DST */
-	M_time_t gmtoff;   /*!< Seconds west of Greenwich. */
-	char     abbr[32]; /*!< Abbreviation for use with printing. This will only be filled if a M_time_tz_t is passed
-	                       in with the time. If abbr is filled by a M_time_tz_t then the M_time_tz_t must remain
-	                       valid for the life of the struct. */
+    M_int64  month;    /*!< Month. 1-12*/
+    M_int64  day;      /*!< Day of month. 1-X */
+    M_int64  year;     /*!< Year. Full year. E.g. 2013. */
+    M_int64  year2;    /*!< 2digit Year. E.g. 13. */
+    M_int64  hour;     /*!< hour. 0=Midnight ... 23=11PM. */
+    M_int64  min;      /*!< minute. 0-59. */
+    M_int64  sec;      /*!< second. 0-59. */
+    M_int64  wday;     /*!< day of week. 0=Sun ... 6=Sat */
+    M_int64  yday;     /*!< day of year. 0-364 (or 365 on leap years) */
+    /* Local time data */
+    M_int64  isdst;    /*!< -1=DST unknown, 0=not DST, 1=is DST */
+    M_time_t gmtoff;   /*!< Seconds west of Greenwich. */
+    char     abbr[32]; /*!< Abbreviation for use with printing. This will only be filled if a M_time_tz_t is passed
+                           in with the time. If abbr is filled by a M_time_tz_t then the M_time_tz_t must remain
+                           valid for the life of the struct. */
 };
 typedef struct M_time_tm M_time_localtm_t;
 typedef struct M_time_tm M_time_gmtm_t;
@@ -185,8 +185,8 @@ typedef struct M_time_tm M_time_gmtm_t;
 
 /*! Number of seconds and microseconds since the Epoch. */
 typedef struct M_timeval {
-	M_time_t      tv_sec;  /*!< Seconds. */
-	M_suseconds_t tv_usec; /*!< Microseconds. */
+    M_time_t      tv_sec;  /*!< Seconds. */
+    M_suseconds_t tv_usec; /*!< Microseconds. */
 } M_timeval_t;
 
 
@@ -204,27 +204,27 @@ typedef struct M_time_tzs M_time_tzs_t;
 
 /*! Olson/TZ/Zoneinfo locations that can be loaded. */
 typedef enum {
-	M_TIME_TZ_ZONE_ALL        = 0,       /*!< Load all zones. This cannot be combined with individual zones. */
-	M_TIME_TZ_ZONE_AFRICA     = 1 << 1,  /*!< Load data form Africa. */
-	M_TIME_TZ_ZONE_AMERICA    = 1 << 2,  /*!< Load data form the Americas. */
-	M_TIME_TZ_ZONE_ANTARCTICA = 1 << 3,  /*!< Load data form Antarctica. */
-	M_TIME_TZ_ZONE_ARCTIC     = 1 << 4,  /*!< Load data form the artic. */
-	M_TIME_TZ_ZONE_ASIA       = 1 << 5,  /*!< Load data form Asia. */
-	M_TIME_TZ_ZONE_ATLANTIC   = 1 << 6,  /*!< Load data form the Atlantic. */
-	M_TIME_TZ_ZONE_AUSTRALIA  = 1 << 7,  /*!< Load data form Australia. */
-	M_TIME_TZ_ZONE_EUROPE     = 1 << 8,  /*!< Load data form Europe. */
-	M_TIME_TZ_ZONE_INDIAN     = 1 << 9,  /*!< Load data form the Indian ocean region. */
-	M_TIME_TZ_ZONE_PACIFIC    = 1 << 10, /*!< Load data form the Pacific. */
-	M_TIME_TZ_ZONE_ETC        = 1 << 11  /*!< Load data form Etc (fixed offset) zones. */
+    M_TIME_TZ_ZONE_ALL        = 0,       /*!< Load all zones. This cannot be combined with individual zones. */
+    M_TIME_TZ_ZONE_AFRICA     = 1 << 1,  /*!< Load data form Africa. */
+    M_TIME_TZ_ZONE_AMERICA    = 1 << 2,  /*!< Load data form the Americas. */
+    M_TIME_TZ_ZONE_ANTARCTICA = 1 << 3,  /*!< Load data form Antarctica. */
+    M_TIME_TZ_ZONE_ARCTIC     = 1 << 4,  /*!< Load data form the artic. */
+    M_TIME_TZ_ZONE_ASIA       = 1 << 5,  /*!< Load data form Asia. */
+    M_TIME_TZ_ZONE_ATLANTIC   = 1 << 6,  /*!< Load data form the Atlantic. */
+    M_TIME_TZ_ZONE_AUSTRALIA  = 1 << 7,  /*!< Load data form Australia. */
+    M_TIME_TZ_ZONE_EUROPE     = 1 << 8,  /*!< Load data form Europe. */
+    M_TIME_TZ_ZONE_INDIAN     = 1 << 9,  /*!< Load data form the Indian ocean region. */
+    M_TIME_TZ_ZONE_PACIFIC    = 1 << 10, /*!< Load data form the Pacific. */
+    M_TIME_TZ_ZONE_ETC        = 1 << 11  /*!< Load data form Etc (fixed offset) zones. */
 } M_time_tz_zones_t;
 
 
 /*! Flags to control loading behavior of Olson/TZ/Zoneinfo data. */
 typedef enum {
-	M_TIME_TZ_LOAD_NORMAL    = 0,      /*!< Load all data. */
-	M_TIME_TZ_LOAD_LAZY      = 1 << 1  /*!< Lazy load data. This is really only useful for memory constrained
-	                                        environments where only a few zones will be in use but the overhead
-	                                        of loading all zones may be too much for the system. */
+    M_TIME_TZ_LOAD_NORMAL    = 0,      /*!< Load all data. */
+    M_TIME_TZ_LOAD_LAZY      = 1 << 1  /*!< Lazy load data. This is really only useful for memory constrained
+                                            environments where only a few zones will be in use but the overhead
+                                            of loading all zones may be too much for the system. */
 } M_time_tz_load_t;
 
 
@@ -232,44 +232,44 @@ typedef enum {
  * Not all alias options will be avalaible for all zone data sources.
  */
 typedef enum {
-	M_TIME_TZ_ALIAS_ALL          = 0,      /*!< Include all names and aliases. */
-	M_TIME_TZ_ALIAS_OLSON_MAIN   = 1 << 1, /*!< Include main Olson alias. */
-	M_TIME_TZ_ALIAS_OLSON_ALL    = 1 << 2, /*!< Include all Olson aliases. */
-	M_TIME_TZ_ALIAS_WINDOWS_MAIN = 1 << 3, /*!< Include Windows zone names. */
-	M_TIME_TZ_ALIAS_WINDOWS_ALL  = 1 << 4  /*!< Include Windows zone names. */
+    M_TIME_TZ_ALIAS_ALL          = 0,      /*!< Include all names and aliases. */
+    M_TIME_TZ_ALIAS_OLSON_MAIN   = 1 << 1, /*!< Include main Olson alias. */
+    M_TIME_TZ_ALIAS_OLSON_ALL    = 1 << 2, /*!< Include all Olson aliases. */
+    M_TIME_TZ_ALIAS_WINDOWS_MAIN = 1 << 3, /*!< Include Windows zone names. */
+    M_TIME_TZ_ALIAS_WINDOWS_ALL  = 1 << 4  /*!< Include Windows zone names. */
 } M_time_tz_alias_t;
 
 
 /*! Result codes specific to time operations. */
 typedef enum {
-	M_TIME_RESULT_SUCCESS = 0, /*!< Success. */
-	M_TIME_RESULT_INVALID,     /*!< Invalid argument. */
-	M_TIME_RESULT_ERROR,       /*!< General error. */
-	M_TIME_RESULT_DUP,         /*!< Duplicate. */
-	M_TIME_RESULT_INI,         /*!< ini failed to parse. */
-	M_TIME_RESULT_ABBR,        /*!< Std abbreviation failed to parse. */
-	M_TIME_RESULT_OFFSET,      /*!< Std offset failed to parse. */
-	M_TIME_RESULT_DATE,        /*!< Date failed to parse. */
-	M_TIME_RESULT_TIME,        /*!< Time failed to parse. */
-	M_TIME_RESULT_DATETIME,    /*!< Date/time failed to parse. */
-	M_TIME_RESULT_YEAR,        /*!< Year failed to parse. */
-	M_TIME_RESULT_DSTABBR,     /*!< DST abbreviation failed to parse. */
-	M_TIME_RESULT_DSTOFFSET    /*!< DST offset failed to parse. */
+    M_TIME_RESULT_SUCCESS = 0, /*!< Success. */
+    M_TIME_RESULT_INVALID,     /*!< Invalid argument. */
+    M_TIME_RESULT_ERROR,       /*!< General error. */
+    M_TIME_RESULT_DUP,         /*!< Duplicate. */
+    M_TIME_RESULT_INI,         /*!< ini failed to parse. */
+    M_TIME_RESULT_ABBR,        /*!< Std abbreviation failed to parse. */
+    M_TIME_RESULT_OFFSET,      /*!< Std offset failed to parse. */
+    M_TIME_RESULT_DATE,        /*!< Date failed to parse. */
+    M_TIME_RESULT_TIME,        /*!< Time failed to parse. */
+    M_TIME_RESULT_DATETIME,    /*!< Date/time failed to parse. */
+    M_TIME_RESULT_YEAR,        /*!< Year failed to parse. */
+    M_TIME_RESULT_DSTABBR,     /*!< DST abbreviation failed to parse. */
+    M_TIME_RESULT_DSTOFFSET    /*!< DST offset failed to parse. */
 } M_time_result_t;
 
 
 /*! Source timezone data was loaded form.
  * \see M_time_tzs_load */
 typedef enum {
-	M_TIME_LOAD_SOURCE_FAIL   = 0, /*!< Timezone data failed to load. This
-	                                    can happen if no timezone data was
-	                                    loaded. For example, a specific
-	                                    M_time_tz_zones_t was requested but
-	                                    not available. */
-	M_TIME_LOAD_SOURCE_SYSTEM,     /*!< The system timezone data was loaded. */
-	M_TIME_LOAD_SOURCE_FALLBACK    /*!< Main four US timezones were loaded as
-	                                    a fallback because system data could
-	                                    not be loaded. */
+    M_TIME_LOAD_SOURCE_FAIL   = 0, /*!< Timezone data failed to load. This
+                                        can happen if no timezone data was
+                                        loaded. For example, a specific
+                                        M_time_tz_zones_t was requested but
+                                        not available. */
+    M_TIME_LOAD_SOURCE_SYSTEM,     /*!< The system timezone data was loaded. */
+    M_TIME_LOAD_SOURCE_FALLBACK    /*!< Main four US timezones were loaded as
+                                        a fallback because system data could
+                                        not be loaded. */
 } M_time_load_source_t;
 
 /*! @} */

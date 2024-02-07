@@ -28,52 +28,52 @@
 #include <mstdlib/mstdlib_io.h>
 
 typedef enum {
-	M_NET_SMTP_EPTYPE_PROCESS = 1,
-	M_NET_SMTP_EPTYPE_TCP
+    M_NET_SMTP_EPTYPE_PROCESS = 1,
+    M_NET_SMTP_EPTYPE_TCP
 } M_net_smtp_endpoint_type_t;
 
 typedef struct {
-	M_net_smtp_endpoint_type_t  type;
-	M_bool                      is_removed;
-	size_t                      max_sessions;
-	M_thread_rwlock_t          *sessions_rwlock;
-	M_list_t                   *send_sessions;
-	M_list_t                   *idle_sessions;
-	M_list_t                   *cull_sessions;
-	M_time_t                    timeout_until;
-	union {
-		struct {
-			char          *address;
-			M_uint16       port;
-			M_bool         connect_tls;
-			char          *username;
-			char          *password;
-			size_t         stall_retries;
-		} tcp;
-		struct {
-			char          *command;
-			M_list_str_t  *args;
-			M_hash_dict_t *env;
-			M_uint64       timeout_ms;
-		} process;
-	};
+    M_net_smtp_endpoint_type_t  type;
+    M_bool                      is_removed;
+    size_t                      max_sessions;
+    M_thread_rwlock_t          *sessions_rwlock;
+    M_list_t                   *send_sessions;
+    M_list_t                   *idle_sessions;
+    M_list_t                   *cull_sessions;
+    M_time_t                    timeout_until;
+    union {
+        struct {
+            char          *address;
+            M_uint16       port;
+            M_bool         connect_tls;
+            char          *username;
+            char          *password;
+            size_t         stall_retries;
+        } tcp;
+        struct {
+            char          *command;
+            M_list_str_t  *args;
+            M_hash_dict_t *env;
+            M_uint64       timeout_ms;
+        } process;
+    };
 } M_net_smtp_endpoint_t;
 
 typedef struct {
-	const char   *address;
-	M_uint16      port;
-	M_bool        connect_tls;
-	const char   *username;
-	const char   *password;
-	size_t        max_conns;
+    const char   *address;
+    M_uint16      port;
+    M_bool        connect_tls;
+    const char   *username;
+    const char   *password;
+    size_t        max_conns;
 } M_net_smtp_endpoint_tcp_args_t;
 
 typedef struct {
-	const char *command;
-	const M_list_str_t *args;
-	const M_hash_dict_t *env;
-	M_uint64 timeout_ms;
-	size_t max_processes;
+    const char *command;
+    const M_list_str_t *args;
+    const M_hash_dict_t *env;
+    M_uint64 timeout_ms;
+    size_t max_processes;
 } M_net_smtp_endpoint_proc_args_t;
 
 M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_proc(M_net_smtp_endpoint_proc_args_t *args);

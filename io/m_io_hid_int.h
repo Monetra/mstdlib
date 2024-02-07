@@ -29,18 +29,18 @@
 #define M_IO_USB_HID_NAME "HID"
 
 struct M_io_hid_enum_device {
-	char    *path;
-	char    *manufacturer;
-	char    *product;
-	char    *serial;
-	M_uint16 vendor_id;
-	M_uint16 product_id;
+    char    *path;
+    char    *manufacturer;
+    char    *product;
+    char    *serial;
+    M_uint16 vendor_id;
+    M_uint16 product_id;
 };
 
 typedef struct M_io_hid_enum_device M_io_hid_enum_device_t;
 
 struct M_io_hid_enum {
-	M_list_t *devices;
+    M_list_t *devices;
 };
 
 M_io_hid_enum_t *M_io_hid_enum_init(void);

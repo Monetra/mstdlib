@@ -25,26 +25,6 @@ cmake_test: &cmake_test
   cmake_test_script:
     - cd _builds/test && ctest -VV
 
-autotools_build: &autotools_build
-  env:
-    BUILD_TYPE: "autotools"
-  autotools_build_script:
-    - autoreconf -fi &&
-      mkdir build &&
-      cd build &&
-      ../configure ${CONFIG_OPTS} &&
-      ${MAKE} V=1 -j2
-
-autotools_test: &autotools_test
-  env:
-    LD_LIBRARY_PATH: "$CIRRUS_WORKING_DIR/build/lib:$LD_LIBRARY_PATH"
-    VERBOSE: "1"
-    CK_VERBOSITY: "verbose"
-  autotools_test_script:
-    - cd build &&
-      cp sql/sqlite/.libs/mstdlib_sql_sqlite.so sql/.libs/ &&
-      make check
-
 asan_build: &asan_build
   env:
     BUILD_TYPE: "asan"
@@ -205,15 +185,6 @@ task:
   << : *deploy_docs
 
 task:
-  name: "Debian x64 - AutoTools"
-  container:
-    image: debian:latest
-  << : *debian_x64_template
-  << : *fetch_thirdparty
-  << : *autotools_build
-  << : *autotools_test
-
-task:
   name: "Debian x64 - ASAN"
   container:
     image: debian:latest
@@ -264,15 +235,6 @@ task:
   << : *cmake_build
   << : *cmake_test
 
-task:
-  name: "Debian arm64 - AutoTools"
-  arm_container:
-    image: debian:latest
-  << : *debian_arm64_template
-  << : *fetch_thirdparty
-  << : *autotools_build
-  << : *autotools_test
-
 # Unknown issue, ASAN just hangs
 #task:
 #  name: "Debian arm64 - ASAN"
@@ -304,15 +266,6 @@ task:
   << : *cmake_test
 
 task:
-  name: "FreeBSD x64 - AutoTools"
-  freebsd_instance:
-    image_family: freebsd-13-1
-  << : *freebsd_template
-  << : *fetch_thirdparty
-  << : *autotools_build
-  << : *autotools_test
-
-task:
   name: "FreeBSD x64 - Static Analysis"
   freebsd_instance:
     image_family: freebsd-13-1
@@ -331,15 +284,6 @@ task:
   << : *fetch_thirdparty
   << : *cmake_build
   << : *cmake_test
-
-task:
-  name: "MacOS - AutoTools"
-  macos_instance:
-    image: ghcr.io/cirruslabs/macos-monterey-xcode:13.4.1
-  << : *macos_template
-  << : *fetch_thirdparty
-  << : *autotools_build
-  << : *autotools_test
 
 task:
   name: "MacOS - Static Analysis"

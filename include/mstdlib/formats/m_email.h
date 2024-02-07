@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2020 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -73,25 +73,25 @@ __BEGIN_DECLS
 
 /*! Error codes. */
 typedef enum {
-	M_EMAIL_ERROR_SUCCESS = 0,                /*!< Success. Data fully parsed data is present. More data is possible because email does not have a length indicator. However, a complete email has been seen. */
-	M_EMAIL_ERROR_MOREDATA,                   /*!< Incomplete email, more data required. Not necessarily an error if parsing as data is streaming. */
-	M_EMAIL_ERROR_STOP,                       /*!< Stop processing (Used by callback functions to indicate non-error but stop processing). */
-	M_EMAIL_ERROR_INVALIDUSE,                 /*!< Invalid use. */
-	M_EMAIL_ERROR_HEADER_INVALID,             /*!< Header is malformed.  */
-	M_EMAIL_ERROR_ADDRESS,                    /*!< Address is malformed. */
-	M_EMAIL_ERROR_MULTIPART_NOBOUNDARY,       /*!< Multipart email missing boundary. */
-	M_EMAIL_ERROR_MULTIPART_HEADER_INVALID,   /*!< Multipart email missing boundary. */
-	M_EMAIL_ERROR_MULTIPART_MISSING_DATA,     /*!< Multipart data missing. */
-	M_EMAIL_ERROR_MULTIPART_INVALID,          /*!< Multipart is invalid. */
-	M_EMAIL_ERROR_NOT_EMAIL,                  /*!< Not an EMAIL email. */
-	M_EMAIL_ERROR_USER_FAILURE                /*!< Generic callback generated failure. */
+    M_EMAIL_ERROR_SUCCESS = 0,                /*!< Success. Data fully parsed data is present. More data is possible because email does not have a length indicator. However, a complete email has been seen. */
+    M_EMAIL_ERROR_MOREDATA,                   /*!< Incomplete email, more data required. Not necessarily an error if parsing as data is streaming. */
+    M_EMAIL_ERROR_STOP,                       /*!< Stop processing (Used by callback functions to indicate non-error but stop processing). */
+    M_EMAIL_ERROR_INVALIDUSE,                 /*!< Invalid use. */
+    M_EMAIL_ERROR_HEADER_INVALID,             /*!< Header is malformed.  */
+    M_EMAIL_ERROR_ADDRESS,                    /*!< Address is malformed. */
+    M_EMAIL_ERROR_MULTIPART_NOBOUNDARY,       /*!< Multipart email missing boundary. */
+    M_EMAIL_ERROR_MULTIPART_HEADER_INVALID,   /*!< Multipart email missing boundary. */
+    M_EMAIL_ERROR_MULTIPART_MISSING_DATA,     /*!< Multipart data missing. */
+    M_EMAIL_ERROR_MULTIPART_INVALID,          /*!< Multipart is invalid. */
+    M_EMAIL_ERROR_NOT_EMAIL,                  /*!< Not an EMAIL email. */
+    M_EMAIL_ERROR_USER_FAILURE                /*!< Generic callback generated failure. */
 } M_email_error_t;
 
 /*! Email Content type. */
 typedef enum {
-	M_EMAIL_DATA_FORMAT_UNKNOWN = 0, /*! Could not determine the format of the data. */
-	M_EMAIL_DATA_FORMAT_BODY,        /*!< Body. */
-	M_EMAIL_DATA_FORMAT_MULTIPART    /*!< Data is multipart. */
+    M_EMAIL_DATA_FORMAT_UNKNOWN = 0, /*! Could not determine the format of the data. */
+    M_EMAIL_DATA_FORMAT_BODY,        /*!< Body. */
+    M_EMAIL_DATA_FORMAT_MULTIPART    /*!< Data is multipart. */
 } M_email_data_format_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -309,7 +309,7 @@ typedef M_email_error_t (*M_email_reader_to_func)(const char *group, const char 
 typedef M_email_error_t (*M_email_reader_from_func)(const char *group, const char *name, const char *address, void *thunk);
 
 
-/*! Function definition for CC recipients 
+/*! Function definition for CC recipients
  *
  * This will be called for every address that appears as a CC recipient.
  * A group with no listed recipients can also be received. If address only is desired
@@ -331,7 +331,7 @@ typedef M_email_error_t (*M_email_reader_from_func)(const char *group, const cha
 typedef M_email_error_t (*M_email_reader_cc_func)(const char *group, const char *name, const char *address, void *thunk);
 
 
-/*! Function definition for BCC recipients 
+/*! Function definition for BCC recipients
  *
  * This will be called for every address that appears as a BCC recipient.
  * A group with no listed recipients can also be received. If address only is desired
@@ -523,30 +523,30 @@ typedef M_email_error_t (*M_email_reader_multipart_epilouge_func)(const char *da
 
 /*! Flags controlling reader behavior. */
 typedef enum {
-	M_EMAIL_READER_NONE = 0 /*!< Default operation. */
+    M_EMAIL_READER_NONE = 0 /*!< Default operation. */
 } M_email_reader_flags_t;
 
 
 /*! Callbacks for various stages of parsing. */
 struct M_email_reader_callbacks {
-	M_email_reader_header_func                      header_func;
-	M_email_reader_to_func                          to_func;
-	M_email_reader_from_func                        from_func;
-	M_email_reader_cc_func                          cc_func;
-	M_email_reader_bcc_func                         bcc_func;
-	M_email_reader_reply_to_func                    reply_to_func;
-	M_email_reader_subject_func                     subject_func;
-	M_email_reader_header_done_func                 header_done_func;
-	M_email_reader_body_func                        body_func;
-	M_email_reader_multipart_preamble_func          multipart_preamble_func;
-	M_email_reader_multipart_preamble_done_func     multipart_preamble_done_func;
-	M_email_reader_multipart_header_func            multipart_header_func;
-	M_email_reader_multipart_header_attachment_func multipart_header_attachment_func;
-	M_email_reader_multipart_header_done_func       multipart_header_done_func;
-	M_email_reader_multipart_data_func              multipart_data_func;
-	M_email_reader_multipart_data_done_func         multipart_data_done_func;
-	M_email_reader_multipart_data_finished_func     multipart_data_finished_func;
-	M_email_reader_multipart_epilouge_func          multipart_epilouge_func;
+    M_email_reader_header_func                      header_func;
+    M_email_reader_to_func                          to_func;
+    M_email_reader_from_func                        from_func;
+    M_email_reader_cc_func                          cc_func;
+    M_email_reader_bcc_func                         bcc_func;
+    M_email_reader_reply_to_func                    reply_to_func;
+    M_email_reader_subject_func                     subject_func;
+    M_email_reader_header_done_func                 header_done_func;
+    M_email_reader_body_func                        body_func;
+    M_email_reader_multipart_preamble_func          multipart_preamble_func;
+    M_email_reader_multipart_preamble_done_func     multipart_preamble_done_func;
+    M_email_reader_multipart_header_func            multipart_header_func;
+    M_email_reader_multipart_header_attachment_func multipart_header_attachment_func;
+    M_email_reader_multipart_header_done_func       multipart_header_done_func;
+    M_email_reader_multipart_data_func              multipart_data_func;
+    M_email_reader_multipart_data_done_func         multipart_data_done_func;
+    M_email_reader_multipart_data_finished_func     multipart_data_finished_func;
+    M_email_reader_multipart_epilouge_func          multipart_epilouge_func;
 };
 
 
@@ -614,7 +614,7 @@ M_API M_email_error_t M_email_reader_read(M_email_reader_t *emailr, const char *
  */
 
 typedef enum {
-	M_EMAIL_SIMPLE_READ_NONE = 0,
+    M_EMAIL_SIMPLE_READ_NONE = 0,
 } M_email_simple_read_flags_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -80,7 +80,7 @@ __BEGIN_DECLS
  *     out = M_ini_write(ini, info);
  *     M_printf("new ini=\n%s\n", out);
  *     M_free(out);
- *     
+ *
  *     M_ini_destroy(ini);
  *     M_ini_settings_destroy(info);
  * \endcode
@@ -116,33 +116,33 @@ typedef M_bool (*M_ini_merge_resolver_t)(const char *key, const char *val_cur, c
 
 /*! Duplicate key, value pair handling where a key is encountered multiple times. */
 typedef enum {
-	M_INI_DUPKVS_COMMENT_PREV = 0, /*!< Turn previous kv into comments. Last wins.*/
-	M_INI_DUPKVS_REMOVE_PREV,      /*!< Remove previous kv from the tree. Last wins. */
-	M_INI_DUPKVS_COMMENT,          /*!< Turn the current kv into a comment. First wins. */
-	M_INI_DUPKVS_REMOVE,           /*!< Remove the current kv from the tree. First wins. */
-	M_INI_DUPKVS_COLLECT           /*!< Multiple kv are allowed and their values should be collected. All win. */
+    M_INI_DUPKVS_COMMENT_PREV = 0, /*!< Turn previous kv into comments. Last wins.*/
+    M_INI_DUPKVS_REMOVE_PREV,      /*!< Remove previous kv from the tree. Last wins. */
+    M_INI_DUPKVS_COMMENT,          /*!< Turn the current kv into a comment. First wins. */
+    M_INI_DUPKVS_REMOVE,           /*!< Remove the current kv from the tree. First wins. */
+    M_INI_DUPKVS_COLLECT           /*!< Multiple kv are allowed and their values should be collected. All win. */
 } M_ini_dupkvs_t;
 
 
 /*! Control padding when between parts of elements.
  * Primarily used for writing but also used for reading when a comment duplicate key flag is used. */
 typedef enum {
-	M_INI_PADDING_NONE               = 0,      /*!< No padding. */
-	M_INI_PADDING_BEFORE_KV_DELIM    = 1 << 0, /*!< Put a space before the kv delimiter. */
-	M_INI_PADDING_AFTER_KV_DELIM     = 1 << 1, /*!< Put a space after the kv delimiter. */
-	M_INI_PADDING_AFTER_KV_VAL       = 1 << 2, /*!< Put a space after the kv val if followed by a comment. */
-	M_INI_PADDING_AFTER_COMMENT_CHAR = 1 << 3  /*!< Put a space after the comment character. */
+    M_INI_PADDING_NONE               = 0,      /*!< No padding. */
+    M_INI_PADDING_BEFORE_KV_DELIM    = 1 << 0, /*!< Put a space before the kv delimiter. */
+    M_INI_PADDING_AFTER_KV_DELIM     = 1 << 1, /*!< Put a space after the kv delimiter. */
+    M_INI_PADDING_AFTER_KV_VAL       = 1 << 2, /*!< Put a space after the kv val if followed by a comment. */
+    M_INI_PADDING_AFTER_COMMENT_CHAR = 1 << 3  /*!< Put a space after the comment character. */
 } M_ini_padding_t;
 
 
 /*! Control how muli value keys are written. */
 typedef enum {
-	M_INI_MULTIVALS_USE_LAST = 0,    /*!< Multi-value keys are not supported. Use the last value. */
-	M_INI_MULTIVALS_USE_FIRST,       /*!< Multi-value keys are not supported. Use the first value. */
-	M_INI_MULTIVALS_KEEP_EXISTING,   /*!< Multi-value keys are supported. Keep existing values in the same location
-	                                      and place new values after. */
-	M_INI_MULTIVALS_MAINTAIN_ORDER   /*!< Multi-value keys are supported. Remove all existing keys and write them all
-	                                      together maintaining the current value order. */
+    M_INI_MULTIVALS_USE_LAST = 0,    /*!< Multi-value keys are not supported. Use the last value. */
+    M_INI_MULTIVALS_USE_FIRST,       /*!< Multi-value keys are not supported. Use the first value. */
+    M_INI_MULTIVALS_KEEP_EXISTING,   /*!< Multi-value keys are supported. Keep existing values in the same location
+                                          and place new values after. */
+    M_INI_MULTIVALS_MAINTAIN_ORDER   /*!< Multi-value keys are supported. Remove all existing keys and write them all
+                                          together maintaining the current value order. */
 } M_ini_multivals_t;
 
 
@@ -151,21 +151,21 @@ typedef enum {
  * These values all override the default behavior.
  * Default behavior:
  *   - When a key is in new but not in cur and orig remove the key.
- *   - When the value (single) of cur is the same as orig but different than new use the new value. 
+ *   - When the value (single) of cur is the same as orig but different than new use the new value.
  *   - When a key with multiple values has a value that is in cur and orig but not in new remove the value.
  */
 typedef enum {
-	M_INI_MERGE_CALLBACK_FUNC          = 0,      /*!< Use a conflict resolution callback function to determine how to
-	                                                  handle conflicts. A callback function must be set otherwise
-	                                                  the default handling will be used. */
-	M_INI_MERGE_NEW_REMOVED_KEEP       = 1 << 0, /*!< When a key is not in new but in cur and orig keep the key.
-	                                                  The default is to remove the key. */
-	M_INI_MERGE_NEW_CHANGED_USE_CUR    = 1 << 1, /*!< When the value of cur is the same as orig but different than
-	                                                  new use the value from cur. Meaning the default value is set
-	                                                  but has changed. The default is to use the new value. */
-	M_INI_MERGE_MULTI_NEW_REMOVED_KEEP = 1 << 3  /*!< When a key with multiple values has a value that is in cur
-	                                                  and orig but not in new keep the value. The default is to remove
-													  the value. */
+    M_INI_MERGE_CALLBACK_FUNC          = 0,      /*!< Use a conflict resolution callback function to determine how to
+                                                      handle conflicts. A callback function must be set otherwise
+                                                      the default handling will be used. */
+    M_INI_MERGE_NEW_REMOVED_KEEP       = 1 << 0, /*!< When a key is not in new but in cur and orig keep the key.
+                                                      The default is to remove the key. */
+    M_INI_MERGE_NEW_CHANGED_USE_CUR    = 1 << 1, /*!< When the value of cur is the same as orig but different than
+                                                      new use the value from cur. Meaning the default value is set
+                                                      but has changed. The default is to use the new value. */
+    M_INI_MERGE_MULTI_NEW_REMOVED_KEEP = 1 << 3  /*!< When a key with multiple values has a value that is in cur
+                                                      and orig but not in new keep the value. The default is to remove
+                                                      the value. */
 } M_ini_merge_conflict_t;
 
 
@@ -292,7 +292,7 @@ M_API M_ini_dupkvs_t M_ini_settings_reader_get_dupkvs_handling(const M_ini_setti
 M_API M_ini_multivals_t M_ini_settings_writer_get_multivals_handling(const M_ini_settings_t *info);
 
 
-/*! Get the line ending used when writing the ini. 
+/*! Get the line ending used when writing the ini.
  *
  * This is to allow multiple character line endings (Windows "\r\n"). This is an override of the
  * element delim character that will be used if set. The line ending string will not be used
@@ -392,7 +392,7 @@ M_API void M_ini_settings_reader_set_dupkvs_handling(M_ini_settings_t *info, M_i
 M_API void M_ini_settings_writer_set_multivals_handling(M_ini_settings_t *info, M_ini_multivals_t val);
 
 
-/*! Set the line ending used when writing the ini. 
+/*! Set the line ending used when writing the ini.
  *
  * This is to allow multiple character line endings (Windows "\r\n"). This is an override of the
  * element delim character that will be used if set. The line ending string will not be used
@@ -544,7 +544,7 @@ M_API M_bool M_ini_kv_rename(M_ini_t *ini, const char *key, const char *new_key)
  * \param         key The key to add.
  *
  * \return M_TRUE if added otherwise M_FALSE.
- */ 
+ */
 M_API M_bool M_ini_kv_add_key(M_ini_t *ini, const char *key);
 
 

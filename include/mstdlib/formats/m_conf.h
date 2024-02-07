@@ -135,7 +135,7 @@ __BEGIN_DECLS
  *         }
  *
  *         if (num2 < num1) {
- *        	 return M_FALSE;
+ *           return M_FALSE;
  *         }
  *
  *         return M_TRUE;

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -58,27 +58,27 @@ typedef struct M_hash_strbin_enum M_hash_strbin_enum_t;
 
 /*! Flags for controlling the behavior of the hashtable. */
 typedef enum {
-	M_HASH_STRBIN_NONE          = 0,      /*!< Case sensitive single value (new values replace). */
-	M_HASH_STRBIN_CASECMP       = 1 << 0, /*!< Key compare is case insensitive. */
-	M_HASH_STRBIN_KEYS_UPPER    = 1 << 1, /*!< Keys will be upper cased before being inserted. Should be used
-	                                           in conjunction with M_HASH_STRBIN_CASECMP. */
-	M_HASH_STRBIN_KEYS_LOWER    = 1 << 2, /*!< Keys will be lower cased before being inserted. Should be used
-	                                           in conjunction with M_HASH_STRBIN_CASECMP. */
-	M_HASH_STRBIN_KEYS_ORDERED  = 1 << 3, /*!< Keys should be ordered. Default is insertion order unless the
-	                                           sorted option is specified. */
-	M_HASH_STRBIN_KEYS_SORTASC  = 1 << 4, /*!< When the keys are ordered sort them using the key_equality function. */
-	M_HASH_STRBIN_KEYS_SORTDESC = 1 << 5, /*!< When the keys are ordered sort them using the key_equality function. */
-	M_HASH_STRBIN_MULTI_VALUE   = 1 << 6, /*!< Allow keys to contain multiple values.
-	                                           Sorted in insertion order another sorting is specified. */
-	M_HASH_STRBIN_MULTI_GETLAST = 1 << 7, /*!< When using get and get_direct function get the last value from the list
-	                                           when allowing multiple values. The default is to get the first value. */
-	M_HASH_STRBIN_STATIC_SEED   = 1 << 8  /*!< Use a static seed for hash function initialization. This greatly reduces
-	                                           the security of the hashtable and removes collision attack protections.
-	                                           This should only be used as a performance optimization when creating
-	                                           millions of hashtables with static data specifically for quick look up.
-	                                           DO _NOT_ use this flag with any hashtable that could store user
-	                                           generated data! Be very careful about duplicating a hashtable that
-	                                           was created with this flag. All duplicates will use the static seed. */
+    M_HASH_STRBIN_NONE          = 0,      /*!< Case sensitive single value (new values replace). */
+    M_HASH_STRBIN_CASECMP       = 1 << 0, /*!< Key compare is case insensitive. */
+    M_HASH_STRBIN_KEYS_UPPER    = 1 << 1, /*!< Keys will be upper cased before being inserted. Should be used
+                                               in conjunction with M_HASH_STRBIN_CASECMP. */
+    M_HASH_STRBIN_KEYS_LOWER    = 1 << 2, /*!< Keys will be lower cased before being inserted. Should be used
+                                               in conjunction with M_HASH_STRBIN_CASECMP. */
+    M_HASH_STRBIN_KEYS_ORDERED  = 1 << 3, /*!< Keys should be ordered. Default is insertion order unless the
+                                               sorted option is specified. */
+    M_HASH_STRBIN_KEYS_SORTASC  = 1 << 4, /*!< When the keys are ordered sort them using the key_equality function. */
+    M_HASH_STRBIN_KEYS_SORTDESC = 1 << 5, /*!< When the keys are ordered sort them using the key_equality function. */
+    M_HASH_STRBIN_MULTI_VALUE   = 1 << 6, /*!< Allow keys to contain multiple values.
+                                               Sorted in insertion order another sorting is specified. */
+    M_HASH_STRBIN_MULTI_GETLAST = 1 << 7, /*!< When using get and get_direct function get the last value from the list
+                                               when allowing multiple values. The default is to get the first value. */
+    M_HASH_STRBIN_STATIC_SEED   = 1 << 8  /*!< Use a static seed for hash function initialization. This greatly reduces
+                                               the security of the hashtable and removes collision attack protections.
+                                               This should only be used as a performance optimization when creating
+                                               millions of hashtables with static data specifically for quick look up.
+                                               DO _NOT_ use this flag with any hashtable that could store user
+                                               generated data! Be very careful about duplicating a hashtable that
+                                               was created with this flag. All duplicates will use the static seed. */
 } M_hash_strbin_flags_t;
 
 
@@ -88,7 +88,7 @@ typedef enum {
  *
  * The hashtable will pre-allocate an array of buckets based on the rounded up size specified. Any hash collisions will
  * result in those collisions being chained together via a linked list. The hashtable will auto-expand by a power of
- * 2 when the fill percentage specified is reached. Values are not duplicated. 
+ * 2 when the fill percentage specified is reached. Values are not duplicated.
  *
  * \param[in] size    Size of the hash table. If not specified as a power of 2, will
  *                    be rounded up to the nearest power of 2.
@@ -129,7 +129,7 @@ M_API M_bool M_hash_strbin_insert(M_hash_strbin_t *h, const char *key, const M_u
 /*! Remove an entry from the hashtable.
  *
  * \param[in,out] h   Hashtable being referenced.
- * \param[in]     key Key to remove from the hashtable. 
+ * \param[in]     key Key to remove from the hashtable.
  *                    A NULL or empty string is explicitly disallowed.
  *
  * \return M_TRUE on success, or M_FALSE if key does not exist.
@@ -178,7 +178,7 @@ M_bool M_hash_strbin_is_multi(const M_hash_strbin_t *h);
 /*! Get the number of values for a given key.
  *
  * \param[in]  h   Hashtable being referenced.
- * \param[in]  key Key for value to retrieve. 
+ * \param[in]  key Key for value to retrieve.
  * \param[out] len The number of values.
  *
  * \return M_TRUE if length is retrieved, M_FALSE if key does not exist.
@@ -273,7 +273,7 @@ M_API size_t M_hash_strbin_num_keys(const M_hash_strbin_t *h);
  * \param[in] h         Hashtable being referenced.
  * \param[out] hashenum Outputs an initialized state variable for starting an enumeration.
  *
- * \return Number of values in the hashtable. 
+ * \return Number of values in the hashtable.
  *
  * \see M_hash_strbin_enumerate_free
  */

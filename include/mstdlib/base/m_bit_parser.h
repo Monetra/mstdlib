@@ -43,7 +43,7 @@ __BEGIN_DECLS
  *
  * \code{.c}
  *     M_bit_parser_t *bparser;
- *	   const M_uint8   bytes[] = {0x70, 0x3F};
+ *     const M_uint8   bytes[] = {0x70, 0x3F};
  *     size_t          nbits   = 12;
  *
  *     M_uint8         bit;
@@ -74,13 +74,13 @@ typedef struct M_bit_parser M_bit_parser_t;
 /*! Signed integer formats understood by bit parser.
  *
  * In-depth description of these formats can be found at <https://en.wikipedia.org/wiki/Signed_number_representations>.
- * 
+ *
  * \see M_bit_parser_read_int
  */
 typedef enum {
-	M_BIT_PARSER_SIGN_MAG  = 0, /*!< Signed magnitude format (first bit is sign, rest of bits are magnitude) */
-	M_BIT_PARSER_ONES_COMP = 1, /*!< One's complement */
-	M_BIT_PARSER_TWOS_COMP = 2  /*!< Two's complement */
+    M_BIT_PARSER_SIGN_MAG  = 0, /*!< Signed magnitude format (first bit is sign, rest of bits are magnitude) */
+    M_BIT_PARSER_ONES_COMP = 1, /*!< One's complement */
+    M_BIT_PARSER_TWOS_COMP = 2  /*!< Two's complement */
 } M_bit_parser_int_format_t;
 
 
@@ -413,7 +413,7 @@ M_API M_bool M_bit_parser_consume_range(M_bit_parser_t *bparser, size_t max_bits
  * Usage example:
  * \code{.c}
  *     M_bit_parser_t *bparser;
- *	   const M_uint8   bytes[] = {0x86, 0x00};
+ *     const M_uint8   bytes[] = {0x86, 0x00};
  *
  *     bparser = M_bit_parser_create_const(bytes, 10);
  *     // bparser contains: "1000011000"

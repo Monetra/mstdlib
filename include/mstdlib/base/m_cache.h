@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,7 +37,7 @@ __BEGIN_DECLS
 
 /*! \defgroup m_cache Cache
  *  \ingroup m_datastructures
- * 
+ *
  *  Cache (Hot)
  */
 
@@ -65,21 +65,21 @@ typedef void (*M_cache_free_func)(void *);
 
 /*! Flags for controlling the behavior of the hash */
 typedef enum {
-	M_CACHE_NONE = 0, /*!< Default. */
+    M_CACHE_NONE = 0, /*!< Default. */
 } M_cache_flags_t;
 
 
 /*! Structure of callbacks that can be registered to override default
  *  behavior for implementation. */
 struct M_cache_callbacks {
-	M_cache_duplicate_func key_duplicate;   /*!< Callback to duplicate a key. Default if
-	                                         *   NULL is pass-thru pointer */
-	M_cache_free_func      key_free;        /*!< Callback to free a key. Default if NULL
-	                                         *   is no-op */
-	M_cache_duplicate_func value_duplicate; /*!< Callback to duplicate a value. Default
-	                                         *   if NULL is pass-thru pointer */
-	M_cache_free_func      value_free;      /*!< Callback to free a value. Default if
-	                                         *   NULL is a no-op */
+    M_cache_duplicate_func key_duplicate;   /*!< Callback to duplicate a key. Default if
+                                             *   NULL is pass-thru pointer */
+    M_cache_free_func      key_free;        /*!< Callback to free a key. Default if NULL
+                                             *   is no-op */
+    M_cache_duplicate_func value_duplicate; /*!< Callback to duplicate a value. Default
+                                             *   if NULL is pass-thru pointer */
+    M_cache_free_func      value_free;      /*!< Callback to free a value. Default if
+                                             *   NULL is a no-op */
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -89,7 +89,7 @@ struct M_cache_callbacks {
  * \param[in] max_size     Maximum number of entries in the cache.
  * \param[in] key_hash     The function to use for hashing a key.  If not specified will use
  *                         the pointer address as the key.
- * \param[in] key_equality The function to use to determine if two keys are equal.  If not 
+ * \param[in] key_equality The function to use to determine if two keys are equal.  If not
  *                         specified, will compare pointer addresses.
  * \param[in] flags        M_hash_strvp_flags_t flags for modifying behavior.
  * \param[in] callbacks    Register callbacks for overriding default behavior.
@@ -99,8 +99,8 @@ struct M_cache_callbacks {
  * \see M_cache_destroy
  */
 M_API M_cache_t *M_cache_create(size_t max_size,
-		M_hashtable_hash_func key_hash, M_sort_compar_t key_equality,
-		M_uint32 flags, const struct M_cache_callbacks *callbacks) M_MALLOC;
+        M_hashtable_hash_func key_hash, M_sort_compar_t key_equality,
+        M_uint32 flags, const struct M_cache_callbacks *callbacks) M_MALLOC;
 
 
 /*! Destroy the cache.
@@ -134,7 +134,7 @@ M_API M_bool M_cache_insert(M_cache_t *c, const void *key, const void *value);
 M_API M_bool M_cache_remove(M_cache_t *c, const void *key);
 
 
-/*! Retrieve the value for a key from the cache. 
+/*! Retrieve the value for a key from the cache.
  *
  * \param[in]  c      Cache being referenced.
  * \param[in]  key    Key for value.

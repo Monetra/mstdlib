@@ -166,7 +166,6 @@ __BEGIN_DECLS
  * Driver Name(s):
  *   - odbc (for Microsoft Windows, iODBC, or UnixODBC)
  *   - db2 (for direct DB2 connectivity)
- *   - db2pase (for direct DB2 connectivity on OS/400 PASE)
  *
  * Driver Connection String Options:
  *  - dsn: Required. Data Source Name
@@ -188,79 +187,79 @@ __BEGIN_DECLS
 
 /*! Possible error conditions */
 typedef enum {
-	M_SQL_ERROR_SUCCESS              = 0,    /*!< No error, success. If returned by M_sql_stmt_fetch(), there
-	                                          *   are guaranteed to not be any rows in the result set.  However,
-	                                          *   for an M_sql_stmt_execute() or M_sql_trans_execute() if
-	                                          *   M_sql_stmt_set_max_fetch_rows() was not set, there may be
-	                                          *   rows available. */
-	M_SQL_ERROR_SUCCESS_ROW          = 1,    /*!< No error, success, rows may be available to be fetched */
+    M_SQL_ERROR_SUCCESS              = 0,    /*!< No error, success. If returned by M_sql_stmt_fetch(), there
+                                              *   are guaranteed to not be any rows in the result set.  However,
+                                              *   for an M_sql_stmt_execute() or M_sql_trans_execute() if
+                                              *   M_sql_stmt_set_max_fetch_rows() was not set, there may be
+                                              *   rows available. */
+    M_SQL_ERROR_SUCCESS_ROW          = 1,    /*!< No error, success, rows may be available to be fetched */
 
-	/* Connectivity failures */
-	M_SQL_ERROR_CONN_NODRIVER        = 100,  /*!< Driver not found for specified driver name. */
-	M_SQL_ERROR_CONN_DRIVERLOAD      = 101,  /*!< Failed to dynamically load driver module. */
-	M_SQL_ERROR_CONN_DRIVERVER       = 102,  /*!< Driver version invalid */
-	M_SQL_ERROR_CONN_PARAMS          = 103,  /*!< Connection string parameter validation failed */
-	M_SQL_ERROR_CONN_FAILED          = 104,  /*!< Failed to establish connection to server. */
-	M_SQL_ERROR_CONN_BADAUTH         = 105,  /*!< Failed to authenticate against server. */
-	M_SQL_ERROR_CONN_LOST            = 106,  /*!< Connection to server has been lost (remote disconnect). */
+    /* Connectivity failures */
+    M_SQL_ERROR_CONN_NODRIVER        = 100,  /*!< Driver not found for specified driver name. */
+    M_SQL_ERROR_CONN_DRIVERLOAD      = 101,  /*!< Failed to dynamically load driver module. */
+    M_SQL_ERROR_CONN_DRIVERVER       = 102,  /*!< Driver version invalid */
+    M_SQL_ERROR_CONN_PARAMS          = 103,  /*!< Connection string parameter validation failed */
+    M_SQL_ERROR_CONN_FAILED          = 104,  /*!< Failed to establish connection to server. */
+    M_SQL_ERROR_CONN_BADAUTH         = 105,  /*!< Failed to authenticate against server. */
+    M_SQL_ERROR_CONN_LOST            = 106,  /*!< Connection to server has been lost (remote disconnect). */
 
-	/* Prepare errors */
-	M_SQL_ERROR_PREPARE_INVALID      = 200,  /*!< Invalid query format */
-	M_SQL_ERROR_PREPARE_STRNOTBOUND  = 201,  /*!< A string was detected in the query that was not bound */
-	M_SQL_ERROR_PREPARE_NOMULITQUERY = 202,  /*!< Multiple requests in a single query are not allowed */
+    /* Prepare errors */
+    M_SQL_ERROR_PREPARE_INVALID      = 200,  /*!< Invalid query format */
+    M_SQL_ERROR_PREPARE_STRNOTBOUND  = 201,  /*!< A string was detected in the query that was not bound */
+    M_SQL_ERROR_PREPARE_NOMULITQUERY = 202,  /*!< Multiple requests in a single query are not allowed */
 
-	/* Execute query */
-	M_SQL_ERROR_QUERY_NOTPREPARED    = 300,  /*!< Can't execute query as statement hasn't been prepared */
-	M_SQL_ERROR_QUERY_WRONGNUMPARAMS = 301,  /*!< Wrong number of bound parameters provided for query */
-	M_SQL_ERROR_QUERY_PREPARE        = 302,  /*!< DB Driver failed to prepare the query for execution */
+    /* Execute query */
+    M_SQL_ERROR_QUERY_NOTPREPARED    = 300,  /*!< Can't execute query as statement hasn't been prepared */
+    M_SQL_ERROR_QUERY_WRONGNUMPARAMS = 301,  /*!< Wrong number of bound parameters provided for query */
+    M_SQL_ERROR_QUERY_PREPARE        = 302,  /*!< DB Driver failed to prepare the query for execution */
 
-	/* Other errors */
-	M_SQL_ERROR_QUERY_DEADLOCK       = 400,  /*!< Deadlock (must rollback), cannot continue. */
-	M_SQL_ERROR_QUERY_CONSTRAINT     = 410,  /*!< Constraint failed (e.g. Unique key or primary key conflict) */
-	M_SQL_ERROR_QUERY_FAILURE        = 499,  /*!< Failure (uncategorized) */
+    /* Other errors */
+    M_SQL_ERROR_QUERY_DEADLOCK       = 400,  /*!< Deadlock (must rollback), cannot continue. */
+    M_SQL_ERROR_QUERY_CONSTRAINT     = 410,  /*!< Constraint failed (e.g. Unique key or primary key conflict) */
+    M_SQL_ERROR_QUERY_FAILURE        = 499,  /*!< Failure (uncategorized) */
 
 
 
-	/* Failure options for Disconnect */
-	M_SQL_ERROR_INUSE                = 500,  /*!< Resource in use, invalid action */
-	/* Generic Failures               */
-	M_SQL_ERROR_INVALID_USE          = 600,  /*!< Invalid use */
-	M_SQL_ERROR_INVALID_TYPE         = 601,  /*!< Invalid Data Type for conversion */
+    /* Failure options for Disconnect */
+    M_SQL_ERROR_INUSE                = 500,  /*!< Resource in use, invalid action */
+    /* Generic Failures               */
+    M_SQL_ERROR_INVALID_USE          = 600,  /*!< Invalid use */
+    M_SQL_ERROR_INVALID_TYPE         = 601,  /*!< Invalid Data Type for conversion */
 
-	/* User-generated errors or conditions via M_sql_trans_process() */
-	M_SQL_ERROR_USER_SUCCESS         = 700,  /*!< Return code a User can generate in M_sql_trans_process() to
-	                                          *   Indicate the operation is complete and the system can
-	                                          *   commit any pending data.  This is equivalent to #M_SQL_ERROR_SUCCESS
-	                                          *   but can be used in its place if a user needs to have the
-	                                          *   ability to differentiate how M_sql_trans_process() returned
-	                                          *   success. */
-	M_SQL_ERROR_USER_BYPASS          = 703,  /*!< Return code a User can generate in M_sql_trans_process() to
-	                                          *   indicate the operation should be bypassed.  This can be used to
-	                                          *   differentiate a traditional tristate error message.  Otherwise
-	                                          *   this is classified as success. */
-	M_SQL_ERROR_USER_RETRY           = 701,  /*!< Return code a User can generate in M_sql_trans_process() to
-	                                          *   request the system to rollback and retry the entire sequence
-	                                          *   of events.  This is equivalent to #M_SQL_ERROR_QUERY_DEADLOCK
-	                                          *   but more accurately indicates the failure was due to user-logic
-	                                          *   rather than a condition triggered internally to the SQL system */
-	M_SQL_ERROR_USER_FAILURE         = 702,  /*!< Return code a User can generate in M_sql_trans_process() to
-	                                          *   request the system to rollback and return the error to the
-	                                          *   caller.  This is equivalent to #M_SQL_ERROR_QUERY_FAILURE
-	                                          *   but more accurately indicates the failure was due to user-logic
-	                                          *   rather than a condition triggered internally to the SQL system */
+    /* User-generated errors or conditions via M_sql_trans_process() */
+    M_SQL_ERROR_USER_SUCCESS         = 700,  /*!< Return code a User can generate in M_sql_trans_process() to
+                                              *   Indicate the operation is complete and the system can
+                                              *   commit any pending data.  This is equivalent to #M_SQL_ERROR_SUCCESS
+                                              *   but can be used in its place if a user needs to have the
+                                              *   ability to differentiate how M_sql_trans_process() returned
+                                              *   success. */
+    M_SQL_ERROR_USER_BYPASS          = 703,  /*!< Return code a User can generate in M_sql_trans_process() to
+                                              *   indicate the operation should be bypassed.  This can be used to
+                                              *   differentiate a traditional tristate error message.  Otherwise
+                                              *   this is classified as success. */
+    M_SQL_ERROR_USER_RETRY           = 701,  /*!< Return code a User can generate in M_sql_trans_process() to
+                                              *   request the system to rollback and retry the entire sequence
+                                              *   of events.  This is equivalent to #M_SQL_ERROR_QUERY_DEADLOCK
+                                              *   but more accurately indicates the failure was due to user-logic
+                                              *   rather than a condition triggered internally to the SQL system */
+    M_SQL_ERROR_USER_FAILURE         = 702,  /*!< Return code a User can generate in M_sql_trans_process() to
+                                              *   request the system to rollback and return the error to the
+                                              *   caller.  This is equivalent to #M_SQL_ERROR_QUERY_FAILURE
+                                              *   but more accurately indicates the failure was due to user-logic
+                                              *   rather than a condition triggered internally to the SQL system */
 
-	M_SQL_ERROR_UNSET                = 999   /*!< Error message not set. Internal use only. */
+    M_SQL_ERROR_UNSET                = 999   /*!< Error message not set. Internal use only. */
 } M_sql_error_t;
 
 /*! Possible SQL data types */
 typedef enum {
-	M_SQL_DATA_TYPE_UNKNOWN = 0, /*!< Not Known, not yet set, most likely an error */
-	M_SQL_DATA_TYPE_BOOL    = 1, /*!< Implemented as an 8bit integer */
-	M_SQL_DATA_TYPE_INT16   = 2, /*!< 16bit signed integer */
-	M_SQL_DATA_TYPE_INT32   = 3, /*!< 32bit signed integer */
-	M_SQL_DATA_TYPE_INT64   = 4, /*!< 64bit signed integer */
-	M_SQL_DATA_TYPE_TEXT    = 5, /*!< Textual data type such as VARCHAR or TEXT, with possible length */
-	M_SQL_DATA_TYPE_BINARY  = 6  /*!< Binary data type such as BLOB or BINARY, with possible length */
+    M_SQL_DATA_TYPE_UNKNOWN = 0, /*!< Not Known, not yet set, most likely an error */
+    M_SQL_DATA_TYPE_BOOL    = 1, /*!< Implemented as an 8bit integer */
+    M_SQL_DATA_TYPE_INT16   = 2, /*!< 16bit signed integer */
+    M_SQL_DATA_TYPE_INT32   = 3, /*!< 32bit signed integer */
+    M_SQL_DATA_TYPE_INT64   = 4, /*!< 64bit signed integer */
+    M_SQL_DATA_TYPE_TEXT    = 5, /*!< Textual data type such as VARCHAR or TEXT, with possible length */
+    M_SQL_DATA_TYPE_BINARY  = 6  /*!< Binary data type such as BLOB or BINARY, with possible length */
 } M_sql_data_type_t;
 
 
@@ -336,18 +335,18 @@ typedef struct M_sql_connpool M_sql_connpool_t;
 
 /*! Flags controlling behavior of the connection pool */
 typedef enum {
-	M_SQL_CONNPOOL_FLAG_NONE               = 0,       /*!< No special pool flags */
-	M_SQL_CONNPOOL_FLAG_PRESPAWN_ALL       = 1 << 0,  /*!< Pre-spawn all connections, not just the first.
-	                                                   *   Without this, the remaining connections are on-demand */
-	M_SQL_CONNPOOL_FLAG_NO_AUTORETRY_QUERY = 1 << 1,  /*!< If a non-transactional query is rolled back due to a deadlock
+    M_SQL_CONNPOOL_FLAG_NONE               = 0,       /*!< No special pool flags */
+    M_SQL_CONNPOOL_FLAG_PRESPAWN_ALL       = 1 << 0,  /*!< Pre-spawn all connections, not just the first.
+                                                       *   Without this, the remaining connections are on-demand */
+    M_SQL_CONNPOOL_FLAG_NO_AUTORETRY_QUERY = 1 << 1,  /*!< If a non-transactional query is rolled back due to a deadlock
                                                        *   or connectivity failure, the default behavior is to automatically
                                                        *   retry the query, indefinitely.  For queries executed as part of
                                                        *   a transaction, rollbacks must be handled by the caller as they
                                                        *   may be dependent on prior queries in the transaction.  This flag
                                                        *   will turn off the auto-retry logic */
-	M_SQL_CONNPOOL_FLAG_LOAD_BALANCE       = 1 << 2,  /*!< If there are multiple servers specified for the connection string,
-	                                                   *   this will load balance requests across the servers instead of using
-	                                                   *   them for failover. */
+    M_SQL_CONNPOOL_FLAG_LOAD_BALANCE       = 1 << 2,  /*!< If there are multiple servers specified for the connection string,
+                                                       *   this will load balance requests across the servers instead of using
+                                                       *   them for failover. */
 } M_sql_connpool_flags_t;
 
 
@@ -621,13 +620,13 @@ M_API M_uint64 M_sql_rollback_delay_ms(M_sql_connpool_t *pool);
  *  for a future update with in a transaction.  All values must be used within a
  *  single query */
 typedef enum {
-	M_SQL_QUERY_UPDLOCK_TABLE    = 1, /*!< Apply SQL-specific lock to rows in the table being updated.
-	                                   *   This must be appended immediately after every referenced table
-	                                   *   name when row locking is desired.  Must be used in conjunction
-	                                   *   with a later call for #M_SQL_QUERY_UPDLOCK_QUERYEND */
-	M_SQL_QUERY_UPDLOCK_QUERYEND = 2  /*!< Apply the SQL-specific lock to the rows referenced by query, this
-	                                   *   must always be applied at the END of a query string.  Must be
-	                                   *   used in conjunction with an earlier call for #M_SQL_QUERY_UPDLOCK_TABLE */
+    M_SQL_QUERY_UPDLOCK_TABLE    = 1, /*!< Apply SQL-specific lock to rows in the table being updated.
+                                       *   This must be appended immediately after every referenced table
+                                       *   name when row locking is desired.  Must be used in conjunction
+                                       *   with a later call for #M_SQL_QUERY_UPDLOCK_QUERYEND */
+    M_SQL_QUERY_UPDLOCK_QUERYEND = 2  /*!< Apply the SQL-specific lock to the rows referenced by query, this
+                                       *   must always be applied at the END of a query string.  Must be
+                                       *   used in conjunction with an earlier call for #M_SQL_QUERY_UPDLOCK_TABLE */
 } M_sql_query_updlock_type_t;
 
 
@@ -704,8 +703,8 @@ M_API void M_sql_query_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_
 
 /*! Type of bitwise operation to perform. */
 typedef enum {
-	M_SQL_BITOP_AND = 1, /*!< Perform a bitwise AND (&) operation */
-	M_SQL_BITOP_OR  = 2  /*!< Perform a bitwise OR (|) operation */
+    M_SQL_BITOP_AND = 1, /*!< Perform a bitwise AND (&) operation */
+    M_SQL_BITOP_OR  = 2  /*!< Perform a bitwise OR (|) operation */
 } M_sql_query_bitop_t;
 
 

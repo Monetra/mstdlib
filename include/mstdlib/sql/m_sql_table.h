@@ -57,15 +57,15 @@ typedef struct M_sql_index M_sql_index_t;
 
 /*! Flags passed to M_sql_table_add_col() for a column */
 typedef enum {
-	M_SQL_TABLE_COL_FLAG_NONE    = 0,       /*!< Default, no special flags */
-	M_SQL_TABLE_COL_FLAG_NOTNULL = 1 << 0,  /*!< Column is not allowed to be NULL */
+    M_SQL_TABLE_COL_FLAG_NONE    = 0,       /*!< Default, no special flags */
+    M_SQL_TABLE_COL_FLAG_NOTNULL = 1 << 0,  /*!< Column is not allowed to be NULL */
 } M_sql_table_col_flags_t;
 
 
 /*! Index creation flags used by M_sql_table_add_index() */
 typedef enum {
-	M_SQL_INDEX_FLAG_NONE   = 0,     /*!< Default, no special flags */
-	M_SQL_INDEX_FLAG_UNIQUE = 1 << 0 /*!< Index enforces a unique constraint */
+    M_SQL_INDEX_FLAG_NONE   = 0,     /*!< Default, no special flags */
+    M_SQL_INDEX_FLAG_UNIQUE = 1 << 0 /*!< Index enforces a unique constraint */
 } M_sql_table_index_flags_t;
 
 
@@ -228,17 +228,17 @@ typedef struct M_sql_tabledata_txn M_sql_tabledata_txn_t;
 
 /*! Flags for processing table data fields / columns */
 typedef enum {
-	M_SQL_TABLEDATA_FLAG_NONE               = 0,      /*!< No Flags */
-	M_SQL_TABLEDATA_FLAG_VIRTUAL            = 1 << 0, /*!< Field is a virtual column, multiple serialized virtual columns can be stored in a single 'real' database column under 'table_column'. Any data type except binary may be used. */
-	M_SQL_TABLEDATA_FLAG_EDITABLE           = 1 << 1, /*!< Field is allowed to be edited, not add-only */
-	M_SQL_TABLEDATA_FLAG_NOTNULL            = 1 << 2, /*!< Field must be specified and is not allowed to be NULL */
-	M_SQL_TABLEDATA_FLAG_ID                 = 1 << 3, /*!< Field is an ID column (meaning it is used for lookups). Can be assigned on add,
-	                                                   *   but cannot be used with M_SQL_TABLEDATA_FLAG_EDITABLE or M_SQL_TABLEDATA_FLAG_VIRTUAL. */
-	M_SQL_TABLEDATA_FLAG_ID_GENERATE        = 1 << 4, /*!< Auto-generate the ID on the user's behalf.  Must be an ID field. Only one allowed per field definition list. */
-	M_SQL_TABLEDATA_FLAG_ID_REQUIRED        = 1 << 5, /*!< On edits, this ID must be specified.  On some DBs, you may not have any required IDs
-	                                                   *   as there may be multiple lookup indexes */
-	M_SQL_TABLEDATA_FLAG_TIMESTAMP          = 1 << 6, /*!< Field is an auto-generated unix timestamp.  Must be INT64. Cannot be specified with ID. Field fetcher will never be called. If M_SQL_TABLEDATA_FLAG_EDITABLE is specified, will update on edit */
-	M_SQL_TABLEDATA_FLAG_ALLOW_NONPRINT_SEP = 1 << 7, /*!< Allow non-printable characters designated as separators (e.g. 0x1C, 0x1D, 0x1E) */
+    M_SQL_TABLEDATA_FLAG_NONE               = 0,      /*!< No Flags */
+    M_SQL_TABLEDATA_FLAG_VIRTUAL            = 1 << 0, /*!< Field is a virtual column, multiple serialized virtual columns can be stored in a single 'real' database column under 'table_column'. Any data type except binary may be used. */
+    M_SQL_TABLEDATA_FLAG_EDITABLE           = 1 << 1, /*!< Field is allowed to be edited, not add-only */
+    M_SQL_TABLEDATA_FLAG_NOTNULL            = 1 << 2, /*!< Field must be specified and is not allowed to be NULL */
+    M_SQL_TABLEDATA_FLAG_ID                 = 1 << 3, /*!< Field is an ID column (meaning it is used for lookups). Can be assigned on add,
+                                                       *   but cannot be used with M_SQL_TABLEDATA_FLAG_EDITABLE or M_SQL_TABLEDATA_FLAG_VIRTUAL. */
+    M_SQL_TABLEDATA_FLAG_ID_GENERATE        = 1 << 4, /*!< Auto-generate the ID on the user's behalf.  Must be an ID field. Only one allowed per field definition list. */
+    M_SQL_TABLEDATA_FLAG_ID_REQUIRED        = 1 << 5, /*!< On edits, this ID must be specified.  On some DBs, you may not have any required IDs
+                                                       *   as there may be multiple lookup indexes */
+    M_SQL_TABLEDATA_FLAG_TIMESTAMP          = 1 << 6, /*!< Field is an auto-generated unix timestamp.  Must be INT64. Cannot be specified with ID. Field fetcher will never be called. If M_SQL_TABLEDATA_FLAG_EDITABLE is specified, will update on edit */
+    M_SQL_TABLEDATA_FLAG_ALLOW_NONPRINT_SEP = 1 << 7, /*!< Allow non-printable characters designated as separators (e.g. 0x1C, 0x1D, 0x1E) */
 } M_sql_tabledata_flags_t;
 
 
@@ -302,13 +302,13 @@ typedef M_sql_error_t (*M_sql_tabledata_validate_cb)(M_sql_trans_t *sqltrans, M_
 
 /*! Structure to be used to define the various fields and columns stored in a table */
 typedef struct {
-	const char                          *table_column;    /*!< Database column name */
-	const char                          *field_name;      /*!< Field name to fetch in order to retrieve column data. For virtual columns, this field name is also used as the tag name. If NULL or blank, means field not used. Reserved for external modification. */
-	size_t                               max_column_len;  /*!< Maximum text or binary length of column allowed. For M_SQL_TABLEDATA_FLAG_ID_GENERATE fields, it is the desired number of digits to generate */
-	M_sql_data_type_t                    type;            /*!< Column data type */
-	M_sql_tabledata_flags_t              flags;           /*!< Flags controlling behavior */
-	M_sql_tabledata_filtertransform_cb   filter_cb;       /*!< Callback to filter or transform input data. Called only on new user-specified params. */
-	M_sql_tabledata_validate_cb          validate_cb;     /*!< Callback for in-depth validation of input data that may require external SQL queries. */
+    const char                          *table_column;    /*!< Database column name */
+    const char                          *field_name;      /*!< Field name to fetch in order to retrieve column data. For virtual columns, this field name is also used as the tag name. If NULL or blank, means field not used. Reserved for external modification. */
+    size_t                               max_column_len;  /*!< Maximum text or binary length of column allowed. For M_SQL_TABLEDATA_FLAG_ID_GENERATE fields, it is the desired number of digits to generate */
+    M_sql_data_type_t                    type;            /*!< Column data type */
+    M_sql_tabledata_flags_t              flags;           /*!< Flags controlling behavior */
+    M_sql_tabledata_filtertransform_cb   filter_cb;       /*!< Callback to filter or transform input data. Called only on new user-specified params. */
+    M_sql_tabledata_validate_cb          validate_cb;     /*!< Callback for in-depth validation of input data that may require external SQL queries. */
 } M_sql_tabledata_t;
 
 
@@ -529,11 +529,11 @@ M_API M_bool M_sql_tabledata_txn_is_add(M_sql_tabledata_txn_t *txn);
 
 /*! When fetching a field from a transaction, the manner in which to fetch */
 typedef enum {
-	M_SQL_TABLEDATA_TXN_FIELD_MERGED              = 1, /*!< Grab the current specified value of the field, if not found, grab the prior value. On add, equivalent to M_SQL_TABLEDATA_TXN_FIELD_CURRENT. */
+    M_SQL_TABLEDATA_TXN_FIELD_MERGED              = 1, /*!< Grab the current specified value of the field, if not found, grab the prior value. On add, equivalent to M_SQL_TABLEDATA_TXN_FIELD_CURRENT. */
     M_SQL_TABLEDATA_TXN_FIELD_MERGED_NODUPLICATE  = 2, /*!< Grab the current specified value of the field, if not found, grab the prior value and duplicate it as the current value for editing. */
-	M_SQL_TABLEDATA_TXN_FIELD_PRIOR               = 3, /*!< Grab the prior value of the field. On add, this is always NULL. */
-	M_SQL_TABLEDATA_TXN_FIELD_CURRENT_READONLY    = 4, /*!< Grab the current specified value of the field.  May not exist on edit if value is unchanged. */
-	M_SQL_TABLEDATA_TXN_FIELD_CURRENT             = 5, /*!< Grab the current specified value of the field.  If not found, create a new NULL field and return it for modification (field_name specified must be valid) */
+    M_SQL_TABLEDATA_TXN_FIELD_PRIOR               = 3, /*!< Grab the prior value of the field. On add, this is always NULL. */
+    M_SQL_TABLEDATA_TXN_FIELD_CURRENT_READONLY    = 4, /*!< Grab the current specified value of the field.  May not exist on edit if value is unchanged. */
+    M_SQL_TABLEDATA_TXN_FIELD_CURRENT             = 5, /*!< Grab the current specified value of the field.  If not found, create a new NULL field and return it for modification (field_name specified must be valid) */
 } M_sql_tabledata_txn_field_select_t;
 
 

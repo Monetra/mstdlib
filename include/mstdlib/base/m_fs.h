@@ -152,76 +152,76 @@ typedef struct M_fs_progress M_fs_progress_t;
 /*! Error codes. */
 
 typedef enum {
-	M_FS_ERROR_SUCCESS = 0,   /*!< Operation completed successfully */
-	M_FS_ERROR_GENERIC,       /*!< Generic, uncategorized error */
-	M_FS_ERROR_INVALID,       /*!< Invalid argument */
-	M_FS_ERROR_PERMISSION,    /*!< Operation not permitted */
-	M_FS_ERROR_NOT_SUPPORTED, /*!< Operation not supported */
-	M_FS_ERROR_IO,            /*!< Input/output error */
-	M_FS_ERROR_SEEK,          /*!< Invalid seek */
-	M_FS_ERROR_READONLY,      /*!< Read-only file system */
-	M_FS_ERROR_QUOTA,         /*!< Disk quota exceeded */
-	M_FS_ERROR_DNE,           /*!< No such file or directory */
-	M_FS_ERROR_NAMETOOLONG,   /*!< Filename too long */
-	M_FS_ERROR_FILE_EXISTS,   /*!< File exists */
-	M_FS_ERROR_FILE_2BIG,     /*!< File too large */
-	M_FS_ERROR_FILE_2MANY,    /*!< Too many open files */
-	M_FS_ERROR_ISDIR,         /*!< Is a directory */
-	M_FS_ERROR_NOTDIR,        /*!< Not a directory */
-	M_FS_ERROR_DIR_NOTEMPTY,  /*!< Directory not empty */
-	M_FS_ERROR_LINK_LOOP,     /*!< Too many levels of symbolic links */
-	M_FS_ERROR_LINK_2MANY,    /*!< Too many links */
-	M_FS_ERROR_NOT_SAMEDEV,   /*!< Cannot move across mount points. */
-	M_FS_ERROR_CANCELED       /*!< The operation was canceled (typically by user interaction). */
+    M_FS_ERROR_SUCCESS = 0,   /*!< Operation completed successfully */
+    M_FS_ERROR_GENERIC,       /*!< Generic, uncategorized error */
+    M_FS_ERROR_INVALID,       /*!< Invalid argument */
+    M_FS_ERROR_PERMISSION,    /*!< Operation not permitted */
+    M_FS_ERROR_NOT_SUPPORTED, /*!< Operation not supported */
+    M_FS_ERROR_IO,            /*!< Input/output error */
+    M_FS_ERROR_SEEK,          /*!< Invalid seek */
+    M_FS_ERROR_READONLY,      /*!< Read-only file system */
+    M_FS_ERROR_QUOTA,         /*!< Disk quota exceeded */
+    M_FS_ERROR_DNE,           /*!< No such file or directory */
+    M_FS_ERROR_NAMETOOLONG,   /*!< Filename too long */
+    M_FS_ERROR_FILE_EXISTS,   /*!< File exists */
+    M_FS_ERROR_FILE_2BIG,     /*!< File too large */
+    M_FS_ERROR_FILE_2MANY,    /*!< Too many open files */
+    M_FS_ERROR_ISDIR,         /*!< Is a directory */
+    M_FS_ERROR_NOTDIR,        /*!< Not a directory */
+    M_FS_ERROR_DIR_NOTEMPTY,  /*!< Directory not empty */
+    M_FS_ERROR_LINK_LOOP,     /*!< Too many levels of symbolic links */
+    M_FS_ERROR_LINK_2MANY,    /*!< Too many links */
+    M_FS_ERROR_NOT_SAMEDEV,   /*!< Cannot move across mount points. */
+    M_FS_ERROR_CANCELED       /*!< The operation was canceled (typically by user interaction). */
 } M_fs_error_t;
 
 
 /*! Standard streams for input and output. */
 typedef enum {
-	M_FS_IOSTREAM_IN = 0,
-	M_FS_IOSTREAM_OUT,
-	M_FS_IOSTREAM_ERR
+    M_FS_IOSTREAM_IN = 0,
+    M_FS_IOSTREAM_OUT,
+    M_FS_IOSTREAM_ERR
 } M_fs_iostream_t;
 
 
 /*! File permissions. Based on POSIX file permissions. */
 typedef enum {
-	M_FS_PERMS_MODE_NONE  = 0,      /*!< No perms. */
-	M_FS_PERMS_MODE_READ  = 1 << 0, /*!< Read. */
-	M_FS_PERMS_MODE_WRITE = 1 << 1, /*!< Write. */
-	M_FS_PERMS_MODE_EXEC  = 1 << 2  /*!< Execute. */
+    M_FS_PERMS_MODE_NONE  = 0,      /*!< No perms. */
+    M_FS_PERMS_MODE_READ  = 1 << 0, /*!< Read. */
+    M_FS_PERMS_MODE_WRITE = 1 << 1, /*!< Write. */
+    M_FS_PERMS_MODE_EXEC  = 1 << 2  /*!< Execute. */
 } M_fs_perms_mode_t;
 
 
 /*! How should the perms be modified. */
 typedef enum {
-	M_FS_PERMS_TYPE_EXACT = 0, /*!< Perms are exactly what is set. */
-	M_FS_PERMS_TYPE_ADD,       /*!< Perms will be added to existing perms. */
-	M_FS_PERMS_TYPE_REMOVE     /*!< Perms will be removed from existing perms. */
+    M_FS_PERMS_TYPE_EXACT = 0, /*!< Perms are exactly what is set. */
+    M_FS_PERMS_TYPE_ADD,       /*!< Perms will be added to existing perms. */
+    M_FS_PERMS_TYPE_REMOVE     /*!< Perms will be removed from existing perms. */
 } M_fs_perms_type_t;
 
 
 /*! Who do the given perms apply to. Based on POSIX file permissions. */
 typedef enum {
-	M_FS_PERMS_WHO_USER = 0, /*!< User/owner. */
-	M_FS_PERMS_WHO_GROUP,    /*!< Group. */
-	M_FS_PERMS_WHO_OTHER     /*!< Other. */
+    M_FS_PERMS_WHO_USER = 0, /*!< User/owner. */
+    M_FS_PERMS_WHO_GROUP,    /*!< Group. */
+    M_FS_PERMS_WHO_OTHER     /*!< Other. */
 } M_fs_perms_who_t;
 
 
 /*! How should the path be normalized. */
 typedef enum {
-	M_FS_PATH_NORM_NONE                 = 0,
-	M_FS_PATH_NORM_ABSOLUTE             = 1 << 0, /*!< Use the current working directory to determine absolute
-	                                                   path if provided path is relative. */
-	M_FS_PATH_NORM_FOLLOWSYMLINKS       = 1 << 1, /*!< Follow sym links. This will succeed if even if the path
-	                                                   pointed by by the symlink does not exist. */
-	M_FS_PATH_NORM_SYMLINKS_FAILDNE     = 1 << 2, /*!< Follow sym links. Fail if the location pointed to by the
-	                                                   link does not exist excluding the last location in the path. */
-	M_FS_PATH_NORM_SYMLINKS_FAILDNELAST = 1 << 3, /*!< Follow sym links. Fail if only the last location pointed
-	                                                   to by the link does not exist. */
-	M_FS_PATH_NORM_HOME                 = 1 << 4, /*!< Normalize ~/ to $HOME. */
-	M_FS_PATH_NORM_NOPARENT             = 1 << 5  /*!< Do NOT Normalize ../ paths. */
+    M_FS_PATH_NORM_NONE                 = 0,
+    M_FS_PATH_NORM_ABSOLUTE             = 1 << 0, /*!< Use the current working directory to determine absolute
+                                                       path if provided path is relative. */
+    M_FS_PATH_NORM_FOLLOWSYMLINKS       = 1 << 1, /*!< Follow sym links. This will succeed if even if the path
+                                                       pointed by by the symlink does not exist. */
+    M_FS_PATH_NORM_SYMLINKS_FAILDNE     = 1 << 2, /*!< Follow sym links. Fail if the location pointed to by the
+                                                       link does not exist excluding the last location in the path. */
+    M_FS_PATH_NORM_SYMLINKS_FAILDNELAST = 1 << 3, /*!< Follow sym links. Fail if only the last location pointed
+                                                       to by the link does not exist. */
+    M_FS_PATH_NORM_HOME                 = 1 << 4, /*!< Normalize ~/ to $HOME. */
+    M_FS_PATH_NORM_NOPARENT             = 1 << 5  /*!< Do NOT Normalize ../ paths. */
 } M_fs_path_norm_t;
 
 /* Default/common flags */
@@ -231,103 +231,103 @@ typedef enum {
 
 /*! How should a path's info be read. */
 typedef enum {
-	M_FS_PATH_INFO_FLAGS_NONE            = 0,      /*!< Normal operation. Get all info for the given location. */
-	M_FS_PATH_INFO_FLAGS_FOLLOW_SYMLINKS = 1 << 0, /*!< If the location is symlink get the info for the location pointed
-	                                                    to by the link and not the link itself. */
-	M_FS_PATH_INFO_FLAGS_BASIC           = 1 << 1  /*!< Get basic info only.
-	                                                    Excludes:
-	                                                      - User and group.
-	                                                      - Permissions. */
+    M_FS_PATH_INFO_FLAGS_NONE            = 0,      /*!< Normal operation. Get all info for the given location. */
+    M_FS_PATH_INFO_FLAGS_FOLLOW_SYMLINKS = 1 << 0, /*!< If the location is symlink get the info for the location pointed
+                                                        to by the link and not the link itself. */
+    M_FS_PATH_INFO_FLAGS_BASIC           = 1 << 1  /*!< Get basic info only.
+                                                        Excludes:
+                                                          - User and group.
+                                                          - Permissions. */
 } M_fs_info_flags_t;
 
 
 /*! File interaction. */
 typedef enum {
-	M_FS_FILE_MODE_NONE           = 0,      /*!< No mode specified. */
-	M_FS_FILE_MODE_READ           = 1 << 0, /*!< Read. */
-	M_FS_FILE_MODE_WRITE          = 1 << 1, /*!< Write. */
-	M_FS_FILE_MODE_NOCREATE       = 1 << 2, /*!< Do not create the file if it does not exist. */
-	M_FS_FILE_MODE_APPEND         = 1 << 3, /*!< Only write at the end of the file. */
-	M_FS_FILE_MODE_OVERWRITE      = 1 << 4, /*!< Overwrite the file (truncate) if it exists. */
-	M_FS_FILE_MODE_PRESERVE_PERMS = 1 << 5, /*!< Move/Copy use the perms from the original file.
-	                                             This only preserves permissions that can be expressed
-	                                             by an M_fs_perms_t object. ACLs for example will not be
-	                                             persevered. */
-	M_FS_FILE_MODE_NOCLOSEEXEC    = 1 << 6  /*!< Allow sharing of file descriptors with fork executed processes. */
+    M_FS_FILE_MODE_NONE           = 0,      /*!< No mode specified. */
+    M_FS_FILE_MODE_READ           = 1 << 0, /*!< Read. */
+    M_FS_FILE_MODE_WRITE          = 1 << 1, /*!< Write. */
+    M_FS_FILE_MODE_NOCREATE       = 1 << 2, /*!< Do not create the file if it does not exist. */
+    M_FS_FILE_MODE_APPEND         = 1 << 3, /*!< Only write at the end of the file. */
+    M_FS_FILE_MODE_OVERWRITE      = 1 << 4, /*!< Overwrite the file (truncate) if it exists. */
+    M_FS_FILE_MODE_PRESERVE_PERMS = 1 << 5, /*!< Move/Copy use the perms from the original file.
+                                                 This only preserves permissions that can be expressed
+                                                 by an M_fs_perms_t object. ACLs for example will not be
+                                                 persevered. */
+    M_FS_FILE_MODE_NOCLOSEEXEC    = 1 << 6  /*!< Allow sharing of file descriptors with fork executed processes. */
 } M_fs_file_mode_t;
 
 
 /*! Read / Write behavior */
 typedef enum {
-	M_FS_FILE_RW_NORMAL  = 0,      /*!< Normal operation */
-	M_FS_FILE_RW_FULLBUF = 1 << 0  /*!< Read until the given buffer is full or until there is no more data to read.
-	                                    Write all data in the buffer. Normal operation is to return after the system
-	                                    reads/writes what it can. This will cause the read/write to retry until the
-	                                    given all data is read/written. */
+    M_FS_FILE_RW_NORMAL  = 0,      /*!< Normal operation */
+    M_FS_FILE_RW_FULLBUF = 1 << 0  /*!< Read until the given buffer is full or until there is no more data to read.
+                                        Write all data in the buffer. Normal operation is to return after the system
+                                        reads/writes what it can. This will cause the read/write to retry until the
+                                        given all data is read/written. */
 } M_fs_file_read_write_t;
 
 
 /*! Seeking within a file. */
 typedef enum {
-	M_FS_FILE_SEEK_BEGIN = 0, /*!< Seek relative to the beginning of the file. */
-	M_FS_FILE_SEEK_END,       /*!< Seek relative to the end of the file .*/
-	M_FS_FILE_SEEK_CUR        /*!< Seek relative to the current location */
+    M_FS_FILE_SEEK_BEGIN = 0, /*!< Seek relative to the beginning of the file. */
+    M_FS_FILE_SEEK_END,       /*!< Seek relative to the end of the file .*/
+    M_FS_FILE_SEEK_CUR        /*!< Seek relative to the current location */
 } M_fs_file_seek_t;
 
 
 /*! How should data be synced to disk. */
 typedef enum {
-	M_FS_FILE_SYNC_NONE   = 0,      /*!< No sync. */
-	M_FS_FILE_SYNC_BUFFER = 1 << 0, /*!< Internal write buffer should be synced (fflush) */
-	M_FS_FILE_SYNC_OS     = 1 << 1  /*!< OS buffer should be synced (fsync) */
+    M_FS_FILE_SYNC_NONE   = 0,      /*!< No sync. */
+    M_FS_FILE_SYNC_BUFFER = 1 << 0, /*!< Internal write buffer should be synced (fflush) */
+    M_FS_FILE_SYNC_OS     = 1 << 1  /*!< OS buffer should be synced (fsync) */
 } M_fs_file_sync_t;
 
 /*! Controls the behavior of walk. Specifies how the walk should be performed and what should be stored in the
  * result of the walk.
  */
 typedef enum {
-	M_FS_DIR_WALK_FILTER_NONE            = 0,      /*!< No filters. */
-	/* Types. */
-	M_FS_DIR_WALK_FILTER_FILE            = 1 << 0, /*!< Include files in the list of entries.
-	                                                    Anything that is not another type is considered a file. */
-	M_FS_DIR_WALK_FILTER_DIR             = 1 << 1, /*!< Include directories in the list of entries. */
-	M_FS_DIR_WALK_FILTER_PIPE            = 1 << 2, /*!< Include pipes in the list of entries. */
-	M_FS_DIR_WALK_FILTER_SYMLINK         = 1 << 3, /*!< Include symlinks in the list of entries. */
-	/* Attributes. */
-	M_FS_DIR_WALK_FILTER_HIDDEN          = 1 << 4, /*!< Include hidden locations in the list of entries. */
-	/* Behaviors. */
-	M_FS_DIR_WALK_FILTER_RECURSE         = 1 << 5, /*!< Recurse into directories and include their contents.
-	                                                    File system loops (infinite redirects due to symlinks) will be
-	                                                    ignored. */
-	M_FS_DIR_WALK_FILTER_FOLLOWSYMLINK   = 1 << 6, /*!< Should symlinks be followed. */
-	M_FS_DIR_WALK_FILTER_JAIL_FAIL       = 1 << 7, /*!< Fail walk if redirection outside of base path. */
-	M_FS_DIR_WALK_FILTER_JAIL_SKIP       = 1 << 8, /*!< Skip entry if redirection outside of base path. */
-	M_FS_DIR_WALK_FILTER_AS_SET          = 1 << 9, /*!< Only include a given entry once. Symlinks could cause a file
-	                                                    or directory to show up multiple times in a walk this will
-	                                                    exclude the additional entries. Also, only one symlink to
-	                                                    a given entry will be included. For example, if there are two
-	                                                    symlinks to the same file one symlink will be ingored. */
-	/* Read and store the file info in each entry.
-	 * The info is specific to the type. Meaning if the type if a symlink then the info will for the symlink not what
-	 * the symlink points to. Depending on the other options you could have two entires in the list one for the symlink
-	 * and one for the file. The path will be the same but the type and the info will be different. If READ_INFO is not
-	 * set this doesn't guarantee the info won't be read (some cases and options it is necessary) but even if it is
-	 * read it won't be set in the entry. Assume that if not set the info won't be available. */
-	M_FS_DIR_WALK_FILTER_READ_INFO_BASIC = 1 << 10, /*!< Read/store basic info about the entry.
-	                                                     Specifically:
-	                                                       - Is dir.
-	                                                       - Is hidden.
-	                                                       - File size.
-	                                                       - Access time.
-	                                                       - Last modification time.
-	                                                       - Creation time. */
-	M_FS_DIR_WALK_FILTER_READ_INFO_FULL  = 1 << 11, /*!< Read/Store all info about the entry.
-	                                                     Specifically:
-	                                                       - All basic info.
-	                                                       - User and Group.
-	                                                       - Permissions. */
-	M_FS_DIR_WALK_FILTER_CASECMP         = 1 << 12  /*!< The pattern matching should be compared to the path in
-	                                                     a case insensitive manner. */
+    M_FS_DIR_WALK_FILTER_NONE            = 0,      /*!< No filters. */
+    /* Types. */
+    M_FS_DIR_WALK_FILTER_FILE            = 1 << 0, /*!< Include files in the list of entries.
+                                                        Anything that is not another type is considered a file. */
+    M_FS_DIR_WALK_FILTER_DIR             = 1 << 1, /*!< Include directories in the list of entries. */
+    M_FS_DIR_WALK_FILTER_PIPE            = 1 << 2, /*!< Include pipes in the list of entries. */
+    M_FS_DIR_WALK_FILTER_SYMLINK         = 1 << 3, /*!< Include symlinks in the list of entries. */
+    /* Attributes. */
+    M_FS_DIR_WALK_FILTER_HIDDEN          = 1 << 4, /*!< Include hidden locations in the list of entries. */
+    /* Behaviors. */
+    M_FS_DIR_WALK_FILTER_RECURSE         = 1 << 5, /*!< Recurse into directories and include their contents.
+                                                        File system loops (infinite redirects due to symlinks) will be
+                                                        ignored. */
+    M_FS_DIR_WALK_FILTER_FOLLOWSYMLINK   = 1 << 6, /*!< Should symlinks be followed. */
+    M_FS_DIR_WALK_FILTER_JAIL_FAIL       = 1 << 7, /*!< Fail walk if redirection outside of base path. */
+    M_FS_DIR_WALK_FILTER_JAIL_SKIP       = 1 << 8, /*!< Skip entry if redirection outside of base path. */
+    M_FS_DIR_WALK_FILTER_AS_SET          = 1 << 9, /*!< Only include a given entry once. Symlinks could cause a file
+                                                        or directory to show up multiple times in a walk this will
+                                                        exclude the additional entries. Also, only one symlink to
+                                                        a given entry will be included. For example, if there are two
+                                                        symlinks to the same file one symlink will be ingored. */
+    /* Read and store the file info in each entry.
+     * The info is specific to the type. Meaning if the type if a symlink then the info will for the symlink not what
+     * the symlink points to. Depending on the other options you could have two entires in the list one for the symlink
+     * and one for the file. The path will be the same but the type and the info will be different. If READ_INFO is not
+     * set this doesn't guarantee the info won't be read (some cases and options it is necessary) but even if it is
+     * read it won't be set in the entry. Assume that if not set the info won't be available. */
+    M_FS_DIR_WALK_FILTER_READ_INFO_BASIC = 1 << 10, /*!< Read/store basic info about the entry.
+                                                         Specifically:
+                                                           - Is dir.
+                                                           - Is hidden.
+                                                           - File size.
+                                                           - Access time.
+                                                           - Last modification time.
+                                                           - Creation time. */
+    M_FS_DIR_WALK_FILTER_READ_INFO_FULL  = 1 << 11, /*!< Read/Store all info about the entry.
+                                                         Specifically:
+                                                           - All basic info.
+                                                           - User and Group.
+                                                           - Permissions. */
+    M_FS_DIR_WALK_FILTER_CASECMP         = 1 << 12  /*!< The pattern matching should be compared to the path in
+                                                         a case insensitive manner. */
 } M_fs_dir_walk_filter_t;
 
 /* Include all "files" in a walk. */
@@ -338,46 +338,46 @@ typedef enum {
  * have a M_FS_DIR_WALK_FILTER_READ_INFO_* filter set) all files are considered equal.
  */
 typedef enum {
-	M_FS_DIR_SORT_NAME_CASECMP = 0, /*!< Sort by name case insensitive. */
-	M_FS_DIR_SORT_NAME_CMP,         /*!< Sort by name case sensitive. */
-	M_FS_DIR_SORT_ISDIR,            /*!< Sort by is directory. */
-	M_FS_DIR_SORT_ISHIDDEN,         /*!< Sort by hidden status. */
-	M_FS_DIR_SORT_NONE,             /*!< Don't sort. This is an option because sorting can have primary and secondary.
-	                                  This allows only a primary sort to be applied. */
-	/* Requires info. */
-	M_FS_DIR_SORT_SIZE,             /*!< Sort by file size. */
-	M_FS_DIR_SORT_ATIME,            /*!< Sort by last access time. */
-	M_FS_DIR_SORT_MTIME,            /*!< Sort by last modification time. */
-	M_FS_DIR_SORT_CTIME             /*!< Sort by create time. */
+    M_FS_DIR_SORT_NAME_CASECMP = 0, /*!< Sort by name case insensitive. */
+    M_FS_DIR_SORT_NAME_CMP,         /*!< Sort by name case sensitive. */
+    M_FS_DIR_SORT_ISDIR,            /*!< Sort by is directory. */
+    M_FS_DIR_SORT_ISHIDDEN,         /*!< Sort by hidden status. */
+    M_FS_DIR_SORT_NONE,             /*!< Don't sort. This is an option because sorting can have primary and secondary.
+                                      This allows only a primary sort to be applied. */
+    /* Requires info. */
+    M_FS_DIR_SORT_SIZE,             /*!< Sort by file size. */
+    M_FS_DIR_SORT_ATIME,            /*!< Sort by last access time. */
+    M_FS_DIR_SORT_MTIME,            /*!< Sort by last modification time. */
+    M_FS_DIR_SORT_CTIME             /*!< Sort by create time. */
 } M_fs_dir_sort_t;
 
 
 /*! Determines what progress information should be reported to the progress callback. Size reporting will
  * increase the amount of time required for processing due to needing to get and calculate totals. */
 typedef enum {
-	M_FS_PROGRESS_NOEXTRA    = 0,      /*!< Don't provide optional reporting. Will be overridden by other flags. */
-	M_FS_PROGRESS_COUNT      = 1 << 0, /*!< Report on number of operations total and completed. */
-	M_FS_PROGRESS_SIZE_TOTAL = 1 << 1, /*!< Report the total size for all file operations and the total completed. */
-	M_FS_PROGRESS_SIZE_CUR   = 1 << 2  /*!< Report the total size for the current file being processed and the total
-	                                        size of the file completed. */
+    M_FS_PROGRESS_NOEXTRA    = 0,      /*!< Don't provide optional reporting. Will be overridden by other flags. */
+    M_FS_PROGRESS_COUNT      = 1 << 0, /*!< Report on number of operations total and completed. */
+    M_FS_PROGRESS_SIZE_TOTAL = 1 << 1, /*!< Report the total size for all file operations and the total completed. */
+    M_FS_PROGRESS_SIZE_CUR   = 1 << 2  /*!< Report the total size for the current file being processed and the total
+                                            size of the file completed. */
 } M_fs_progress_flags_t;
 
 
 /*! Controls how path should be constructed. */
 typedef enum {
-	M_FS_SYSTEM_AUTO = 0, /*!< Automatically set based on current system. */
-	M_FS_SYSTEM_WINDOWS,  /*!< Forcibly use windows logic. */
-	M_FS_SYSTEM_UNIX      /*!< Forcibly use Unix logic. */
+    M_FS_SYSTEM_AUTO = 0, /*!< Automatically set based on current system. */
+    M_FS_SYSTEM_WINDOWS,  /*!< Forcibly use windows logic. */
+    M_FS_SYSTEM_UNIX      /*!< Forcibly use Unix logic. */
 } M_fs_system_t;
 
 
 /*! Types of file objects. */
 typedef enum {
-	M_FS_TYPE_UNKNOWN = 0, /*!< The location is an unknown type. Typically this means it was not read. */
-	M_FS_TYPE_FILE,        /*!< The location is a regular file. */
-	M_FS_TYPE_DIR,         /*!< The location is a directory. */
-	M_FS_TYPE_PIPE,        /*!< The location is a fifo (pipe). */
-	M_FS_TYPE_SYMLINK      /*!< The location is a symbolic link. */
+    M_FS_TYPE_UNKNOWN = 0, /*!< The location is an unknown type. Typically this means it was not read. */
+    M_FS_TYPE_FILE,        /*!< The location is a regular file. */
+    M_FS_TYPE_DIR,         /*!< The location is a directory. */
+    M_FS_TYPE_PIPE,        /*!< The location is a fifo (pipe). */
+    M_FS_TYPE_SYMLINK      /*!< The location is a symbolic link. */
 } M_fs_type_t;
 
 

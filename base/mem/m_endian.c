@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,7 +35,7 @@ static int M_ENDIAN_TEST = 1;
 
 int M_Current_Endian(void)
 {
-	return((*((char *)&M_ENDIAN_TEST))?M_LITTLE_ENDIAN:M_BIG_ENDIAN);
+    return((*((char *)&M_ENDIAN_TEST))?M_LITTLE_ENDIAN:M_BIG_ENDIAN);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -44,23 +44,23 @@ static const unsigned int M_endian_test = 1;
 
 static __inline__ M_endian_t M_endianess(void)
 {
-	return *((const M_uint8 *)&M_endian_test)
-	    ? M_ENDIAN_LITTLE
-	    : M_ENDIAN_BIG;
+    return *((const M_uint8 *)&M_endian_test)
+        ? M_ENDIAN_LITTLE
+        : M_ENDIAN_BIG;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_uint16 M_swap16(M_uint16 n)
 {
-	return (M_uint16)
-	    ((n & 0x00ffU) << 8) |
+    return (M_uint16)
+        ((n & 0x00ffU) << 8) |
             ((n & 0xff00U) >> 8);
 }
 
 M_uint32 M_swap32(M_uint32 n)
 {
-	return ((n & 0x000000ffU) << 24) |
+    return ((n & 0x000000ffU) << 24) |
                ((n & 0x0000ff00U) <<  8) |
                ((n & 0x00ff0000U) >>  8) |
                ((n & 0xff000000U) >> 24);
@@ -68,14 +68,14 @@ M_uint32 M_swap32(M_uint32 n)
 
 M_uint64 M_swap64(M_uint64 n)
 {
-	return ((n & (M_uint64)0x00000000000000ffULL) << 56) |
-	       ((n & (M_uint64)0x000000000000ff00ULL) << 40) |
-	       ((n & (M_uint64)0x0000000000ff0000ULL) << 24) |
-	       ((n & (M_uint64)0x00000000ff000000ULL) <<  8) |
-	       ((n & (M_uint64)0x000000ff00000000ULL) >>  8) |
-	       ((n & (M_uint64)0x0000ff0000000000ULL) >> 24) |
-	       ((n & (M_uint64)0x00ff000000000000ULL) >> 40) |
-	       ((n & (M_uint64)0xff00000000000000ULL) >> 56);
+    return ((n & (M_uint64)0x00000000000000ffULL) << 56) |
+           ((n & (M_uint64)0x000000000000ff00ULL) << 40) |
+           ((n & (M_uint64)0x0000000000ff0000ULL) << 24) |
+           ((n & (M_uint64)0x00000000ff000000ULL) <<  8) |
+           ((n & (M_uint64)0x000000ff00000000ULL) >>  8) |
+           ((n & (M_uint64)0x0000ff0000000000ULL) >> 24) |
+           ((n & (M_uint64)0x00ff000000000000ULL) >> 40) |
+           ((n & (M_uint64)0xff00000000000000ULL) >> 56);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

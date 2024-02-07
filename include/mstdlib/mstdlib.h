@@ -2,11 +2,11 @@
 #define __MSTDLIB_H__
 
 /*! \defgroup mstdlib_base Base
- *   
+ *
  * \code{.c}
  * #include <mstdlib/mstdlib.h>
  * \endcode
- * 
+ *
  * Base punctuality such as data structures
  *
  */

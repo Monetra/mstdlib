@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,7 +35,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_hash_u64str Hashtable - uint64/String
  *  \ingroup m_hashtable
- * 
+ *
  * Hashtable, meant for storing uint64 keys and string values.
  *
  * References to the data will always be read-only.
@@ -58,25 +58,25 @@ typedef struct M_hash_u64str_enum M_hash_u64str_enum_t;
 
 /*! Flags for controlling the behavior of the hashtable */
 typedef enum {
-	M_HASH_U64STR_NONE           = 0,      /*!< Case sensitive single value (new values replace). */
-	M_HASH_U64STR_KEYS_ORDERED   = 1 << 0, /*!< Keys should be ordered. Default is insertion order unless the
-	                                            sorted option is specified. */
-	M_HASH_U64STR_KEYS_SORTASC   = 1 << 1, /*!< When the keys are ordered sort them using the key_equality function. */
-	M_HASH_U64STR_KEYS_SORTDESC  = 1 << 2, /*!< When the keys are ordered sort them using the key_equality function. */
-	M_HASH_U64STR_MULTI_VALUE    = 1 << 3, /*!< Allow keys to contain multiple values.
-	                                            Sorted in insertion order another sorting is specified. */
-	M_HASH_U64STR_MULTI_SORTASC  = 1 << 4, /*!< Allow keys to contain multiple values sorted in ascending order */
-	M_HASH_U64STR_MULTI_SORTDESC = 1 << 5, /*!< Allow keys to contain multiple values sorted in descending order */
-	M_HASH_U64STR_MULTI_GETLAST  = 1 << 6, /*!< When using get and get_direct function get the last value from the list
-	                                            when allowing multiple values. The default is to get the first value. */
-	M_HASH_U64STR_MULTI_CASECMP  = 1 << 7, /*!< Value compare is case insensitive. */
-	M_HASH_U64STR_STATIC_SEED    = 1 << 8  /*!< Use a static seed for hash function initialization. This greatly reduces
-	                                           the security of the hashtable and removes collision attack protections.
-	                                           This should only be used as a performance optimization when creating
-	                                           millions of hashtables with static data specifically for quick look up.
-	                                           DO _NOT_ use this flag with any hashtable that could store user
-	                                           generated data! Be very careful about duplicating a hashtable that
-	                                           was created with this flag. All duplicates will use the static seed. */
+    M_HASH_U64STR_NONE           = 0,      /*!< Case sensitive single value (new values replace). */
+    M_HASH_U64STR_KEYS_ORDERED   = 1 << 0, /*!< Keys should be ordered. Default is insertion order unless the
+                                                sorted option is specified. */
+    M_HASH_U64STR_KEYS_SORTASC   = 1 << 1, /*!< When the keys are ordered sort them using the key_equality function. */
+    M_HASH_U64STR_KEYS_SORTDESC  = 1 << 2, /*!< When the keys are ordered sort them using the key_equality function. */
+    M_HASH_U64STR_MULTI_VALUE    = 1 << 3, /*!< Allow keys to contain multiple values.
+                                                Sorted in insertion order another sorting is specified. */
+    M_HASH_U64STR_MULTI_SORTASC  = 1 << 4, /*!< Allow keys to contain multiple values sorted in ascending order */
+    M_HASH_U64STR_MULTI_SORTDESC = 1 << 5, /*!< Allow keys to contain multiple values sorted in descending order */
+    M_HASH_U64STR_MULTI_GETLAST  = 1 << 6, /*!< When using get and get_direct function get the last value from the list
+                                                when allowing multiple values. The default is to get the first value. */
+    M_HASH_U64STR_MULTI_CASECMP  = 1 << 7, /*!< Value compare is case insensitive. */
+    M_HASH_U64STR_STATIC_SEED    = 1 << 8  /*!< Use a static seed for hash function initialization. This greatly reduces
+                                               the security of the hashtable and removes collision attack protections.
+                                               This should only be used as a performance optimization when creating
+                                               millions of hashtables with static data specifically for quick look up.
+                                               DO _NOT_ use this flag with any hashtable that could store user
+                                               generated data! Be very careful about duplicating a hashtable that
+                                               was created with this flag. All duplicates will use the static seed. */
 } M_hash_u64str_flags_t;
 
 
@@ -127,14 +127,14 @@ M_API M_bool M_hash_u64str_insert(M_hash_u64str_t *h, M_uint64 key, const char *
 /*! Remove an entry from the hashtable.
  *
  * \param[in,out] h   Hashtable being referenced.
- * \param[in]     key Key to remove from the hashtable. 
+ * \param[in]     key Key to remove from the hashtable.
  *
  * \return M_TRUE on success, or M_FALSE if key does not exist.
  */
 M_API M_bool M_hash_u64str_remove(M_hash_u64str_t *h, M_uint64 key);
 
 
-/*! Retrieve the value for a key from the hashtable. 
+/*! Retrieve the value for a key from the hashtable.
  *
  * \param[in] h      Hashtable being referenced.
  * \param[in] key    Key for value.
@@ -173,7 +173,7 @@ M_bool M_hash_u64str_is_multi(const M_hash_u64str_t *h);
 /*! Get the number of values for a given key.
  *
  * \param[in]  h   Hashtable being referenced.
- * \param[in]  key Key for value to retrieve. 
+ * \param[in]  key Key for value to retrieve.
  * \param[out] len The number of values.
  *
  * \return M_TRUE if length is retrieved, M_FALSE if key does not exist.
@@ -264,7 +264,7 @@ M_API size_t M_hash_u64str_num_keys(const M_hash_u64str_t *h);
  * \param[in] h         Hashtable being referenced.
  * \param[out] hashenum Outputs an initialized state variable for starting an enumeration.
  *
- * \return Number of values in the hashtable. 
+ * \return Number of values in the hashtable.
  *
  * \see M_hash_u64str_enumerate_free
  */

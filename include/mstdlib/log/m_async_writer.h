@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -41,9 +41,9 @@ __BEGIN_DECLS
 
 /*! Control what type of line endings get automatically appended to error messages. */
 typedef enum {
-	M_ASYNC_WRITER_LINE_END_NATIVE, /*!< \c '\\n' if running on Unix, \c '\\r\\n' if running on Windows */
-	M_ASYNC_WRITER_LINE_END_UNIX,   /*!< always use \c '\\n' */
-	M_ASYNC_WRITER_LINE_END_WINDOWS /*!< always use \c '\\r\\n' */
+    M_ASYNC_WRITER_LINE_END_NATIVE, /*!< \c '\\n' if running on Unix, \c '\\r\\n' if running on Windows */
+    M_ASYNC_WRITER_LINE_END_UNIX,   /*!< always use \c '\\n' */
+    M_ASYNC_WRITER_LINE_END_WINDOWS /*!< always use \c '\\r\\n' */
 } M_async_writer_line_end_mode_t;
 
 
@@ -106,8 +106,8 @@ typedef struct M_async_writer M_async_writer_t;
  * \param[in] mode        line-end mode for internally generated error messages
  */
 M_API M_async_writer_t *M_async_writer_create(size_t max_bytes, M_async_write_cb_t write_cb,
-	void *write_thunk, M_async_thunk_stop_cb_t stop_cb, M_async_thunk_destroy_cb_t destroy_cb,
-	M_async_writer_line_end_mode_t mode);
+    void *write_thunk, M_async_thunk_stop_cb_t stop_cb, M_async_thunk_destroy_cb_t destroy_cb,
+    M_async_writer_line_end_mode_t mode);
 
 
 /*! Destroy the writer (non-blocking).

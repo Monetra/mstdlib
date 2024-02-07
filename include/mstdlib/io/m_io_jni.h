@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -46,13 +46,13 @@ __BEGIN_DECLS
  */
 
 
-/*! Initialization function to initialize the Java JNI environment. 
+/*! Initialization function to initialize the Java JNI environment.
  *
  *  This routine must be called once at startup before any of the M_io_jni helper
  *  functions can be used.
  *
  *  This implementation only supports a single Java VM instance, globally.
- * 
+ *
  *  \param[in] Jvm  Initialized JavaVM to use.  Must be specified.
  *  \return M_TRUE on success, M_FALSE on failure.
  */
@@ -79,7 +79,7 @@ M_API M_bool M_io_jni_android_init(jobject app_context);
 
 
 /*! Retrieve JNI Environment Handle for current thread.
- * 
+ *
  *  If thread is not currently assigned a handle, a new one will be created,
  *  otherwise the existing handle will be returned.
  *
@@ -97,14 +97,14 @@ M_API JNIEnv *M_io_jni_getenv(void);
 M_API jobject M_io_jni_get_android_app_context(void);
 
 
-/*! Output debug text relevant to JNI execution. 
+/*! Output debug text relevant to JNI execution.
  *
  * If not using a debug build, this is a no-op, and no information will be output.
  * This is mostly used internally by the implementation, but people wishing to
  * implement additional JNI methods might find this useful for debug purposes.
  *
  * On Android, this uses the android logging functions, on other systems this
- * simply outputs the message to stderr. 
+ * simply outputs the message to stderr.
  *
  * \param[in] fmt  Standard printf-style format string.  A new line will be
  *                 automatically added to the output.
@@ -288,12 +288,12 @@ M_API M_bool M_io_jni_new_object(jobject *rv, char *error, size_t error_len, JNI
  *  \param[in]      classobj   Class object to call method on.  If the method being called is static,
  *                             this parameter will be ignored, so should be passed as NULL.
  *  \param[in]      method     The method to be called.  The method should be in the form of
- *                             "path/to/class.method", and must have been one of the methods in the 
+ *                             "path/to/class.method", and must have been one of the methods in the
  *                             global initialization.
  *  \param[in]      argc       Count of argument to follow.
  *  \param[in]      ...        Variable argument list depending on method being called.
  *  \return M_TRUE if the method was called successfully, M_FALSE if there was a usage error
- *          or exception. 
+ *          or exception.
  */
 M_API M_bool M_io_jni_call_jvoid(char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc, ...);
 
@@ -308,7 +308,7 @@ M_API M_bool M_io_jni_call_jvoid(char *error, size_t error_len, JNIEnv *env, job
  *  \param[in]      classobj   Class object to call method on.  If the method being called is static,
  *                             this parameter will be ignored, so should be passed as NULL.
  *  \param[in]      method     The method to be called.  The method should be in the form of
- *                             "path/to/class.method", and must have been one of the methods in the 
+ *                             "path/to/class.method", and must have been one of the methods in the
  *                             global initialization.
  *  \param[in]      argc       Count of arguments to follow.
  *  \param[in]      ...        Variable argument list depending on method being called.
@@ -434,7 +434,7 @@ M_API M_bool M_io_jni_call_jdoubleArray(jdoubleArray *rv, char *error, size_t er
  *  \param[in]      classobj   Class object to call method on.  If the method being called is static,
  *                             this parameter will be ignored, so should be passed as NULL.
  *  \param[in]      field      The field to be called.  The field should be in the form of
- *                             "path/to/class.field", and must have been one of the fields in the 
+ *                             "path/to/class.field", and must have been one of the fields in the
  *                             global initialization.
  *  \return M_TRUE if the method was called successfully, M_FALSE if there was a usage error
  *          or exception.  A value of M_TRUE doesn't mean the returned object was populated,

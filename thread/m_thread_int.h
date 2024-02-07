@@ -45,48 +45,48 @@ __BEGIN_DECLS
 typedef void M_thread_t;
 
 typedef struct {
-	void (*init)(void);
-	void (*deinit)(void);
-	/* Thread */
-	M_thread_t   *(*thread_create)       (const M_thread_attr_t *attr, void *(*func)(void *), void *arg);
-	M_bool        (*thread_join)         (M_thread_t *thread, void **value_ptr);
-	M_threadid_t  (*thread_self)         (M_thread_t **thread);
-	void          (*thread_yield)        (M_bool force);
-	void          (*thread_sleep)        (M_uint64 usec);
-	M_bool        (*thread_set_priority) (M_thread_t *thread, M_threadid_t tid, M_uint8 priority);
-	M_bool        (*thread_set_processor)(M_thread_t *thread, M_threadid_t tid, int     processor);
-	/* System */
-	int    (*thread_poll) (struct pollfd fds[], nfds_t nfds, int timeout);
+    void (*init)(void);
+    void (*deinit)(void);
+    /* Thread */
+    M_thread_t   *(*thread_create)       (const M_thread_attr_t *attr, void *(*func)(void *), void *arg);
+    M_bool        (*thread_join)         (M_thread_t *thread, void **value_ptr);
+    M_threadid_t  (*thread_self)         (M_thread_t **thread);
+    void          (*thread_yield)        (M_bool force);
+    void          (*thread_sleep)        (M_uint64 usec);
+    M_bool        (*thread_set_priority) (M_thread_t *thread, M_threadid_t tid, M_uint8 priority);
+    M_bool        (*thread_set_processor)(M_thread_t *thread, M_threadid_t tid, int     processor);
+    /* System */
+    int    (*thread_poll) (struct pollfd fds[], nfds_t nfds, int timeout);
 #ifndef _WIN32
-	M_bool (*thread_sigmask)(int how, const sigset_t *set, sigset_t *oldset);
+    M_bool (*thread_sigmask)(int how, const sigset_t *set, sigset_t *oldset);
 #endif
-	/* Mutex */
-	M_thread_mutex_t *(*mutex_create) (M_uint32 attr);
-	void              (*mutex_destroy)(M_thread_mutex_t *mutex);
-	M_bool            (*mutex_lock)   (M_thread_mutex_t *mutex);
-	M_bool            (*mutex_trylock)(M_thread_mutex_t *mutex);
-	M_bool            (*mutex_unlock) (M_thread_mutex_t *mutex);
-	/* Cond */
-	M_thread_cond_t *(*cond_create)   (M_uint32 attr);
-	void             (*cond_destroy)  (M_thread_cond_t *cond);
-	M_bool           (*cond_timedwait)(M_thread_cond_t *cond, M_thread_mutex_t *mutex, const M_timeval_t *abstime);
-	M_bool           (*cond_wait)     (M_thread_cond_t *cond, M_thread_mutex_t *mutex);
-	void             (*cond_broadcast)(M_thread_cond_t *cond);
-	void             (*cond_signal)   (M_thread_cond_t *cond);
-	/* Read Write Lock */
-	M_thread_rwlock_t *(*rwlock_create) (void);
-	void               (*rwlock_destroy)(M_thread_rwlock_t *rwlock);
-	M_bool             (*rwlock_lock)   (M_thread_rwlock_t *rwlock, M_thread_rwlock_type_t type);
-	M_bool             (*rwlock_unlock) (M_thread_rwlock_t *rwlock);
+    /* Mutex */
+    M_thread_mutex_t *(*mutex_create) (M_uint32 attr);
+    void              (*mutex_destroy)(M_thread_mutex_t *mutex);
+    M_bool            (*mutex_lock)   (M_thread_mutex_t *mutex);
+    M_bool            (*mutex_trylock)(M_thread_mutex_t *mutex);
+    M_bool            (*mutex_unlock) (M_thread_mutex_t *mutex);
+    /* Cond */
+    M_thread_cond_t *(*cond_create)   (M_uint32 attr);
+    void             (*cond_destroy)  (M_thread_cond_t *cond);
+    M_bool           (*cond_timedwait)(M_thread_cond_t *cond, M_thread_mutex_t *mutex, const M_timeval_t *abstime);
+    M_bool           (*cond_wait)     (M_thread_cond_t *cond, M_thread_mutex_t *mutex);
+    void             (*cond_broadcast)(M_thread_cond_t *cond);
+    void             (*cond_signal)   (M_thread_cond_t *cond);
+    /* Read Write Lock */
+    M_thread_rwlock_t *(*rwlock_create) (void);
+    void               (*rwlock_destroy)(M_thread_rwlock_t *rwlock);
+    M_bool             (*rwlock_lock)   (M_thread_rwlock_t *rwlock, M_thread_rwlock_type_t type);
+    M_bool             (*rwlock_unlock) (M_thread_rwlock_t *rwlock);
 } M_thread_model_callbacks_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 struct M_thread_attr {
-	M_bool  create_joinable;
-	size_t  stack_size;
-	M_uint8 priority;
-	int     processor;
+    M_bool  create_joinable;
+    size_t  stack_size;
+    M_uint8 priority;
+    int     processor;
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
