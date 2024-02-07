@@ -109,23 +109,22 @@ Building
 ========
 
 CMake is the preferred method to build and should be used whenever possible.
-However, CMake is not available on all supported platforms. Autotools is also
-supported for Unix systems. NMake Makefiles are also available for Windows.
-Autotools and NMake Makefiles are provided only as a fallback when CMake cannot
-be used. That said, Autotools and NMake Make files can lag behind being updated
-and there is no  timeline on how long they will be supported.
+However, CMake is not available on all supported platforms. NMake Makefiles are
+also available for Windows. NMake Makefiles are provided only as a fallback
+when CMake cannot be used. That said, NMake Make files can lag behind being
+updated and there is no timeline on how long they will be supported.
 
 The following features are supported by each build system:
 
-Feature                                | CMake | Autotools | NMake Makefiles
-:--------------------------------------|:-----:|:---------:|:--------------:
-Shared build                           | Y     | Y         | Y
-Static build                           | Y     | Y         | N
-Disabling building non-base components | Y     | Y         | N
-Installation (header and library)      | Y     | Y         | N
-Disabling header installation          | Y     | N         | N
-Disabling library installation         | Y     | N         | N
-Tests                                  | Y     | Y         | N
+Feature                                | CMake | NMake Makefiles
+:--------------------------------------|:-----:|:--------------:
+Shared build                           | Y     | Y
+Static build                           | Y     | N
+Disabling building non-base components | Y     | N
+Installation (header and library)      | Y     | N
+Disabling header installation          | Y     | N
+Disabling library installation         | Y     | N
+Tests                                  | Y     | N
 
 CMake
 -----
