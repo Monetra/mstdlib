@@ -400,7 +400,7 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 #  endif
 
 #  if !defined(TCP_KEEPCNT) && defined(TCP_NKEEP)
-#    define TCP_KEEPCNT TCP_NKEEP  /* Alias for SCO */
+#    define TCP_KEEPCNT TCP_NKEEP
 #  endif
 
 #  ifdef TCP_KEEPCNT

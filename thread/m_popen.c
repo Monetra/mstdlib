@@ -41,10 +41,6 @@
 #  include <signal.h>
 #endif
 
-#ifdef __SCO_VERSION__
-# include <sys/time.h>
-#endif
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #define EXEC "exec"
@@ -675,8 +671,8 @@ M_popen_handle_t *M_popen(const char *cmd, M_popen_err_t *errorid)
 
         /* Work around for issue on Solaris (found on 10 x86/x64) where the shell would
          * return a broken pipe (retval 141) result when the process exited successfully.
-         * Testing on *nix OS (Linux, SCO 5/6, Solaris) did not show any issues so not ifdefing
-         * this to be Solaris only. */
+         * Testing on *nix OS (Linux) did not show any issues so not ifdefing this to
+         * be Solaris only. */
         signal(SIGPIPE, SIG_IGN);
         execvp(argv[0], argv);
 

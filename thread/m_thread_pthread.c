@@ -86,8 +86,8 @@ static void M_thread_pthread_attr_topattr(const M_thread_attr_t *attr, pthread_a
     if (M_thread_attr_get_stack_size(attr) > 0) {
         pthread_attr_setstacksize(tattr, M_thread_attr_get_stack_size(attr));
     } else {
-        /* Some systems like SCO6 have unreasonably small thread stack
-         * sizes.  Make 128k a limit for 32bit systems and 256k a limit for
+        /* Some systems have unreasonably small thread stack sizes.
+         * Make 128k a limit for 32bit systems and 256k a limit for
          * 64bit systems */
         pthread_attr_setstacksize(tattr, 128 * 1024 * (sizeof(void *)/4));
     }

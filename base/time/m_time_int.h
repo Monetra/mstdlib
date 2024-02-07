@@ -47,11 +47,7 @@ typedef M_time_tz_t *(*M_time_tzs_lazy_load_t)(const char *name, void *data);
    typedef long M_time_tv_usec_t;
 #else
    typedef time_t M_time_tv_sec_t;
-#  if defined(_SCO_ELF) || defined(__SCO_VERSION__)
-     typedef long M_time_tv_usec_t;
-#  else
-     typedef suseconds_t M_time_tv_usec_t;
-#  endif
+   typedef suseconds_t M_time_tv_usec_t;
 #endif
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

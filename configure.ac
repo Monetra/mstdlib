@@ -364,8 +364,6 @@ AX_APPEND_COMPILE_FLAGS([\
 ], [CFLAGS], [-Werror])
 
 case "${UNAME_S}" in
-SCO_SV)
-	;;
 Darwin)
 	AX_APPEND_COMPILE_FLAGS([-D_XOPEN_SOURCE=500 -D_DARWIN_C_SOURCE=1], [CPPFLAGS], [-Werror])
 	;;
@@ -641,17 +639,12 @@ AC_ARG_ENABLE(mstdlib-thread,
 	[ build_mstdlib_thread=yes ])
 
 if test "${build_mstdlib_thread}" = "yes" ; then
-	if test "${UNAME_S}" = "SCO_SV" -a "${UNAME_V}" = "5.0.6" ; then
-		have_sco5="yes"
-	else
-		have_sco5="no"
-	fi
 	AC_CHECK_HEADER(pthread.h, [ have_pthreads="yes" ], [ have_pthreads="no" ])
 	AC_CHECK_HEADERS([pthread_np.h])
 	AC_CHECK_HEADERS([atomic.h])
 	AC_CHECK_HEADERS([stdatomic.h])
 
-	if test "$have_pthreads" = "yes" -a "$have_sco5" = "no" ; then
+	if test "$have_pthreads" = "yes" ; then
 		AC_DEFINE([HAVE_PTHREAD], [], [Build with pthreads support])
 		AC_SUBST(HAVE_PTHREAD)
 		AC_DEFINE([HAVE_PTHREAD_H], [], [Have pthread.h])
@@ -663,9 +656,6 @@ if test "${build_mstdlib_thread}" = "yes" ; then
 		case "${UNAME_S}" in
 			FreeBSD|OpenBSD)
 				CFLAGS="$CFLAGS -pthread"
-				;;
-			SCO_SV)
-				CFLAGS="$CFLAGS -Kpthread"
 				;;
 		esac
 
@@ -758,7 +748,7 @@ if test "${build_mstdlib_thread}" = "yes" ; then
 		  AC_SUBST(PTHREAD_SLEEP_USE_NANOSLEEP)
 		fi
 	fi
-	AM_CONDITIONAL(HAVE_PTHREAD, test "$have_pthreads" = "yes" -a "$have_sco5" = "no")
+	AM_CONDITIONAL(HAVE_PTHREAD, test "$have_pthreads" = "yes")
 
 	AC_CHECK_FUNC(getcontext, [ have_getcontext="yes" ], [ have_getcontext="no" ])
 	if test "$have_getcontext" = "yes" ; then

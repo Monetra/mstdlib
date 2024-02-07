@@ -106,18 +106,6 @@
 #  endif
 #endif
 
-#if defined(__SCO_VERSION__)
-#  if !defined(ATOMIC_CAS32)
-#    define ATOMIC_CAS32 ATOMIC_OP_ASM
-#  endif
-#  if !defined(ATOMIC_CAS64)
-#    define ATOMIC_CAS64 ATOMIC_OP_ASM
-#  endif
-#  if !defined(ATOMIC_INC32)
-#    define ATOMIC_INC32 ATOMIC_OP_ASM
-#  endif
-#endif
-
 #if defined(__FreeBSD__)
 #  if !defined(ATOMIC_CAS32) || !defined(ATOMIC_CAS64) || !defined(ATOMIC_INC32) || !defined(ATOMIC_INC64)
 #    include <sys/types.h>
@@ -208,43 +196,7 @@ static volatile M_uint32 M_atomic_lock = 0;
 
 
 #if ATOMIC_CAS32 == ATOMIC_OP_ASM
-#  if defined(__SCO_VERSION__) /* SCO 6 */
-
-/* Adds and returns original value before value */
-asm M_uint32 M_atomic_cas32_asm(volatile M_uint32 *dest, M_uint32 expected, M_uint32 newval)
-{
-/* dest, expected, newval are in memory or register */
-%mem dest; mem expected; mem newval
-
-/* Back up registers */
-pushl %ebx
-pushl %edx
-
-/* cmpxchg compares EAX with first operand (destination), if two values */
-/* are equal, second operand (source) is loaded into the destination operand. */
-
-/* Copy the destination pointer to the edx register */
-movl dest, %edx
-
-/* Copy the expected value to the eax register */
-movl expected, %eax
-
-/* Copy new value to ebx register */
-movl newval, %ebx
-
-lock
-cmpxchgl %ebx, (%edx)
-
-/* restore registers */
-popl %edx
-popl %ebx
-
-/* Zero flag should indicate success/fail and be returned, eax holds return value */
-movl  $0,%eax
-setz  %al
-}
-
-#  elif defined(__GNUC__) && defined(__i386__)
+#  if defined(__GNUC__) && defined(__i386__)
 
 static __inline__ unsigned int M_atomic_cas32_asm(volatile M_uint32 *dest, M_uint32 expected, M_uint32 newval)
 {
@@ -294,49 +246,7 @@ M_bool M_atomic_cas32(volatile M_uint32 *ptr, M_uint32 expected, M_uint32 newval
  * ------------------------------------------------------------------------------------- */
 #if ATOMIC_CAS64 == ATOMIC_OP_ASM
 
-#  if defined(__SCO_VERSION__) /* SCO 6 */
-
-/* Need this wrapper as we cannot use leal to load the address of the variables
- * as there appears to be a bug in relation to the way that works with inline asm */
-asm unsigned int M_atomic_cas64_asmref(volatile M_uint64 *dest, M_uint64 *compare, M_uint64 *exchange)
-{
-%mem dest; mem compare; mem exchange
-
-/* back up registers */
-pushal
-
-/* current compare value is edx(high):eax(low), copy them */
-movl compare, %edi
-movl 4(%edi), %edx
-movl (%edi), %eax
-
-/* current values to exchange are ecx(high):ebx(low), copy them */
-movl exchange, %edi
-movl 4(%edi), %ecx
-movl (%edi), %ebx
-
-/* copy the destination to a temporary register, edi */
-movl dest, %edi
-
-/* Prevent concurrent access and execute the exchange and compare */
-lock
-cmpxchg8b (%edi)
-
-/* Restore registers to previous state */
-popal
-
-/* Zero flag should indicate success/fail and be returned, eax holds return value */
-movl  $0,%eax
-setz  %al
-}
-
-
-static inline unsigned int M_atomic_cas64_asm(volatile M_uint64 *dest, M_uint64 compare, M_uint64 exchange)
-{
-    return M_atomic_cas64_asmref(dest, &compare, &exchange);
-}
-
-#  elif defined(__GNUC__) && defined(__i386__)
+#  if defined(__GNUC__) && defined(__i386__)
 
 static __inline__ unsigned int M_atomic_cas64_asm(volatile M_uint64 *dest, M_uint64 compare, M_uint64 exchange)
 {
@@ -465,35 +375,6 @@ static __inline__ M_uint32 M_atomic_add_u32_asm(volatile M_uint32 *dest, M_uint3
     /* temp should contain the previous value on exit since
      * xaddl will copy the original value into the source */
     return temp;
-}
-
-#  elif defined(__SCO_VERSION__) /* SCO 6 */
-
-/* Adds and returns original value before value */
-asm M_uint32 M_atomic_add_u32_asm(volatile M_uint32 *dest, M_uint32 inc)
-{
-/* dest and inc are both in memory or register */
-%mem dest; mem inc
-
-/* Back up registers used (ebx) */
-pushl %ebx
-
-/* Copy the destination pointer to the ebx register */
-movl dest, %ebx
-
-/* Copy the increment to the eax register */
-movl inc, %eax
-
-/* Prevent concurrent access and add. xaddl will copy  */
-/* the original destination value back into the source */
-/* as well so that it can be returned                  */
-lock
-xaddl %eax, (%ebx)
-
-/* restore registers */
-popl %ebx
-
-/* eax will contain the result */
 }
 
 #  elif defined(_MSC_VER) && !defined(_WIN64)

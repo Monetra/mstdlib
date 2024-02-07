@@ -40,11 +40,7 @@
 #  define GCC_VERSION                          (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #else
 #  ifndef __inline__
-#    ifdef __SCO_VERSION__
-#      define __inline__                       inline
-#    else
-#      define __inline__                       __inline
-#    endif
+#    define __inline__                         __inline
 #  endif
 #endif
 

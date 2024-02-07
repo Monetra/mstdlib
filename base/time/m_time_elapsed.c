@@ -110,7 +110,7 @@ void M_time_elapsed_start(M_timeval_t *start_tv)
     start_tv->tv_usec = (M_suseconds_t)((start_conv%1000000000)/1000);
 #else
 
-#  if !defined(_WIN32) && !defined(__SCO_VERSION__)
+#  if !defined(_WIN32)
 #    warning PLATFORM DOES NOT SUPPORT MONOTONIC CLOCK. FALLING BACK TO GETTIMEOFDAY.
 #  endif
     M_time_gettimeofday(start_tv);

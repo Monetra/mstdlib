@@ -304,13 +304,13 @@ void M_io_posix_sigpipe_unblock(M_io_posix_sigpipe_state_t *state)
         /* Loop because other signals could cause an EINTR */
         while (sigtimedwait(&sigpipe_mask, NULL, &timeout) == -1 && errno == EINTR)
             ;
-#elif defined(HAVE_SIGWAIT) && !defined(__SCO_VERSION__) /* SCO6 has odd single-arg sigwait */
+#elif defined(HAVE_SIGWAIT)
         int sig = 0;
         /* Loop because other signals could cause an EINTR */
         while (sigwait(&sigpipe_mask, &sig /* Ignore, we know its sigpipe */) == -1 && errno == EINTR)
             ;
 #else
-        /* WTF, braindead system (probably SCO5) */
+        /* odd system */
         struct sigaction new_action;
         struct sigaction old_action;
         sigset_t         suspendmask;

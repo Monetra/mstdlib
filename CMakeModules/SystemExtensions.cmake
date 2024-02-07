@@ -7,7 +7,7 @@
 #  __USE_MINGW_ANSI_STDIO   - MinGW
 # Once done set the following CFLAGS if found:
 #  _XOPEN_SOURCE=500        - Enables some additional functions.
-#  _REENTRANT               - Needed on SCO for gethostbyname_r.
+#  _REENTRANT               - Needed on UnixWare for gethostbyname_r.
 
 if (_internal_system_extensions_already_run)
 	return()
@@ -20,7 +20,7 @@ elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
 	set(_new_flags "-D_GNU_SOURCE -D_POSIX_C_SOURCE=199309L -D_XOPEN_SOURCE=600")
 elseif (CMAKE_SYSTEM_NAME MATCHES "Android")
 	set(_new_flags "-D_GNU_SOURCE -D_POSIX_C_SOURCE=199309L -D_XOPEN_SOURCE=600")
-elseif (CMAKE_SYSTEM_NAME MATCHES "SCO_SV" OR CMAKE_SYSTEM_NAME MATCHES "UnixWare")
+elseif (CMAKE_SYSTEM_NAME MATCHES "UnixWare")
 	set(_new_flags "-D_REENTRANT")
 elseif (MINGW)
 	set(_new_flags "-D__USE_MINGW_ANSI_STDIO")
