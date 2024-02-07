@@ -29,13 +29,12 @@
 #define ATOMIC_OP_MSC_BUILTIN 2  /* MS Compiler builtin              */
 #define ATOMIC_OP_SUN         3  /* SunOS/Solaris OS atomic function */
 #define ATOMIC_OP_APPLE       4  /* Apple OS atomic function         */
-#define ATOMIC_OP_AIX         5  /* AIX OS atomic function           */
-#define ATOMIC_OP_FREEBSD     6  /* FreeBSD OS atomic function       */
-#define ATOMIC_OP_ASM         7  /* Inline ASM                       */
-#define ATOMIC_OP_SPINLOCK    8  /* Emulation via spinlock           */
-#define ATOMIC_OP_CAS32       9  /* Emulation via CAS32              */
-#define ATOMIC_OP_CAS64       10 /* Emulation via CAS64              */
-#define ATOMIC_OP_STDATOMIC   11 /* stdatomic from C11               */
+#define ATOMIC_OP_FREEBSD     5  /* FreeBSD OS atomic function       */
+#define ATOMIC_OP_ASM         6  /* Inline ASM                       */
+#define ATOMIC_OP_SPINLOCK    7  /* Emulation via spinlock           */
+#define ATOMIC_OP_CAS32       8  /* Emulation via CAS32              */
+#define ATOMIC_OP_CAS64       9  /* Emulation via CAS64              */
+#define ATOMIC_OP_STDATOMIC   10 /* stdatomic from C11               */
 
 /* Defines that will get created:
  * ATOMIC_CAS32 - Compare and Set atomic operation method
@@ -45,13 +44,7 @@
  */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#if defined(_AIX) && defined(__GNUC__) && !defined(_ARCH_PPC64)
-#  define AIX_GCC_32 1
-#endif
-
-/* Though stdatomic exists on aix, and works for the xlc compiler, when using gcc,
- * it only works for 64bit and not 32bit */
-#if defined(HAVE_STDATOMIC_H) && !defined(AIX_GCC_32)
+#if defined(HAVE_STDATOMIC_H)
 /* Our use of stdatomic isn't totally proper, we basically do like
  * http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4013.html
  * At some point, I guess we should introduce our own atomic type so we can
@@ -84,7 +77,6 @@
 /* Use GCC's __sync built-in functions when they are known to exist and work.
  * This requires GCC 4.1.1+ for 32bit operations, and for 64bit, these are known to work:
  *  - Any amd64 OS
- *  - AIX PPC 64bit
  *  - Sun Solaris SPARC64
  * Exception: Solaris9 Sparc32 doesn't seem to actually work, prefer sun's atomic.h
  */
@@ -100,7 +92,6 @@
 #    define ATOMIC_INC32 ATOMIC_OP_GCC_BUILTIN
 #  endif
 #  if defined(__amd64__) || \
-      (defined(_AIX) && defined(_ARCH_PPC64)) || \
       (defined(__sun__) && defined(__sparc__) && defined(__arch64__))
 #    if !defined(ATOMIC_CAS64)
 #      define ATOMIC_CAS64 ATOMIC_OP_GCC_BUILTIN
@@ -190,26 +181,6 @@
 #  if !defined(ATOMIC_INC64)
 #    define ATOMIC_INC64 ATOMIC_OP_APPLE
 #  endif
-#endif
-
-#if defined(_AIX)
-#  if !defined(ATOMIC_CAS32) || !defined(ATOMIC_CAS64) || !defined(ATOMIC_INC32) || !defined(ATOMIC_INC64)
-#    include <sys/atomic_op.h>
-#  endif
-#  if !defined(ATOMIC_CAS32)
-#    define ATOMIC_CAS32 ATOMIC_OP_AIX
-#  endif
-#  if !defined(ATOMIC_CAS64) && defined(_ARCH_PPC64)
-#    define ATOMIC_CAS64 ATOMIC_OP_AIX
-#  endif
-/*
-#  if !defined(ATOMIC_INC32)
-#    define ATOMIC_INC32 ATOMIC_OP_AIX
-#  endif
-#  if !defined(ATOMIC_INC64)
-#    define ATOMIC_INC64 ATOMIC_OP_AIX
-#  endif
-*/
 #endif
 
 
@@ -352,13 +323,7 @@ static __inline__ unsigned int M_atomic_cas32_asm(volatile M_uint32 *dest, M_uin
 
 M_bool M_atomic_cas32(volatile M_uint32 *ptr, M_uint32 expected, M_uint32 newval)
 {
-#if ATOMIC_CAS32 == ATOMIC_OP_AIX
-    int res;
-    res = compare_and_swap((atomic_p)ptr, &expected, newval);
-    if (res)
-        __asm__("isync");
-    return res?M_TRUE:M_FALSE;
-#elif ATOMIC_CAS32 == ATOMIC_OP_MSC_BUILTIN
+#if ATOMIC_CAS32 == ATOMIC_OP_MSC_BUILTIN
     if (_InterlockedCompareExchange((long *)ptr, newval, expected) != expected)
         return M_FALSE;
     return M_TRUE;
@@ -505,13 +470,7 @@ static __inline__ unsigned int M_atomic_cas64_asm(volatile M_uint64 *dest, M_uin
 
 M_bool M_atomic_cas64(volatile M_uint64 *ptr, M_uint64 expected, M_uint64 newval)
 {
-#if ATOMIC_CAS64 == ATOMIC_OP_AIX
-    int res;
-    res = compare_and_swaplp((atomic_l)ptr, &expected, newval);
-    if (res)
-        __asm__("isync");
-    return res?M_TRUE:M_FALSE;
-#elif ATOMIC_CAS64 == ATOMIC_OP_MSC_BUILTIN
+#if ATOMIC_CAS64 == ATOMIC_OP_MSC_BUILTIN
     if (_InterlockedCompareExchange64(ptr, newval, expected) != expected)
         return M_FALSE;
     return M_TRUE;

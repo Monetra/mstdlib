@@ -319,7 +319,7 @@ if test "$visibility_supported" = "yes" ; then
         CFLAGS="$CFLAGS -fvisibility=hidden"
 fi
 
-LT_INIT([win32-dll,shared,disable-static,pic,disable-fast-install,aix-soname=svr4])
+LT_INIT([win32-dll,shared,disable-static,pic,disable-fast-install])
 
 dnl
 dnl CFLAGS

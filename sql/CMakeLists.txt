@@ -87,7 +87,7 @@ add_subdirectory(sqlite)
 add_subdirectory(mysql)
 add_subdirectory(postgresql)
 add_subdirectory(oracle)
-add_subdirectory(odbc) # also handles db2 and db2 pase
+add_subdirectory(odbc) # also handles db2
 
 if (SQL_STATIC_PLUGINS)
 	# Link plugins directly into main SQL module, since we're not loading it dynamically at runtime anymore.

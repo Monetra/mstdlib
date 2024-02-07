@@ -90,7 +90,6 @@ work across multiple platforms. There shouldn't be any surprises.
   - OS X
   - Windows
   - FreeBSD
-  - AIX
   - Solaris
   - SCO
   - Android

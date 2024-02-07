@@ -82,28 +82,24 @@ else ()
 	# The "strong" stack protector is the current best option (see https://lwn.net/Articles/584225/). If we're on
 	# an older compiler that doesn't support this option, fall back to basic stack protector instead.
 	#
-	# Stack protector on AIX is buggy (our installation of GCC on AIX seems to be missing the libssp library).
-	#
 	# TODO: investigate whether we should try setting -D_FORTIFY_SOURCE, too (though it might not be worth it).
 	#
-	if (NOT CMAKE_SYSTEM_NAME MATCHES "AIX")
-		_harden_check_compile_flag(has_flag "-fstack-protector-strong" "C")
-		if (has_flag)
-			list(APPEND _compile_flags "-fstack-protector-strong")
-		else ()
-			# If compiler doesn't support the newer "strong" stack protector option, try the older basic version.
-			_harden_check_compile_flag(has_flag "-fstack-protector" "C")
-			if (has_flag)
-				list(APPEND _compile_flags "-fstack-protector")
-			endif ()
-		endif ()
+    _harden_check_compile_flag(has_flag "-fstack-protector-strong" "C")
+    if (has_flag)
+        list(APPEND _compile_flags "-fstack-protector-strong")
+    else ()
+        # If compiler doesn't support the newer "strong" stack protector option, try the older basic version.
+        _harden_check_compile_flag(has_flag "-fstack-protector" "C")
+        if (has_flag)
+            list(APPEND _compile_flags "-fstack-protector")
+        endif ()
+    endif ()
 
-		if ((MINGW OR CMAKE_SYSTEM_NAME MATCHES "SunOS") AND has_flag)
-			# MinGW/Solaris require you to explicitly link to libssp in some cases when stack
-			# protector is enabled.
-			list(APPEND _link_flags_implicit "-lssp")
-		endif ()
-	endif ()
+    if ((MINGW OR CMAKE_SYSTEM_NAME MATCHES "SunOS") AND has_flag)
+        # MinGW/Solaris require you to explicitly link to libssp in some cases when stack
+        # protector is enabled.
+        list(APPEND _link_flags_implicit "-lssp")
+    endif ()
 
 	list(APPEND _link_flags
 		# Allow undefined symbols in shared libraries (usually the default, anyway).

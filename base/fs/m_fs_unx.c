@@ -130,8 +130,7 @@ M_fs_error_t M_fs_error_from_syserr(int err)
         case ENOTDIR:
             return M_FS_ERROR_NOTDIR;
 #endif
-/* AIX defined ENOTEMPTY and EEXIST to the same value. */
-#if defined(ENOTEMPTY) && (defined(EEXIST) && ENOTEMPTY != EEXIST)
+#if defined(ENOTEMPTY)
         case ENOTEMPTY:
             return M_FS_ERROR_DIR_NOTEMPTY;
 #endif

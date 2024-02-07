@@ -23,11 +23,7 @@
 #include <mstdlib/mstdlib_sql.h>
 #include <mstdlib/sql/m_sql_driver.h>
 
-#if defined(ODBC_IBMDB2_PASE)
-#  include <sqlcli.h>
-#  define SQLLEN SQLINTEGER
-#  define SQLULEN SQLUINTEGER
-#elif defined(ODBC_IBMDB2)
+#if defined(ODBC_IBMDB2)
 #  include <sqlcli1.h>
 #else
 #  include <sql.h>
@@ -596,7 +592,7 @@ static M_sql_error_t odbc_cb_connect(M_sql_driver_conn_t **conn, M_sql_connpool_
         goto done;
     }
 
-#ifdef SQL_ATTR_ODBC_CURSORS /* DB2 PASE doesn't appear to have this */
+#ifdef SQL_ATTR_ODBC_CURSORS
     /* Only use cursors if needed - must be set before connect */
     rc = SQLSetConnectAttr((*conn)->dbc_handle, SQL_ATTR_ODBC_CURSORS, (SQLPOINTER)SQL_CUR_USE_IF_NEEDED, SQL_IS_INTEGER);
     if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
@@ -659,7 +655,7 @@ static M_sql_error_t odbc_cb_connect(M_sql_driver_conn_t **conn, M_sql_connpool_
     }
 
     if (auto_pop_ipd == SQL_TRUE) {
-#ifdef SQL_ATTR_ENABLE_AUTO_IPD /* DB2 PASE doesn't appear to have this */
+#ifdef SQL_ATTR_ENABLE_AUTO_IPD
         /* Driver supports automatic IPD population, enable it! */
         rc = SQLSetConnectAttr((*conn)->dbc_handle, SQL_ATTR_ENABLE_AUTO_IPD, (SQLPOINTER)SQL_TRUE, SQL_IS_UINTEGER);
         if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {

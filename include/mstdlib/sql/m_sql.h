@@ -166,7 +166,6 @@ __BEGIN_DECLS
  * Driver Name(s):
  *   - odbc (for Microsoft Windows, iODBC, or UnixODBC)
  *   - db2 (for direct DB2 connectivity)
- *   - db2pase (for direct DB2 connectivity on OS/400 PASE)
  *
  * Driver Connection String Options:
  *  - dsn: Required. Data Source Name
