@@ -49,19 +49,19 @@ typedef struct M_hash_multi M_hash_multi_t;
 
 /*! Flags for controlling the behavior of the hash_multi. */
 typedef enum {
-	M_HASH_MULTI_NONE        = 0,     /*!< String key compare is case sensitive. */
-	M_HASH_MULTI_STR_CASECMP = 1 << 0 /*!< String key compare is case insensitive. */
+    M_HASH_MULTI_NONE        = 0,     /*!< String key compare is case sensitive. */
+    M_HASH_MULTI_STR_CASECMP = 1 << 0 /*!< String key compare is case insensitive. */
 } M_hash_multi_flags_t;
 
 
 /* Types of data that can be uses as values. */
 typedef enum {
-	M_HASH_MULTI_VAL_TYPE_UNKNOWN = 0, /*!< Unknown. */
-	M_HASH_MULTI_VAL_TYPE_BOOL,        /*!< Boolean. */
-	M_HASH_MULTI_VAL_TYPE_INT,         /*!< Integer. */
-	M_HASH_MULTI_VAL_TYPE_STR,         /*!< String. */
-	M_HASH_MULTI_VAL_TYPE_BIN,         /*!< Binary. */
-	M_HASH_MULTI_VAL_TYPE_VP           /*!< Void pointer. Could be any data. */
+    M_HASH_MULTI_VAL_TYPE_UNKNOWN = 0, /*!< Unknown. */
+    M_HASH_MULTI_VAL_TYPE_BOOL,        /*!< Boolean. */
+    M_HASH_MULTI_VAL_TYPE_INT,         /*!< Integer. */
+    M_HASH_MULTI_VAL_TYPE_STR,         /*!< String. */
+    M_HASH_MULTI_VAL_TYPE_BIN,         /*!< Binary. */
+    M_HASH_MULTI_VAL_TYPE_VP           /*!< Void pointer. Could be any data. */
 } M_hash_multi_val_type_t;
 
 

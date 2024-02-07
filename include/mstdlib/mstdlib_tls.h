@@ -2,11 +2,11 @@
 #define __MSTDLIB_TLS_H__
 
 /*! \defgroup m_tls TLS System
- * 
+ *
  * \code{.c}
  * #include <mstdlib/mstdlib_tls.h>
  * \endcode
- * 
+ *
  *  TLS encryption.
  *
  */

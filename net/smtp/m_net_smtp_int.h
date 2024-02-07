@@ -41,33 +41,33 @@
 #define M_NET_SMTP_CONNECTION_MASK_PROC_ALL  ((unsigned)0xF)
 
 struct M_net_smtp {
-	M_event_t                         *el;
-	struct M_net_smtp_callbacks        cbs;
-	void                              *thunk;
-	M_list_t                          *endpoints;
-	M_thread_mutex_t                  *endpoints_mutex;
-	M_net_smtp_status_t                status;
-	M_thread_rwlock_t                 *status_rwlock;
-	M_dns_t                           *tcp_dns;
-	M_tls_clientctx_t                 *tcp_tls_ctx;
-	M_uint64                           tcp_connect_ms;
-	M_uint64                           tcp_stall_ms;
-	M_uint64                           tcp_idle_ms;
-	M_net_smtp_load_balance_t          load_balance_mode;
-	size_t                             round_robin_idx;
-	M_event_timer_t                   *restart_processing_timer;
-	M_net_smtp_queue_t                *queue;
-	size_t                             max_stall_retries;
+    M_event_t                         *el;
+    struct M_net_smtp_callbacks        cbs;
+    void                              *thunk;
+    M_list_t                          *endpoints;
+    M_thread_mutex_t                  *endpoints_mutex;
+    M_net_smtp_status_t                status;
+    M_thread_rwlock_t                 *status_rwlock;
+    M_dns_t                           *tcp_dns;
+    M_tls_clientctx_t                 *tcp_tls_ctx;
+    M_uint64                           tcp_connect_ms;
+    M_uint64                           tcp_stall_ms;
+    M_uint64                           tcp_idle_ms;
+    M_net_smtp_load_balance_t          load_balance_mode;
+    size_t                             round_robin_idx;
+    M_event_timer_t                   *restart_processing_timer;
+    M_net_smtp_queue_t                *queue;
+    size_t                             max_stall_retries;
 };
 
 typedef struct {
-	const M_net_smtp_t  *sp;
-	char                *msg;
-	size_t               num_tries;
-	M_hash_dict_t       *headers;
-	M_email_t           *email;
-	M_bool               is_bootstrap;
-	char                *domain;
+    const M_net_smtp_t  *sp;
+    char                *msg;
+    size_t               num_tries;
+    M_hash_dict_t       *headers;
+    M_email_t           *email;
+    M_bool               is_bootstrap;
+    char                *domain;
 } M_net_smtp_dispatch_msg_args_t;
 
 const M_net_smtp_endpoint_t * M_net_smtp_endpoint_acquire (M_net_smtp_t *sp);

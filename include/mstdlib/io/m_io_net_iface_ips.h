@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2022 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,7 +30,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_io_net_iface_ips Network Interface Enumeration
  *  \ingroup m_io_net
- * 
+ *
  * Network Interface Enumeration
  *
  * @{
@@ -45,7 +45,7 @@ typedef struct M_io_net_iface_ips M_io_net_iface_ips_t;
 typedef enum {
     M_NET_IFACE_IPS_FLAG_OFFLINE  = 1 << 0, /*!< Interface is currently offline. For enumeration, by default does
                                              *   not return offline interfaces without this flag. */
-    M_NET_IFACE_IPS_FLAG_LOOPBACK = 1 << 1, /*!< Interface is loopback.  For enumeration, by default, does not 
+    M_NET_IFACE_IPS_FLAG_LOOPBACK = 1 << 1, /*!< Interface is loopback.  For enumeration, by default, does not
                                              *   return addresses for loopback interfaces. */
     M_NET_IFACE_IPS_FLAG_IPV4     = 1 << 2, /*!< Address is ipv4.  For enumeration, only list interfaces and addresses
                                              *   containing ipv4 addresses. */
@@ -103,7 +103,7 @@ M_API M_uint8 M_io_net_iface_ips_get_netmask(M_io_net_iface_ips_t *ips, size_t i
  */
 M_API int M_io_net_iface_ips_get_flags(M_io_net_iface_ips_t *ips, size_t idx);
 
-/*! Retrieve a list of ip addresses from the result set matching the query. 
+/*! Retrieve a list of ip addresses from the result set matching the query.
  *  Will only return ip addresses and not any flags or interface names.
  *
  * \param[in] ips   Value returned from M_io_net_iface_ips()
@@ -114,7 +114,7 @@ M_API int M_io_net_iface_ips_get_flags(M_io_net_iface_ips_t *ips, size_t idx);
  */
 M_API M_list_str_t *M_io_net_iface_ips_get_ips(M_io_net_iface_ips_t *ips, int flags, const char *name);
 
-/*! Retrieve a list of interfaces from the result set matching the query. 
+/*! Retrieve a list of interfaces from the result set matching the query.
  *  Will only return interface names and not any flags or ip addresses.
  *
  * \param[in] ips    Value returned from M_io_net_iface_ips()
@@ -128,7 +128,7 @@ M_API M_list_str_t *M_io_net_iface_ips_get_ips(M_io_net_iface_ips_t *ips, int fl
 M_API M_list_str_t *M_io_net_iface_ips_get_names(M_io_net_iface_ips_t *ips, int flags, const char *ipaddr);
 
 /*! Free the ip address returned from M_io_net_iface_ips().
- * 
+ *
  * \param[in] ips   Value returned from M_io_net_iface_ips()
  */
 M_API void M_io_net_iface_ips_free(M_io_net_iface_ips_t *ips);

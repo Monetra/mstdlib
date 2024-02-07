@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2018 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,64 +31,64 @@
 #define M_IO_BLE_NAME "BLE"
 
 typedef enum {
-	M_IO_BLE_META_KEY_UNKNOWN = 0,
-	M_IO_BLE_META_KEY_SERVICE_UUID,        /* str */
-	M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, /* str */
-	M_IO_BLE_META_KEY_WRITE_TYPE,          /* int (M_io_ble_wtype_t) */
-	M_IO_BLE_META_KEY_READ_TYPE,           /* int (M_io_ble_rtype_t) */
-	M_IO_BLE_META_KEY_RSSI,                /* int */
-	M_IO_BLE_META_KEY_NOTIFY               /* bool */
+    M_IO_BLE_META_KEY_UNKNOWN = 0,
+    M_IO_BLE_META_KEY_SERVICE_UUID,        /* str */
+    M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, /* str */
+    M_IO_BLE_META_KEY_WRITE_TYPE,          /* int (M_io_ble_wtype_t) */
+    M_IO_BLE_META_KEY_READ_TYPE,           /* int (M_io_ble_rtype_t) */
+    M_IO_BLE_META_KEY_RSSI,                /* int */
+    M_IO_BLE_META_KEY_NOTIFY               /* bool */
 } M_io_ble_meta_keys;
 
 typedef struct {
-	char          identifier[256];
-	char          name[256];
-	M_list_str_t *service_uuids;
-	M_time_t      last_seen;
+    char          identifier[256];
+    char          name[256];
+    M_list_str_t *service_uuids;
+    M_time_t      last_seen;
 } M_io_ble_enum_device_t;
 
 struct M_io_ble_enum {
-	M_list_t *devices;
+    M_list_t *devices;
 };
 
 typedef struct {
-	M_io_ble_rtype_t  type;
-	union {
-		struct {
-			M_int64    val;
-		} rssi;
-		struct {
-			char       service_uuid[256];
-			char       characteristic_uuid[256];
-			M_buf_t   *data;
-		} read;
-		struct {
-			char       service_uuid[256];
-			char       characteristic_uuid[256];
-		} notify;
-	} d;
+    M_io_ble_rtype_t  type;
+    union {
+        struct {
+            M_int64    val;
+        } rssi;
+        struct {
+            char       service_uuid[256];
+            char       characteristic_uuid[256];
+            M_buf_t   *data;
+        } read;
+        struct {
+            char       service_uuid[256];
+            char       characteristic_uuid[256];
+        } notify;
+    } d;
 } M_io_ble_rdata_t;
 
 typedef struct {
-	char service_uuid[256];
-	char characteristic_uuid[256];
+    char service_uuid[256];
+    char characteristic_uuid[256];
 } M_io_ble_wcomplete_t;
 
 struct M_io_handle {
-	M_io_t           *io;                /*!< io object handle is associated with. */
-	char              uuid[256];         /*!< UUID of device in use. */
-	char              service_uuid[256]; /*!< UUID of service used for connecting using service. */
-	M_llist_t        *read_queue;        /*!< List of M_io_ble_rdata_t objects with data that has been read. */
-	M_list_t         *wcomplete_queue;   /*!< List of M_io_ble_wcomplete_t object with write event identifiers. */
-	M_event_timer_t  *timer;             /*!< Timer to handle connection timeouts */
-	M_event_timer_t  *initalized_timer;  /*!< Timer to retry connecting when waiting for initialization*/
-	M_uint64          timeout_ms;        /*!< Timeout for connecting. */
-	char              error[256];        /*!< Error message. */
-	M_io_state_t      state;
-	M_bool            can_write;         /*!< Wether data can be written. Will be false if a write operation is processing. */
-	M_bool            have_max_write;
-	size_t            max_write_w_response;
-	size_t            max_write_wo_response;
+    M_io_t           *io;                /*!< io object handle is associated with. */
+    char              uuid[256];         /*!< UUID of device in use. */
+    char              service_uuid[256]; /*!< UUID of service used for connecting using service. */
+    M_llist_t        *read_queue;        /*!< List of M_io_ble_rdata_t objects with data that has been read. */
+    M_list_t         *wcomplete_queue;   /*!< List of M_io_ble_wcomplete_t object with write event identifiers. */
+    M_event_timer_t  *timer;             /*!< Timer to handle connection timeouts */
+    M_event_timer_t  *initalized_timer;  /*!< Timer to retry connecting when waiting for initialization*/
+    M_uint64          timeout_ms;        /*!< Timeout for connecting. */
+    char              error[256];        /*!< Error message. */
+    M_io_state_t      state;
+    M_bool            can_write;         /*!< Wether data can be written. Will be false if a write operation is processing. */
+    M_bool            have_max_write;
+    size_t            max_write_w_response;
+    size_t            max_write_wo_response;
 };
 
 M_io_ble_enum_t *M_io_ble_enum_init(void);

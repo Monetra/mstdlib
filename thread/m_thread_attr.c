@@ -30,87 +30,87 @@
 
 M_thread_attr_t *M_thread_attr_create(void)
 {
-	M_thread_attr_t *attr;
-	attr            = M_malloc_zero(sizeof(*attr));
-	attr->priority  = M_THREAD_PRIORITY_NORMAL; /* Defaults to normal */
-	attr->processor = -1; /* Unassigned */
-	return attr;
+    M_thread_attr_t *attr;
+    attr            = M_malloc_zero(sizeof(*attr));
+    attr->priority  = M_THREAD_PRIORITY_NORMAL; /* Defaults to normal */
+    attr->processor = -1; /* Unassigned */
+    return attr;
 }
 
 void M_thread_attr_destroy(M_thread_attr_t *attr)
 {
-	if (attr == NULL)
-		return;
-	M_free(attr);
+    if (attr == NULL)
+        return;
+    M_free(attr);
 }
 
 M_bool M_thread_attr_get_create_joinable(const M_thread_attr_t *attr)
 {
-	if (attr == NULL)
-		return M_FALSE;
-	return attr->create_joinable;
+    if (attr == NULL)
+        return M_FALSE;
+    return attr->create_joinable;
 }
 
 size_t M_thread_attr_get_stack_size(const M_thread_attr_t *attr)
 {
-	if (attr == NULL)
-		return 0;
-	return attr->stack_size;
+    if (attr == NULL)
+        return 0;
+    return attr->stack_size;
 }
 
 M_uint8 M_thread_attr_get_priority(const M_thread_attr_t *attr)
 {
-	if (attr == NULL)
-		return 0;
-	return attr->priority;
+    if (attr == NULL)
+        return 0;
+    return attr->priority;
 }
 
 void M_thread_attr_set_create_joinable(M_thread_attr_t *attr, M_bool val)
 {
-	if (attr == NULL)
-		return;
-	attr->create_joinable = val;
+    if (attr == NULL)
+        return;
+    attr->create_joinable = val;
 }
 
 void M_thread_attr_set_stack_size(M_thread_attr_t *attr, size_t val)
 {
-	if (attr == NULL)
-		return;
-	attr->stack_size = val;
+    if (attr == NULL)
+        return;
+    attr->stack_size = val;
 }
 
 M_bool M_thread_attr_set_priority(M_thread_attr_t *attr, M_uint8 priority)
 {
-	if (attr == NULL)
-		return M_FALSE;
-	if (priority < M_THREAD_PRIORITY_MIN || priority > M_THREAD_PRIORITY_MAX)
-		return M_FALSE;
-	attr->priority = priority;
-	return M_TRUE;
+    if (attr == NULL)
+        return M_FALSE;
+    if (priority < M_THREAD_PRIORITY_MIN || priority > M_THREAD_PRIORITY_MAX)
+        return M_FALSE;
+    attr->priority = priority;
+    return M_TRUE;
 }
 
 int M_thread_attr_get_processor(const M_thread_attr_t *attr)
 {
-	if (attr == NULL)
-		return -1;
-	return attr->processor;
+    if (attr == NULL)
+        return -1;
+    return attr->processor;
 }
 
 M_bool M_thread_attr_set_processor(M_thread_attr_t *attr, int processor_id)
 {
-	if (attr == NULL)
-		return M_FALSE;
+    if (attr == NULL)
+        return M_FALSE;
 
-	if (processor_id == -1) {
-		attr->processor = -1;
-		return M_TRUE;
-	}
+    if (processor_id == -1) {
+        attr->processor = -1;
+        return M_TRUE;
+    }
 
-	if (processor_id < 0 || processor_id >= (int)M_thread_num_cpu_cores())
-		return M_FALSE;
+    if (processor_id < 0 || processor_id >= (int)M_thread_num_cpu_cores())
+        return M_FALSE;
 
-	attr->processor = processor_id;
-	return M_TRUE;
+    attr->processor = processor_id;
+    return M_TRUE;
 }
 
 

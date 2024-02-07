@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,7 +36,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_llist_str Linked List - String
  *  \ingroup m_llist
- * 
+ *
  * Linked list for storing values.
  *
  * The list can be used in multiple ways:
@@ -71,19 +71,19 @@ typedef struct M_llist_str_node M_llist_str_node_t;
 
 /*! Flags for controlling the behavior of the list. */
 typedef enum {
-	M_LLIST_STR_NONE     = 0,      /*!< List mode. */
-	M_LLIST_STR_SORTASC  = 1 << 0, /*!< Sort asc. */
-	M_LLIST_STR_SORTDESC = 1 << 1, /*!< Sort desc. */
-	M_LLIST_STR_CASECMP  = 1 << 2, /*!< Compare is case insensitive. */
-	M_LLIST_STR_CIRCULAR = 1 << 3  /*!< Circular list. Cannnot be used with SORT flags. */
+    M_LLIST_STR_NONE     = 0,      /*!< List mode. */
+    M_LLIST_STR_SORTASC  = 1 << 0, /*!< Sort asc. */
+    M_LLIST_STR_SORTDESC = 1 << 1, /*!< Sort desc. */
+    M_LLIST_STR_CASECMP  = 1 << 2, /*!< Compare is case insensitive. */
+    M_LLIST_STR_CIRCULAR = 1 << 3  /*!< Circular list. Cannnot be used with SORT flags. */
 } M_llist_str_flags_t;
 
 
 /*! Type of matching that should be used when searching/modifying a value in the list. */
 typedef enum {
-	M_LLIST_STR_MATCH_VAL = 0,      /*!< Match based on the value. */
-	M_LLIST_STR_MATCH_PTR = 1 << 0, /*!< Match the pointer itself. */
-	M_LLIST_STR_MATCH_ALL = 1 << 1  /*!< Include all instances. */
+    M_LLIST_STR_MATCH_VAL = 0,      /*!< Match based on the value. */
+    M_LLIST_STR_MATCH_PTR = 1 << 0, /*!< Match the pointer itself. */
+    M_LLIST_STR_MATCH_ALL = 1 << 1  /*!< Include all instances. */
 } M_llist_str_match_type_t;
 
 

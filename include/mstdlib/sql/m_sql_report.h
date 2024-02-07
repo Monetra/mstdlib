@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -45,25 +45,25 @@ __BEGIN_DECLS
  */
 
 typedef enum {
-	M_SQL_REPORT_FLAG_NONE              = 0,      /*!< No special flags */
-	M_SQL_REPORT_FLAG_ALWAYS_ENCAP      = 1 << 0, /*!< CSV: Always encapsulate the fields, even if there are no conflicting characters.
-	                                               *   However, NULL fields will still never be encapsulated so NULL vs empty
-	                                               *   strings can be determined by the output. Ignored for JSON. */
-	M_SQL_REPORT_FLAG_OMIT_HEADERS      = 1 << 1, /*!< CSV: Do not output the first row as headers. Ignored for JSON. */
-	M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED = 1 << 2  /*!< By default, all columns in the output report must be specified.  This flag
-	                                                   will use the column name returned from the SQL server as the header and
-	                                                   pass the data thru with no manipulation.  Other columns may be overwritten
-	                                                   or added, or even suppressed.  When set, columns will be output in the order
-	                                                   returned from the SQL server, additional added columns will be appended to
-	                                                   the end. */
+    M_SQL_REPORT_FLAG_NONE              = 0,      /*!< No special flags */
+    M_SQL_REPORT_FLAG_ALWAYS_ENCAP      = 1 << 0, /*!< CSV: Always encapsulate the fields, even if there are no conflicting characters.
+                                                   *   However, NULL fields will still never be encapsulated so NULL vs empty
+                                                   *   strings can be determined by the output. Ignored for JSON. */
+    M_SQL_REPORT_FLAG_OMIT_HEADERS      = 1 << 1, /*!< CSV: Do not output the first row as headers. Ignored for JSON. */
+    M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED = 1 << 2  /*!< By default, all columns in the output report must be specified.  This flag
+                                                       will use the column name returned from the SQL server as the header and
+                                                       pass the data thru with no manipulation.  Other columns may be overwritten
+                                                       or added, or even suppressed.  When set, columns will be output in the order
+                                                       returned from the SQL server, additional added columns will be appended to
+                                                       the end. */
 } M_sql_report_flags_t;
 
 
 /*! Error conditions returned by #M_sql_report_fetch_cb_t */
 typedef enum {
-	M_SQL_REPORT_ERROR    = 0, /*!< Error, abort report generation */
-	M_SQL_REPORT_SUCCESS  = 1, /*!< Success */
-	M_SQL_REPORT_SKIP_ROW = 2  /*!< Do not output this row, but continue */
+    M_SQL_REPORT_ERROR    = 0, /*!< Error, abort report generation */
+    M_SQL_REPORT_SUCCESS  = 1, /*!< Success */
+    M_SQL_REPORT_SKIP_ROW = 2  /*!< Do not output this row, but continue */
 } M_sql_report_cberror_t;
 
 
@@ -77,7 +77,7 @@ typedef struct M_sql_report_state M_sql_report_state_t;
 
 
 /*! Create a report object for processing SQL query results into a delimited data form.
- *  
+ *
  *  Report processing is often used to turn SQL query results into delimited data
  *  like CSV.
  *
@@ -128,7 +128,7 @@ M_API M_bool M_sql_report_set_delims(M_sql_report_t *report, const unsigned char
  */
 typedef M_bool (*M_sql_report_fetch_cb_t)(M_sql_stmt_t *stmt, void *arg);
 
-/*! Register a callback to be automatically called any time M_sql_stmt_fetch() is 
+/*! Register a callback to be automatically called any time M_sql_stmt_fetch() is
  *  called successfully from within M_sql_report_process() or M_sql_report_process_partial().
  *
  *  This may be used if some bulk operation needs to process the data just fetched
@@ -136,8 +136,8 @@ typedef M_bool (*M_sql_report_fetch_cb_t)(M_sql_stmt_t *stmt, void *arg);
  *
  *  \param[in] report Initialized report object
  *  \param[in] fetch_cb Callback to run every time M_sql_stmt_fetch() is successfully called.
- *  \return M_TRUE on success, or M_FALSE on error 
- */ 
+ *  \return M_TRUE on success, or M_FALSE on error
+ */
 M_API M_bool M_sql_report_set_fetch_cb(M_sql_report_t *report, M_sql_report_fetch_cb_t fetch_cb);
 
 /*! Function callback prototype to use for cell formatting.
@@ -210,7 +210,7 @@ M_API M_sql_report_cberror_t M_sql_report_cell_cb_boolyesno(M_sql_stmt_t *stmt, 
  *  if the sql_col_name or sql_col_idx matches a column (rather than being NULL and -1, respectively),
  *  then instead of adding a column, it overwrites its behavior ... either output column name, or the
  *  default callback can be changed from the default of passthrough.
- * 
+ *
  * \param[in] report       Initialized report object.
  * \param[in] name         Name of column (used for headers in report)
  * \param[in] cb           Callback to use for formatting the column.
@@ -222,7 +222,7 @@ M_API M_sql_report_cberror_t M_sql_report_cell_cb_boolyesno(M_sql_stmt_t *stmt, 
 M_API M_bool M_sql_report_add_column(M_sql_report_t *report, const char *name, M_sql_report_cell_cb_t cb, const char *sql_col_name, ssize_t sql_col_idx);
 
 /*! Hide a column from a report if #M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED was set.
- * 
+ *
  * When #M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED all columns in a report will be listed.  This can
  * be used to hide specific columns.
  *
@@ -239,8 +239,8 @@ struct M_sql_report_filter;
 typedef struct M_sql_report_filter M_sql_report_filter_t;
 
 typedef enum {
-	M_SQL_REPORT_FILTER_TYPE_OR  = 1, /*!< Rules for filter will be treated as OR */
-	M_SQL_REPORT_FILTER_TYPE_AND = 2  /*!< Rules for filter will be treated as AND */
+    M_SQL_REPORT_FILTER_TYPE_OR  = 1, /*!< Rules for filter will be treated as OR */
+    M_SQL_REPORT_FILTER_TYPE_AND = 2  /*!< Rules for filter will be treated as AND */
 } M_sql_report_filter_type_t;
 
 /*! Create filter object
@@ -259,16 +259,16 @@ M_API M_sql_report_filter_t *M_sql_report_filter_create(M_sql_report_filter_type
 M_API void M_sql_report_filter_destroy(M_sql_report_filter_t *filter);
 
 typedef enum {
-	M_SQL_REPORT_FILTER_RULE_MATCHES = 1,     /*!< Data matches */
-	M_SQL_REPORT_FILTER_RULE_NOT_MATCHES,     /*!< Data does not match */
-	M_SQL_REPORT_FILTER_RULE_CONTAINS,        /*!< Data contains (sub string) */
-	M_SQL_REPORT_FILTER_RULE_NOT_CONTAINS,    /*!< Data does not contain (sub string) */
-	M_SQL_REPORT_FILTER_RULE_BEGINS_WITH,     /*!< Data begins with */
-	M_SQL_REPORT_FILTER_RULE_NOT_BEGINS_WITH, /*!< Data does not begin with */
-	M_SQL_REPORT_FILTER_RULE_ENDS_WITH,       /*!< Data ends with */
-	M_SQL_REPORT_FILTER_RULE_NOT_ENDS_WITH,   /*!< Data does not end with */
-	M_SQL_REPORT_FILTER_RULE_EMPTY,           /*!< Data is empty */
-	M_SQL_REPORT_FILTER_RULE_NOT_EMPTY        /*!< Data is not empty */
+    M_SQL_REPORT_FILTER_RULE_MATCHES = 1,     /*!< Data matches */
+    M_SQL_REPORT_FILTER_RULE_NOT_MATCHES,     /*!< Data does not match */
+    M_SQL_REPORT_FILTER_RULE_CONTAINS,        /*!< Data contains (sub string) */
+    M_SQL_REPORT_FILTER_RULE_NOT_CONTAINS,    /*!< Data does not contain (sub string) */
+    M_SQL_REPORT_FILTER_RULE_BEGINS_WITH,     /*!< Data begins with */
+    M_SQL_REPORT_FILTER_RULE_NOT_BEGINS_WITH, /*!< Data does not begin with */
+    M_SQL_REPORT_FILTER_RULE_ENDS_WITH,       /*!< Data ends with */
+    M_SQL_REPORT_FILTER_RULE_NOT_ENDS_WITH,   /*!< Data does not end with */
+    M_SQL_REPORT_FILTER_RULE_EMPTY,           /*!< Data is empty */
+    M_SQL_REPORT_FILTER_RULE_NOT_EMPTY        /*!< Data is not empty */
 } M_sql_report_filter_rule_t;
 
 /*! Add filter rule
@@ -306,7 +306,7 @@ M_API M_bool M_sql_report_add_filter(M_sql_report_t *report, M_sql_report_filter
  *
  *  No state is tracked in the report handle, it may be reused, and used concurrently if
  *  the implementor decides to cache the handle.
- * 
+ *
  * \param[in]  report     Initialized report object.
  * \param[in]  stmt       Executed statement handle.
  * \param[in]  arg        Custom user-supplied argument to be passed through to registered callbacks for column formatting.
@@ -331,7 +331,7 @@ M_API M_sql_error_t M_sql_report_process(const M_sql_report_t *report, M_sql_stm
  *
  *  No state is tracked in the report handle, it may be reused, and used concurrently if
  *  the implementor decides to cache the handle.
- * 
+ *
  * \param[in]     report     Initialized report object.
  * \param[in]     stmt       Executed statement handle.
  * \param[in]     arg        Custom user-supplied argument to be passed through to registered callbacks for column formatting.
@@ -360,7 +360,7 @@ M_API M_sql_error_t M_sql_report_process_json(const M_sql_report_t *report, M_sq
  *           returned or otherwise risk memory leaks, or possibly holding a lock on an SQL connection.
  *
  *  \param[in]     report     Initialized report object.
- *  \param[in]     stmt       Executed statement handle. 
+ *  \param[in]     stmt       Executed statement handle.
  *  \param[in]     max_rows   Maximum number of rows to output per pass.  Or 0 to output all.  Typically it makes
  *                            more sense to just call M_sql_report_process() if you want to use 0 for this value.
  *  \param[in]     arg        Custom user-supplied argument to be passed through to registered callbacks for column formatting.
@@ -398,7 +398,7 @@ M_API void M_sql_report_state_cancel(M_sql_report_state_t *state);
  *           returned or otherwise risk memory leaks, or possibly holding a lock on an SQL connection.
  *
  *  \param[in]     report     Initialized report object.
- *  \param[in]     stmt       Executed statement handle. 
+ *  \param[in]     stmt       Executed statement handle.
  *  \param[in]     max_rows   Maximum number of rows to output per pass.  Or 0 to output all.  Typically it makes
  *                            more sense to just call M_sql_report_process() if you want to use 0 for this value.
  *  \param[in]     arg        Custom user-supplied argument to be passed through to registered callbacks for column formatting.

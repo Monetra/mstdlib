@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,7 +33,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_io_net Network I/O
  *  \ingroup m_eventio_base
- * 
+ *
  * Network I/O functions
  *
  * Capable of functioning as a network server and client.
@@ -52,11 +52,11 @@ __BEGIN_DECLS
  *     #include <mstdlib/mstdlib.h>
  *     #include <mstdlib/mstdlib_io.h>
  *     #include <mstdlib/mstdlib_tls.h>
- *     
+ *
  *     static void do_trace(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_type, const unsigned char *data, size_t data_len)
  *     {
  *         char *out;
- *     
+ *
  *         switch (type) {
  *             case M_IO_TRACE_TYPE_READ:
  *                 M_printf("READ:\n");
@@ -71,13 +71,13 @@ __BEGIN_DECLS
  *         M_printf("%s\n", out);
  *         M_free(out);
  *     }
- *     
+ *
  *     static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  *     {
  *         M_buf_t *connected_buf = thunk;
  *         char     buf[128]      = { 0 };
  *         size_t   len_written   = 0;
- *     
+ *
  *         switch (etype) {
  *             case M_EVENT_TYPE_CONNECTED:
  *                 M_printf("CONNECTED: %s%s%s:%d (%s: %s - session%sreused)\n",
@@ -88,7 +88,7 @@ __BEGIN_DECLS
  *                         M_tls_protocols_to_str(M_tls_get_protocol(io, M_IO_LAYER_FIND_FIRST_ID)),
  *                         M_tls_get_cipher(io, M_IO_LAYER_FIND_FIRST_ID),
  *                         M_tls_get_sessionreused(io, M_IO_LAYER_FIND_FIRST_ID)?" ":" not ");
- *     
+ *
  *                 M_io_write_from_buf(io, connected_buf);
  *                 break;
  *             case M_EVENT_TYPE_READ:
@@ -110,7 +110,7 @@ __BEGIN_DECLS
  *                 break;
  *         }
  *     }
- *     
+ *
  *     int main(int argc, char **argv)
  *     {
  *         M_event_t *el;
@@ -119,8 +119,8 @@ __BEGIN_DECLS
  *         M_io_t    *io;
  *         M_tls_clientctx_t *ctx;
  *         size_t     layer_id;
- *     
- *     
+ *
+ *
  *         dns = M_dns_create();
  *         el  = M_event_create(M_EVENT_FLAG_NONE);
  *         buf = M_buf_create();
@@ -128,17 +128,17 @@ __BEGIN_DECLS
  *         M_buf_add_str(buf, "Host: www.google.com\r\n");
  *         M_buf_add_str(buf, "Connection: close\r\n");
  *         M_buf_add_str(buf, "\r\n");
- *     
+ *
  *         M_io_net_client_create(&io, dns, "google.com", 443, M_IO_NET_ANY);
  *         ctx = M_tls_clientctx_create();
  *         M_tls_clientctx_set_default_trust(ctx);
  *         M_io_tls_client_add(io, ctx, NULL, &layer_id);
  *         M_tls_clientctx_destroy(ctx);
  *         //M_io_add_trace(io, &layer_id, do_trace, NULL, NULL, NULL);
- *     
+ *
  *         M_event_add(el, io, run_cb, buf);
  *         M_event_loop(el, M_TIMEOUT_INF);
- *     
+ *
  *         M_io_destroy(io);
  *         M_buf_cancel(buf);
  *         M_event_destroy(el);
@@ -156,13 +156,13 @@ __BEGIN_DECLS
  * \code{.c}
  *     #include <mstdlib/mstdlib.h>
  *     #include <mstdlib/mstdlib_io.h>
- *     
+ *
  *     typedef enum {
  *         STATE_CHECK = 1,
  *         STATE_ECHO,
  *         STATE_EXIT
  *     } states_t;
- *     
+ *
  *     typedef struct {
  *         M_buf_t           *write_buf;
  *         M_parser_t        *read_parser;
@@ -170,52 +170,52 @@ __BEGIN_DECLS
  *         M_event_t         *el;
  *         M_state_machine_t *sm;
  *     } ldata_t;
- *     
+ *
  *     static M_state_machine_status_t state_check(void *data, M_uint64 *next)
  *     {
  *         ldata_t *ldata = data;
- *     
+ *
  *         (void)next;
- *     
+ *
  *         M_parser_mark(ldata->read_parser);
  *         if (M_parser_len(ldata->read_parser) == 0 || M_parser_consume_until(ldata->read_parser, (const unsigned char *)"\n", 1, M_TRUE) == 0) {
  *             M_parser_mark_rewind(ldata->read_parser);
  *             return M_STATE_MACHINE_STATUS_WAIT;
  *         }
- *     
+ *
  *         return M_STATE_MACHINE_STATUS_NEXT;
  *     }
- *     
+ *
  *     static M_state_machine_status_t state_echo(void *data, M_uint64 *next)
  *     {
  *         ldata_t *ldata = data;
  *         char    *out;
- *     
+ *
  *         out = M_parser_read_strdup_mark(ldata->read_parser);
  *         M_buf_add_str(ldata->write_buf, out);
  *         M_io_write_from_buf(ldata->io, ldata->write_buf);
- *     
+ *
  *         if (!M_str_eq(out, "EXIT\r\n") && !M_str_eq(out, "EXIT\n"))
  *             *next = STATE_CHECK;
- *     
+ *
  *         M_free(out);
  *         return M_STATE_MACHINE_STATUS_NEXT;
  *     }
- *     
+ *
  *     static M_state_machine_status_t state_exit(void *data, M_uint64 *next)
  *     {
  *         ldata_t *ldata = data;
  *         (void)next;
  *         M_event_done_with_disconnect(ldata->el, 0, 1000);
  *     }
- *     
+ *
  *     static void connection_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  *     {
  *         ldata_t                  *ldata      = thunk;
  *         char                      error[256] = { 0 };
  *         M_bool                    clean      = M_FALSE;
  *         M_state_machine_status_t  status;
- *     
+ *
  *         switch (etype) {
  *             case M_EVENT_TYPE_CONNECTED:
  *                 M_printf("CLIENT CONNECTED: %s%s%s:%d\n",
@@ -251,7 +251,7 @@ __BEGIN_DECLS
  *                         M_io_net_get_type(io)==M_IO_NET_IPV6?"]":"",
  *                         M_io_net_get_port(io),
  *                         clean?"clean":"unclean", clean?"":" - ", clean?"":error);
- *     
+ *
  *                 M_io_destroy(io);
  *                 M_state_machine_destroy(ldata->sm);
  *                 M_buf_cancel(ldata->write_buf);
@@ -260,16 +260,16 @@ __BEGIN_DECLS
  *                 break;
  *         }
  *     }
- *     
+ *
  *     static void listen_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  *     {
  *         M_io_t       *io_out     = NULL;
  *         ldata_t      *ldata;
  *         M_io_error_t  ioerr;
  *         char          error[256] = { 0 };
- *     
+ *
  *         (void)thunk;
- *     
+ *
  *         switch (etype) {
  *             case M_EVENT_TYPE_ACCEPT:
  *                 ioerr = M_io_accept(&io_out, io);
@@ -280,7 +280,7 @@ __BEGIN_DECLS
  *                     M_printf("ACCEPT FAILURE: %s\n", error);
  *                     M_io_destroy(io_out);
  *                 }
- *     
+ *
  *                 ldata = M_malloc_zero(sizeof(*ldata));
  *                 ldata->el          = el;
  *                 ldata->write_buf   = M_buf_create();
@@ -290,7 +290,7 @@ __BEGIN_DECLS
  *                 M_state_machine_insert_state(ldata->sm, STATE_CHECK, 0, NULL, state_check, NULL, NULL);
  *                 M_state_machine_insert_state(ldata->sm, STATE_ECHO, 0, NULL, state_echo, NULL, NULL);
  *                 M_state_machine_insert_state(ldata->sm, STATE_EXIT, 0, NULL, state_exit, NULL, NULL);
- *     
+ *
  *                 M_event_add(el, io_out, connection_cb, ldata);
  *                 break;
  *             case M_EVENT_TYPE_CONNECTED:
@@ -304,25 +304,25 @@ __BEGIN_DECLS
  *                 break;
  *         }
  *     }
- *     
+ *
  *     int main(int argc, char *argv)
  *     {
  *         M_event_t    *el;
  *         M_io_t       *io = NULL;
  *         M_io_error_t  ioerr;
- *     
- *     
+ *
+ *
  *         ioerr = M_io_net_server_create(&io, 8999, NULL, M_IO_NET_IPV4);
  *         if (ioerr != M_IO_ERROR_SUCCESS) {
  *             M_printf("Could not start server: %s\n", M_io_error_string(ioerr));
  *             return 0;
  *         }
- *     
+ *
  *         el = M_event_create(M_EVENT_FLAG_NONE);
- *     
+ *
  *         M_event_add(el, io, listen_cb, NULL);
  *         M_event_loop(el, M_TIMEOUT_INF);
- *     
+ *
  *         M_event_destroy(el);
  *         return 0;
  *     }
@@ -333,9 +333,9 @@ __BEGIN_DECLS
 
 /*! IP connection type. */
 enum M_io_net_type {
-	M_IO_NET_ANY  = 1, /*!< Either ipv4 or ipv6 */
-	M_IO_NET_IPV4 = 2, /*!< ipv4 only           */
-	M_IO_NET_IPV6 = 3  /*!< ipv6 only           */
+    M_IO_NET_ANY  = 1, /*!< Either ipv4 or ipv6 */
+    M_IO_NET_IPV4 = 2, /*!< ipv4 only           */
+    M_IO_NET_IPV6 = 3  /*!< ipv6 only           */
 };
 typedef enum M_io_net_type M_io_net_type_t;
 

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2020 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,7 +42,7 @@ __BEGIN_DECLS
  * Supports versions:
  * - 1
  * - 2
- * 
+ *
  * Source is the client connecting to the system (Client). Destination is the
  * server accepting the connection which will then relay using proxy protocol
  * (proxy server). There can be multiple proxies in a chain between the source
@@ -62,22 +62,22 @@ __BEGIN_DECLS
  * \code{.c}
  * #include <mstdlib/mstdlib.h>
  * #include <mstdlib/mstdlib_io.h>
- * 
+ *
  * typedef struct {
  *     M_buf_t   *source_to_dest_buf;
  *     M_buf_t   *dest_to_source_buf;
  *     M_io_t    *source_io;
  *     M_io_t    *dest_io;
  * } ldata_t;
- * 
+ *
  * static M_dns_t *dns;
- * 
+ *
  * static void destination_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  * {
  *     ldata_t *ldata      = thunk;
  *     char     error[256] = { 0 };
  *     M_bool   clean      = M_FALSE;
- * 
+ *
  *     switch (etype) {
  *         case M_EVENT_TYPE_CONNECTED:
  *             M_printf("CONNECTED TO SERVER: %s%s%s:%d\n",
@@ -113,12 +113,12 @@ __BEGIN_DECLS
  *                     M_io_net_get_type(io)==M_IO_NET_IPV6?"]":"",
  *                     M_io_net_get_port(io),
  *                     clean?"clean":"unclean", clean?"":" - ", clean?"":error);
- * 
+ *
  *             M_io_disconnect(ldata->source_io);
  *             break;
  *     }
  * }
- * 
+ *
  * static void source_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  * {
  *     M_io_t                   *io_out     = NULL;
@@ -126,7 +126,7 @@ __BEGIN_DECLS
  *     char                      error[256] = { 0 };
  *     M_bool                    clean      = M_FALSE;
  *     M_io_error_t              ioerr;
- * 
+ *
  *     switch (etype) {
  *         case M_EVENT_TYPE_CONNECTED:
  *             M_printf("CLIENT CONNECTED: %s%s%s:%d\n",
@@ -134,7 +134,7 @@ __BEGIN_DECLS
  *                     M_io_net_get_ipaddr(io),
  *                     M_io_net_get_type(io)==M_IO_NET_IPV6?"]":"",
  *                     M_io_net_get_port(io));
- * 
+ *
  *             // Create a connetion to the destination echo server.
  *             ioerr = M_io_net_client_create(&io_out, dns, "localhost", 8999, M_IO_NET_ANY);
  *             if (ioerr != M_IO_ERROR_SUCCESS) {
@@ -145,10 +145,10 @@ __BEGIN_DECLS
  *              // source information will be relayed to the echo server.
  *             M_io_proxy_protocol_outbound_add(io_out, NULL, M_IO_PROXY_PROTOCOL_FLAG_NONE);
  *             M_io_proxy_protocol_set_source_endpoints(io_out, M_io_net_get_ipaddr(io), M_io_net_get_server_ipaddr(io), M_io_net_get_ephemeral_port(io), M_io_net_get_port(io));
- * 
+ *
  *             // Store the echo server's io object so we can communicate with it.
  *             ldata->dest_io = io_out;
- * 
+ *
  *             M_event_add(el, io_out, destination_cb, ldata);
  *             break;
  *         case M_EVENT_TYPE_READ:
@@ -178,7 +178,7 @@ __BEGIN_DECLS
  *                     M_io_net_get_type(io)==M_IO_NET_IPV6?"]":"",
  *                     M_io_net_get_port(io),
  *                     clean?"clean":"unclean", clean?"":" - ", clean?"":error);
- * 
+ *
  *             M_io_destroy(ldata->dest_io);
  *             M_io_destroy(io);
  *             M_buf_cancel(ldata->source_to_dest_buf);
@@ -187,16 +187,16 @@ __BEGIN_DECLS
  *             break;
  *     }
  * }
- * 
+ *
  * static void source_listen_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  * {
  *     M_io_t       *io_out     = NULL;
  *     ldata_t      *ldata;
  *     M_io_error_t  ioerr;
  *     char          error[256] = { 0 };
- * 
+ *
  *     (void)thunk;
- * 
+ *
  *     switch (etype) {
  *         case M_EVENT_TYPE_ACCEPT:
  *             // Accept connection form source and create an io object to communicate with it.
@@ -208,12 +208,12 @@ __BEGIN_DECLS
  *                 M_printf("ACCEPT FAILURE: %s\n", error);
  *                 M_io_destroy(io_out);
  *             }
- * 
+ *
  *             ldata                     = M_malloc_zero(sizeof(*ldata));
  *             ldata->source_to_dest_buf = M_buf_create();
  *             ldata->dest_to_source_buf = M_buf_create();
  *             ldata->source_io          = io_out;
- * 
+ *
  *             M_event_add(el, io_out, source_cb, ldata);
  *             break;
  *         case M_EVENT_TYPE_CONNECTED:
@@ -227,34 +227,34 @@ __BEGIN_DECLS
  *             break;
  *     }
  * }
- * 
+ *
  * int main(int argc, char **argv)
  * {
  *     M_event_t    *el;
  *     M_io_t       *io_source = NULL;
  *     M_io_error_t  ioerr;
- * 
+ *
  *     dns = M_dns_create();
- * 
+ *
  *     // Setup our listening server which will listen for source connections.
  *     ioerr = M_io_net_server_create(&io_source, 8998, NULL, M_IO_NET_ANY);
  *     if (ioerr != M_IO_ERROR_SUCCESS) {
  *         M_printf("Could not start server: %s\n", M_io_error_string(ioerr));
  *         return 0;
  *     }
- * 
+ *
  *     el = M_event_create(M_EVENT_FLAG_NONE);
- * 
+ *
  *     M_event_add(el, io_source, source_listen_cb, NULL);
  *     M_event_loop(el, M_TIMEOUT_INF);
- * 
+ *
  *     M_event_destroy(el);
  *     M_dns_destroy(dns);
  *     return 0;
  * }
  * \endcode
  *
- * ## Echo Server (accepting proxy protocol) 
+ * ## Echo Server (accepting proxy protocol)
  *
  * This is a basic echo server where any data received is echoed back
  * out. The server only accepts connections that use proxy protocol.
@@ -262,14 +262,14 @@ __BEGIN_DECLS
  * \code{.c}
  * #include <mstdlib/mstdlib.h>
  * #include <mstdlib/mstdlib_io.h>
- * 
+ *
  * // Echo server states.
  * typedef enum {
  *     STATE_CHECK = 1,
  *     STATE_ECHO,
  *     STATE_EXIT
  * } states_t;
- * 
+ *
  * typedef struct {
  *     M_buf_t           *write_buf;
  *     M_parser_t        *read_parser;
@@ -277,11 +277,11 @@ __BEGIN_DECLS
  *     M_event_t         *el;
  *     M_state_machine_t *sm;
  * } ldata_t;
- * 
+ *
  * static void do_trace(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_type, const unsigned char *data, size_t data_len)
  * {
  *     char *out;
- * 
+ *
  *     switch (type) {
  *         case M_IO_TRACE_TYPE_READ:
  *             M_printf("READ:\n");
@@ -296,41 +296,41 @@ __BEGIN_DECLS
  *     M_printf("%s\n", out);
  *     M_free(out);
  * }
- * 
+ *
  * static M_state_machine_status_t state_check(void *data, M_uint64 *next)
  * {
  *     ldata_t *ldata = data;
- * 
+ *
  *     (void)next;
- * 
+ *
  *     // Check for new line which indicates full message to echo.
  *     M_parser_mark(ldata->read_parser);
  *     if (M_parser_len(ldata->read_parser) == 0 || M_parser_consume_until(ldata->read_parser, (const unsigned char *)"\n", 1, M_TRUE) == 0) {
  *         M_parser_mark_rewind(ldata->read_parser);
  *         return M_STATE_MACHINE_STATUS_WAIT;
  *     }
- * 
+ *
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_status_t state_echo(void *data, M_uint64 *next)
  * {
  *     ldata_t *ldata = data;
  *     char    *out;
- * 
+ *
  *     // Echo the data.
  *     out = M_parser_read_strdup_mark(ldata->read_parser);
  *     M_buf_add_str(ldata->write_buf, out);
  *     M_io_write_from_buf(ldata->io, ldata->write_buf);
- * 
+ *
  *     // Check for exit command.
  *     if (!M_str_eq(out, "EXIT\r\n") && !M_str_eq(out, "EXIT\n"))
  *         *next = STATE_CHECK;
- * 
+ *
  *     M_free(out);
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static M_state_machine_status_t state_exit(void *data, M_uint64 *next)
  * {
  *     ldata_t *ldata = data;
@@ -339,14 +339,14 @@ __BEGIN_DECLS
  *     M_event_done_with_disconnect(ldata->el, 0, 1000);
  *     return M_STATE_MACHINE_STATUS_NEXT;
  * }
- * 
+ *
  * static void connection_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  * {
  *     ldata_t                  *ldata      = thunk;
  *     char                      error[256] = { 0 };
  *     M_bool                    clean      = M_FALSE;
  *     M_state_machine_status_t  status;
- * 
+ *
  *     switch (etype) {
  *         case M_EVENT_TYPE_CONNECTED:
  *             M_printf("CLIENT CONNECTED: %s%s%s:%d\n",
@@ -354,7 +354,7 @@ __BEGIN_DECLS
  *                     M_io_net_get_ipaddr(io),
  *                     M_io_net_get_type(io)==M_IO_NET_IPV6?"]":"",
  *                     M_io_net_get_port(io));
- *             M_printf("SERVER IP: %s%s%s\n", 
+ *             M_printf("SERVER IP: %s%s%s\n",
  *                     M_io_net_get_type(io)==M_IO_NET_IPV6?"[":"",
  *                     M_io_net_get_server_ipaddr(io),
  *                     M_io_net_get_type(io)==M_IO_NET_IPV6?"]":"");
@@ -398,7 +398,7 @@ __BEGIN_DECLS
  *                     M_io_net_get_type(io)==M_IO_NET_IPV6?"]":"",
  *                     M_io_net_get_port(io),
  *                     clean?"clean":"unclean", clean?"":" - ", clean?"":error);
- * 
+ *
  *             M_io_destroy(io);
  *             M_state_machine_destroy(ldata->sm);
  *             M_buf_cancel(ldata->write_buf);
@@ -407,16 +407,16 @@ __BEGIN_DECLS
  *             break;
  *     }
  * }
- * 
+ *
  * static void listen_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  * {
  *     M_io_t       *io_out     = NULL;
  *     ldata_t      *ldata;
  *     M_io_error_t  ioerr;
  *     char          error[256] = { 0 };
- * 
+ *
  *     (void)thunk;
- * 
+ *
  *     switch (etype) {
  *         case M_EVENT_TYPE_ACCEPT:
  *             ioerr = M_io_accept(&io_out, io);
@@ -434,7 +434,7 @@ __BEGIN_DECLS
  *             // protocol data as it would have been eaten by the proxy protocol
  *             // layer, prior to being sent to the trace layer.
  *             //M_io_add_trace(io_out, NULL, do_trace, NULL, NULL, NULL);
- * 
+ *
  *             ldata = M_malloc_zero(sizeof(*ldata));
  *             ldata->el          = el;
  *             ldata->write_buf   = M_buf_create();
@@ -444,7 +444,7 @@ __BEGIN_DECLS
  *             M_state_machine_insert_state(ldata->sm, STATE_CHECK, 0, NULL, state_check, NULL, NULL);
  *             M_state_machine_insert_state(ldata->sm, STATE_ECHO, 0, NULL, state_echo, NULL, NULL);
  *             M_state_machine_insert_state(ldata->sm, STATE_EXIT, 0, NULL, state_exit, NULL, NULL);
- * 
+ *
  *             M_event_add(el, io_out, connection_cb, ldata);
  *             break;
  *         case M_EVENT_TYPE_CONNECTED:
@@ -458,13 +458,13 @@ __BEGIN_DECLS
  *             break;
  *     }
  * }
- * 
+ *
  * int main(int argc, char **argv)
  * {
  *     M_event_t    *el;
  *     M_io_t       *io = NULL;
  *     M_io_error_t  ioerr;
- * 
+ *
  *     ioerr = M_io_net_server_create(&io, 8999, NULL, M_IO_NET_ANY);
  *     if (ioerr != M_IO_ERROR_SUCCESS) {
  *         M_printf("Could not start server: %s\n", M_io_error_string(ioerr));
@@ -477,12 +477,12 @@ __BEGIN_DECLS
  *         M_io_destroy(io);
  *         return 0;
  *     }
- * 
+ *
  *     el = M_event_create(M_EVENT_FLAG_NONE);
- * 
+ *
  *     M_event_add(el, io, listen_cb, NULL);
  *     M_event_loop(el, M_TIMEOUT_INF);
- * 
+ *
  *     M_event_destroy(el);
  *     return 0;
  * }
@@ -492,7 +492,7 @@ __BEGIN_DECLS
  *
  * 1. Compile the proxy server
  * 2. Compile the echo server
- * 3. Start proxy server 
+ * 3. Start proxy server
  * 4. Start echo server
  * 5. Use something like telnet to connect to the proxy server
  * 6. You should see:
@@ -508,14 +508,14 @@ __BEGIN_DECLS
 
 /*! Flags controlling behavior. */
 typedef enum {
-	M_IO_PROXY_PROTOCOL_FLAG_NONE = 0,      /*!< Default operation. Support both V1 and V2 in inbound configuration.
-	                                             Send V2 in client configuration. */
-	M_IO_PROXY_PROTOCOL_FLAG_V1   = 1 << 0, /*!< Only allow V1 connections for inbound configuration. Receiving V2
-	                                             is an error condition. Send V1 format for outbound connections.
-	                                             Specifying with V2 flag negates this flag operation. */
-	M_IO_PROXY_PROTOCOL_FLAG_V2   = 1 << 1  /*!< Only allow V2 connections for inbound configuration. Receiving V1
-	                                             is an error condition. Send V2 format for outbound connections.
-	                                             Specifying with V1 flag negates this flag operation. */
+    M_IO_PROXY_PROTOCOL_FLAG_NONE = 0,      /*!< Default operation. Support both V1 and V2 in inbound configuration.
+                                                 Send V2 in client configuration. */
+    M_IO_PROXY_PROTOCOL_FLAG_V1   = 1 << 0, /*!< Only allow V1 connections for inbound configuration. Receiving V2
+                                                 is an error condition. Send V1 format for outbound connections.
+                                                 Specifying with V2 flag negates this flag operation. */
+    M_IO_PROXY_PROTOCOL_FLAG_V2   = 1 << 1  /*!< Only allow V2 connections for inbound configuration. Receiving V1
+                                                 is an error condition. Send V2 format for outbound connections.
+                                                 Specifying with V1 flag negates this flag operation. */
 } M_io_proxy_protocol_flags_t;
 
 

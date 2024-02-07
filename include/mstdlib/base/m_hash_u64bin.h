@@ -58,22 +58,22 @@ typedef struct M_hash_u64bin_enum M_hash_u64bin_enum_t;
 
 /*! Flags for controlling the behavior of the hashtable. */
 typedef enum {
-	M_HASH_U64BIN_NONE          = 0,      /*!< Case sensitive single value (new values replace). */
-	M_HASH_U64BIN_KEYS_ORDERED  = 1 << 0, /*!< Keys should be ordered. Default is insertion order unless the
-	                                           sorted option is specified. */
-	M_HASH_U64BIN_KEYS_SORTASC  = 1 << 1, /*!< When the keys are ordered sort them using the key_equality function. */
-	M_HASH_U64BIN_KEYS_SORTDESC = 1 << 2, /*!< When the keys are ordered sort them using the key_equality function. */
-	M_HASH_U64BIN_MULTI_VALUE   = 1 << 3, /*!< Allow keys to contain multiple values.
-	                                           Sorted in insertion order another sorting is specified. */
-	M_HASH_U64BIN_MULTI_GETLAST = 1 << 4, /*!< When using get and get_direct function get the last value from the list
-	                                           when allowing multiple values. The default is to get the first value. */
-	M_HASH_U64BIN_STATIC_SEED   = 1 << 5  /*!< Use a static seed for hash function initialization. This greatly reduces
-	                                           the security of the hashtable and removes collision attack protections.
-	                                           This should only be used as a performance optimization when creating
-	                                           millions of hashtables with static data specifically for quick look up.
-	                                           DO _NOT_ use this flag with any hashtable that could store user
-	                                           generated data! Be very careful about duplicating a hashtable that
-	                                           was created with this flag. All duplicates will use the static seed. */
+    M_HASH_U64BIN_NONE          = 0,      /*!< Case sensitive single value (new values replace). */
+    M_HASH_U64BIN_KEYS_ORDERED  = 1 << 0, /*!< Keys should be ordered. Default is insertion order unless the
+                                               sorted option is specified. */
+    M_HASH_U64BIN_KEYS_SORTASC  = 1 << 1, /*!< When the keys are ordered sort them using the key_equality function. */
+    M_HASH_U64BIN_KEYS_SORTDESC = 1 << 2, /*!< When the keys are ordered sort them using the key_equality function. */
+    M_HASH_U64BIN_MULTI_VALUE   = 1 << 3, /*!< Allow keys to contain multiple values.
+                                               Sorted in insertion order another sorting is specified. */
+    M_HASH_U64BIN_MULTI_GETLAST = 1 << 4, /*!< When using get and get_direct function get the last value from the list
+                                               when allowing multiple values. The default is to get the first value. */
+    M_HASH_U64BIN_STATIC_SEED   = 1 << 5  /*!< Use a static seed for hash function initialization. This greatly reduces
+                                               the security of the hashtable and removes collision attack protections.
+                                               This should only be used as a performance optimization when creating
+                                               millions of hashtables with static data specifically for quick look up.
+                                               DO _NOT_ use this flag with any hashtable that could store user
+                                               generated data! Be very careful about duplicating a hashtable that
+                                               was created with this flag. All duplicates will use the static seed. */
 } M_hash_u64bin_flags_t;
 
 

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2018 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -61,7 +61,7 @@ __BEGIN_DECLS
  * - Ignored   - Events that are silenced and ignored.
  *
  * ## Windows
- * 
+ *
  * Only fatal events are supported on Windows.
  *
  * Crash events are any events captured by SetUnhandledExceptionFilter.
@@ -266,32 +266,32 @@ typedef void (*M_backtrace_got_fatal_func)(int sig);
 
 /*! Type of backtrae that should be generated. */
 typedef enum {
-	M_BACKTRACE_TYPE_BACKTRACE = 0, /*!< Stack trace. */
-	M_BACKTRACE_TYPE_DUMP,          /*!< Binary dump of trace data. Windows only and generates a minidump.
-	                                     On all other OS will be treated as BACKTRACE. */
+    M_BACKTRACE_TYPE_BACKTRACE = 0, /*!< Stack trace. */
+    M_BACKTRACE_TYPE_DUMP,          /*!< Binary dump of trace data. Windows only and generates a minidump.
+                                         On all other OS will be treated as BACKTRACE. */
 } M_backtrace_type_t;
 
 
 /*! Flags controlling behavior. */
 typedef enum {
-	M_BACKTRACE_NONE             = 0,      /*!< Normal behavior. */
-	M_BACKTRACE_WRITE_FILE       = 1 << 0, /*!< Write data to a file using the get_filename callback. */
-	M_BACKTRACE_EXTENDED_DUMP    = 1 << 1, /*!< When using dump type capture additional information about the event.
-	                                            This will produce a much larger dump file and can capture sensitive
-	                                            data in memory. For example, encryption keys. */
-	M_BACKTRACE_CAPTURE_NONCRASH = 1 << 2  /*!< Setup default non-fatal and ignore signal handling on non-Windows OS. */
+    M_BACKTRACE_NONE             = 0,      /*!< Normal behavior. */
+    M_BACKTRACE_WRITE_FILE       = 1 << 0, /*!< Write data to a file using the get_filename callback. */
+    M_BACKTRACE_EXTENDED_DUMP    = 1 << 1, /*!< When using dump type capture additional information about the event.
+                                                This will produce a much larger dump file and can capture sensitive
+                                                data in memory. For example, encryption keys. */
+    M_BACKTRACE_CAPTURE_NONCRASH = 1 << 2  /*!< Setup default non-fatal and ignore signal handling on non-Windows OS. */
 } M_backtrace_flags_t;
 
 
 /*! Callbacks. */
 struct M_backtrace_callbacks {
-	M_backtrace_filename_func      get_filename;  /*!< Get a filename when writing to file is enabled. Cannot be
-	                                                   NULL if writing to a file. */
-	M_backtrace_trace_data_func    trace_data;    /*!< Backtrace data. Cannot be NULL when not writing to a file. */
-	M_backtrace_log_emergency_func log_emergency; /*!< Emergency log function with information about a crash event. */
-	M_backtrace_got_nonfatal_func  got_nonfatal;  /*!< Non fatal event captured. */
-	M_backtrace_got_fatal_func     got_fatal;     /*!< A fatal event occurred and the application is about to exit.
-	                                                   Informational only to allow last logging. */
+    M_backtrace_filename_func      get_filename;  /*!< Get a filename when writing to file is enabled. Cannot be
+                                                       NULL if writing to a file. */
+    M_backtrace_trace_data_func    trace_data;    /*!< Backtrace data. Cannot be NULL when not writing to a file. */
+    M_backtrace_log_emergency_func log_emergency; /*!< Emergency log function with information about a crash event. */
+    M_backtrace_got_nonfatal_func  got_nonfatal;  /*!< Non fatal event captured. */
+    M_backtrace_got_fatal_func     got_fatal;     /*!< A fatal event occurred and the application is about to exit.
+                                                       Informational only to allow last logging. */
 };
 
 
@@ -321,7 +321,7 @@ M_API M_bool M_backtrace_enable(M_backtrace_type_t type, struct M_backtrace_call
  * children have exited and fail with ECHILD. If using WNOHANG you'll
  * get ECHILD immediately instead of being informed the child has exited.
  *
- * \note Unix only. 
+ * \note Unix only.
  *
  * \param[in] sig Signal.
  */
@@ -332,7 +332,7 @@ M_API void M_backtrace_set_ignore_signal(int sig);
  *
  * Will call the M_backtrace_got_fatal_func callback. If the callback not set the signal will be ignored.
  *
- * \note Unix only. 
+ * \note Unix only.
  *
  * \param[in] sig Signal.
  */
@@ -341,7 +341,7 @@ M_API void M_backtrace_set_nonfatal_signal(int sig);
 
 /*! Consider the signal fatal.
  *
- * \note Unix only. 
+ * \note Unix only.
  *
  * \param[in] sig Signal.
  */
@@ -352,7 +352,7 @@ M_API void M_backtrace_set_fatal_signal(int sig);
  *
  * Default is what is set by SIG_DFL
  *
- * \note Unix only. 
+ * \note Unix only.
  *
  * \param[in] sig Signal.
  */

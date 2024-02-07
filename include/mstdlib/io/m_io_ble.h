@@ -456,12 +456,12 @@ __BEGIN_DECLS
  *
  * void events(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  * {
- * 	char                *temp;
- * 	const char          *service_uuid;
- * 	const char          *characteristic_uuid;
+ *  char                *temp;
+ *  const char          *service_uuid;
+ *  const char          *characteristic_uuid;
  *     M_list_str_t        *services;
  *     M_list_str_t        *characteristics;
- * 	M_io_ble_property_t  props;
+ *  M_io_ble_property_t  props;
  *     size_t               len;
  *     size_t               len2;
  *     size_t               i;
@@ -474,42 +474,42 @@ __BEGIN_DECLS
  *         case M_EVENT_TYPE_CONNECTED:
  *             M_printf("Device:\n");
  *
- * 			temp = M_io_ble_get_identifier(io);
- * 			M_printf("\tIdentifier: %s\n", temp);
- * 			M_free(temp);
+ *          temp = M_io_ble_get_identifier(io);
+ *          M_printf("\tIdentifier: %s\n", temp);
+ *          M_free(temp);
  *
- * 			temp = M_io_ble_get_name(io);
- * 			M_printf("\tName: %s\n", temp);
- * 			M_free(temp);
+ *          temp = M_io_ble_get_name(io);
+ *          M_printf("\tName: %s\n", temp);
+ *          M_free(temp);
  *
  *             services = M_io_ble_get_services(io);
  *             len      = M_list_str_len(services);
  *             for (i=0; i<len; i++) {
- * 				service_uuid = M_list_str_at(services, i);
+ *              service_uuid = M_list_str_at(services, i);
  *                 M_printf("\t\tService = %s:\n", service_uuid);
  *
  *                 characteristics = M_io_ble_get_service_characteristics(io, M_list_str_at(services, i));
  *                 len2            = M_list_str_len(characteristics);
  *                 for (j=0; j<len2; j++) {
- * 					characteristic_uuid = M_list_str_at(characteristics, j);
+ *                  characteristic_uuid = M_list_str_at(characteristics, j);
  *                     M_printf("\t\t\tCharacteristic = %s\n", characteristic_uuid);
  *
- * 					props = M_io_ble_get_characteristic_properties(io, service_uuid, characteristic_uuid);
- * 					if (props == M_IO_BLE_PROPERTY_NONE) {
- *                     	M_printf("\t\t\t\tProperty = NONE\n");
- * 					}
- * 					if (props & M_IO_BLE_PROPERTY_READ) {
- *                     	M_printf("\t\t\t\tProperty = READ\n");
- * 					}
- * 					if (props & M_IO_BLE_PROPERTY_WRITE) {
- *                     	M_printf("\t\t\t\tProperty = WRITE\n");
- * 					}
- * 					if (props & M_IO_BLE_PROPERTY_WRITENORESP) {
- *                     	M_printf("\t\t\t\tProperty = WRITE NO RESPONSE\n");
- * 					}
- * 					if (props & M_IO_BLE_PROPERTY_NOTIFY) {
- *                     	M_printf("\t\t\t\tProperty = NOTIFY\n");
- * 					}
+ *                  props = M_io_ble_get_characteristic_properties(io, service_uuid, characteristic_uuid);
+ *                  if (props == M_IO_BLE_PROPERTY_NONE) {
+ *                      M_printf("\t\t\t\tProperty = NONE\n");
+ *                  }
+ *                  if (props & M_IO_BLE_PROPERTY_READ) {
+ *                      M_printf("\t\t\t\tProperty = READ\n");
+ *                  }
+ *                  if (props & M_IO_BLE_PROPERTY_WRITE) {
+ *                      M_printf("\t\t\t\tProperty = WRITE\n");
+ *                  }
+ *                  if (props & M_IO_BLE_PROPERTY_WRITENORESP) {
+ *                      M_printf("\t\t\t\tProperty = WRITE NO RESPONSE\n");
+ *                  }
+ *                  if (props & M_IO_BLE_PROPERTY_NOTIFY) {
+ *                      M_printf("\t\t\t\tProperty = NOTIFY\n");
+ *                  }
  *                 }
  *                 M_list_str_destroy(characteristics);
  *             }
@@ -523,7 +523,7 @@ __BEGIN_DECLS
  *         case M_EVENT_TYPE_ACCEPT:
  *         case M_EVENT_TYPE_ERROR:
  *             M_io_destroy(io);
- * 			cnt--;
+ *          cnt--;
  *             if (cnt == 0 && mrl != NULL)
  *                 CFRunLoopStop(mrl);
  *             break;
@@ -535,7 +535,7 @@ __BEGIN_DECLS
  * static void scan_done_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
  * {
  *     M_io_ble_enum_t *btenum;
- * 	M_io_error_t     io_err;
+ *  M_io_error_t     io_err;
  *     size_t           len;
  *     size_t           i;
  *
@@ -548,17 +548,17 @@ __BEGIN_DECLS
  *
  *     len = M_io_ble_enum_count(btenum);
  *     for (i=0; i<len; i++) {
- * 		M_io_t *dio = NULL;
+ *      M_io_t *dio = NULL;
  *
- * 		io_err = M_io_ble_create(&dio, M_io_ble_enum_identifier(btenum, i), 5000);
- * 		if (io_err == M_IO_ERROR_SUCCESS) {
- * 			M_event_add(el, dio, events, NULL);
- * 			cnt++;
- * 		}
+ *      io_err = M_io_ble_create(&dio, M_io_ble_enum_identifier(btenum, i), 5000);
+ *      if (io_err == M_IO_ERROR_SUCCESS) {
+ *          M_event_add(el, dio, events, NULL);
+ *          cnt++;
+ *      }
  *     }
  *
- * 	if (cnt == 0 && mrl != NULL)
- * 		CFRunLoopStop(mrl);
+ *  if (cnt == 0 && mrl != NULL)
+ *      CFRunLoopStop(mrl);
  *
  *     M_io_ble_enum_destroy(btenum);
  * }
@@ -1133,14 +1133,14 @@ __BEGIN_DECLS
  *
  * Specifies how the write should function. */
 typedef enum {
-	M_IO_BLE_WTYPE_WRITE = 0,   /*!< Normal write. Waits for confirmation data was
-	                                 written before writes can take place again. */
-	M_IO_BLE_WTYPE_WRITENORESP, /*!< Write without confirmation response. Blind write. */
-	M_IO_BLE_WTYPE_REQVAL,      /*!< Request value for service and characteristic. Not
-	                                 an actual write but a pseudo write to poll for a
-	                                 read event. */
-	M_IO_BLE_WTYPE_REQRSSI,     /*!< Request RSSI value. */
-	M_IO_BLE_WTYPE_REQNOTIFY    /*!< Request to change notify state. */
+    M_IO_BLE_WTYPE_WRITE = 0,   /*!< Normal write. Waits for confirmation data was
+                                     written before writes can take place again. */
+    M_IO_BLE_WTYPE_WRITENORESP, /*!< Write without confirmation response. Blind write. */
+    M_IO_BLE_WTYPE_REQVAL,      /*!< Request value for service and characteristic. Not
+                                     an actual write but a pseudo write to poll for a
+                                     read event. */
+    M_IO_BLE_WTYPE_REQRSSI,     /*!< Request RSSI value. */
+    M_IO_BLE_WTYPE_REQNOTIFY    /*!< Request to change notify state. */
 } M_io_ble_wtype_t;
 
 
@@ -1149,9 +1149,9 @@ typedef enum {
  * Specifies what type of read is being returned.
  */
 typedef enum {
-	M_IO_BLE_RTYPE_READ = 0, /*!< Regular read of data from service and characteristic. Read will return data. */
-	M_IO_BLE_RTYPE_RSSI,     /*!< RSSI data read. Use M_io_ble_meta_get_rssi. Read will not return data. All information should be access through meta methods. */
-	M_IO_BLE_RTYPE_NOTIFY    /*!< Notify state changed. There will be no data. This only  indicates something happened with a notification end point subscription. Read will not return data because this is an indicator. */
+    M_IO_BLE_RTYPE_READ = 0, /*!< Regular read of data from service and characteristic. Read will return data. */
+    M_IO_BLE_RTYPE_RSSI,     /*!< RSSI data read. Use M_io_ble_meta_get_rssi. Read will not return data. All information should be access through meta methods. */
+    M_IO_BLE_RTYPE_NOTIFY    /*!< Notify state changed. There will be no data. This only  indicates something happened with a notification end point subscription. Read will not return data because this is an indicator. */
 } M_io_ble_rtype_t;
 
 
@@ -1163,11 +1163,11 @@ typedef enum {
  * are not currently included.
  */
 typedef enum {
-	M_IO_BLE_PROPERTY_NONE        = 0,
-	M_IO_BLE_PROPERTY_READ        = 1 << 0,
-	M_IO_BLE_PROPERTY_WRITE       = 1 << 1,
-	M_IO_BLE_PROPERTY_WRITENORESP = 1 << 2,
-	M_IO_BLE_PROPERTY_NOTIFY      = 1 << 3
+    M_IO_BLE_PROPERTY_NONE        = 0,
+    M_IO_BLE_PROPERTY_READ        = 1 << 0,
+    M_IO_BLE_PROPERTY_WRITE       = 1 << 1,
+    M_IO_BLE_PROPERTY_WRITENORESP = 1 << 2,
+    M_IO_BLE_PROPERTY_NOTIFY      = 1 << 3
 } M_io_ble_property_t;
 
 

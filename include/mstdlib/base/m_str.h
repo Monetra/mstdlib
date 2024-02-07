@@ -712,32 +712,32 @@ M_API M_bool M_str_case_pattern_match(const char *pattern, const char *s) M_WARN
 
 /*! Justify Flags */
 typedef enum {
-	M_STR_JUSTIFY_RIGHT              = 0,  /*!< Data is right-justified (padded on left).
-	                                            If src exceeds justification length, it is truncated on the left */
-	M_STR_JUSTIFY_LEFT               = 1,  /*!< Data is left-justified (padded on right).
-	                                            If src exceeds justification length, it is truncated on the left */
-	M_STR_JUSTIFY_RIGHT_TRUNC_RIGHT  = 2,  /*!< Data is right-justified (padded on left).
-	                                            If src exceeds justification length, it is truncated on the right */
-	M_STR_JUSTIFY_LEFT_TRUNC_RIGHT   = 3,  /*!< Data is left-justified (padded on right).
-	                                            If src exceeds justification length, it is truncated on the right */
-	M_STR_JUSTIFY_RIGHT_NOTRUNC      = 4,  /*!< Data is right-justified (padded on left).
-	                                            If src exceeds justification length, destination is not written, error
-	                                            is returned */
-	M_STR_JUSTIFY_LEFT_NOTRUNC       = 5,  /*!< Data is left-justified (padded on right).
-	                                            If src exceeds justification length, destination is not written,
-	                                            error is returned */
-	M_STR_JUSTIFY_TRUNC_RIGHT        = 6,  /*!< Data is truncated on the right if length is exceeded.  No padding
-	                                            is performed */
-	M_STR_JUSTIFY_TRUNC_LEFT         = 7,  /*!< Data is truncated on the left if length is exceeded.  No padding
-	                                            is performed */
-	M_STR_JUSTIFY_CENTER             = 8,  /*!< Data is center-justified (padded on left and right).
-	                                            If src exceeds justification length, it is truncated on the left */
-	M_STR_JUSTIFY_CENTER_TRUNC_RIGHT = 9,  /*!< Data is center-justified (padded on left and right).
-	                                            If src exceeds justification length, it is truncated on the right */
-	M_STR_JUSTIFY_CENTER_NO_TRUNC    = 10, /*!< Data is center-justified (padded on left and right).
-											    If src exceeds justification length, destination is not writtern,
-												error is returned */
-	M_STR_JUSTIFY_END                = 11  /*!< Non-used value that marks end of list. */
+    M_STR_JUSTIFY_RIGHT              = 0,  /*!< Data is right-justified (padded on left).
+                                                If src exceeds justification length, it is truncated on the left */
+    M_STR_JUSTIFY_LEFT               = 1,  /*!< Data is left-justified (padded on right).
+                                                If src exceeds justification length, it is truncated on the left */
+    M_STR_JUSTIFY_RIGHT_TRUNC_RIGHT  = 2,  /*!< Data is right-justified (padded on left).
+                                                If src exceeds justification length, it is truncated on the right */
+    M_STR_JUSTIFY_LEFT_TRUNC_RIGHT   = 3,  /*!< Data is left-justified (padded on right).
+                                                If src exceeds justification length, it is truncated on the right */
+    M_STR_JUSTIFY_RIGHT_NOTRUNC      = 4,  /*!< Data is right-justified (padded on left).
+                                                If src exceeds justification length, destination is not written, error
+                                                is returned */
+    M_STR_JUSTIFY_LEFT_NOTRUNC       = 5,  /*!< Data is left-justified (padded on right).
+                                                If src exceeds justification length, destination is not written,
+                                                error is returned */
+    M_STR_JUSTIFY_TRUNC_RIGHT        = 6,  /*!< Data is truncated on the right if length is exceeded.  No padding
+                                                is performed */
+    M_STR_JUSTIFY_TRUNC_LEFT         = 7,  /*!< Data is truncated on the left if length is exceeded.  No padding
+                                                is performed */
+    M_STR_JUSTIFY_CENTER             = 8,  /*!< Data is center-justified (padded on left and right).
+                                                If src exceeds justification length, it is truncated on the left */
+    M_STR_JUSTIFY_CENTER_TRUNC_RIGHT = 9,  /*!< Data is center-justified (padded on left and right).
+                                                If src exceeds justification length, it is truncated on the right */
+    M_STR_JUSTIFY_CENTER_NO_TRUNC    = 10, /*!< Data is center-justified (padded on left and right).
+                                                If src exceeds justification length, destination is not writtern,
+                                                error is returned */
+    M_STR_JUSTIFY_END                = 11  /*!< Non-used value that marks end of list. */
 } M_str_justify_type_t;
 
 
@@ -1613,7 +1613,7 @@ M_API char **M_str_explode_str(unsigned char delim, const char *s, size_t *num) 
  * \return                Array of strings where each is a line, or NULL if no output text was produced.
  */
 M_API char **M_str_explode_lines(size_t max_lines, size_t max_chars, const char *src_str,
-	M_bool truncate, size_t *num) M_WARN_UNUSED_RESULT M_MALLOC;
+    M_bool truncate, size_t *num) M_WARN_UNUSED_RESULT M_MALLOC;
 
 
 
@@ -1717,9 +1717,9 @@ M_API char *M_str_implode_int(unsigned char delim, const int *ints, size_t num_i
 
 /*! Possible return codes for integer conversion primitives */
 typedef enum {
-	M_STR_INT_SUCCESS  = 0, /*!< Successful conversion */
-	M_STR_INT_OVERFLOW = 1, /*!< Overflow              */
-	M_STR_INT_INVALID  = 2  /*!< Invalid Characters    */
+    M_STR_INT_SUCCESS  = 0, /*!< Successful conversion */
+    M_STR_INT_OVERFLOW = 1, /*!< Overflow              */
+    M_STR_INT_INVALID  = 2  /*!< Invalid Characters    */
 } M_str_int_retval_t;
 
 
@@ -1869,14 +1869,14 @@ M_API char *M_str_dot_money_out(const char *amount);
 
 /*! Hex dump flags */
 enum M_str_hexdump_flags {
-	M_STR_HEXDUMP_NONE    = 0,      /*!< Defaults                                                                   */
-	M_STR_HEXDUMP_DECLEN  = 1 << 0, /*!< Default is length in hex (address) format, print in decimal format instead */
-	M_STR_HEXDUMP_NOASCII = 1 << 1, /*!< Disable dumping of ASCII representation trailing the hexdump               */
-	M_STR_HEXDUMP_HEADER  = 1 << 2, /*!< Add a header above each column of output                                   */
-	M_STR_HEXDUMP_NOLEN   = 1 << 3, /*!< Omit the length indicator                                                  */
-	M_STR_HEXDUMP_CRLF    = 1 << 4, /*!< Use CRLF newlines (DOS style)                                              */
-	M_STR_HEXDUMP_UPPER   = 1 << 5, /*!< Output hex digits as uppercase                                             */
-	M_STR_HEXDUMP_NOSECTS = 1 << 6  /*!< Do not put additional emphasis on 8-byte segments                          */
+    M_STR_HEXDUMP_NONE    = 0,      /*!< Defaults                                                                   */
+    M_STR_HEXDUMP_DECLEN  = 1 << 0, /*!< Default is length in hex (address) format, print in decimal format instead */
+    M_STR_HEXDUMP_NOASCII = 1 << 1, /*!< Disable dumping of ASCII representation trailing the hexdump               */
+    M_STR_HEXDUMP_HEADER  = 1 << 2, /*!< Add a header above each column of output                                   */
+    M_STR_HEXDUMP_NOLEN   = 1 << 3, /*!< Omit the length indicator                                                  */
+    M_STR_HEXDUMP_CRLF    = 1 << 4, /*!< Use CRLF newlines (DOS style)                                              */
+    M_STR_HEXDUMP_UPPER   = 1 << 5, /*!< Output hex digits as uppercase                                             */
+    M_STR_HEXDUMP_NOSECTS = 1 << 6  /*!< Do not put additional emphasis on 8-byte segments                          */
 };
 
 /*! Generate a hex dump format of binary data meant to be human-readable, or imported via various

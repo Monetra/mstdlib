@@ -78,12 +78,12 @@ typedef struct M_buf M_buf_t;
 
 /*! Enumeration for transformation types, bitmapped type to allow multiple transformations to be run */
 enum M_BUF_TRANSFORM_TYPE {
-	M_BUF_TRANSFORM_NONE  = 0,      /*!< Perform no transformation */
-	M_BUF_TRANSFORM_UPPER = 1 << 0, /*!< Transform into upper-case (cannot be used with M_BUF_TRANSFORM_LOWER) */
-	M_BUF_TRANSFORM_LOWER = 1 << 1, /*!< Transform into lower-case (cannot be used with M_BUF_TRANSFORM_UPPER) */
-	M_BUF_TRANSFORM_LTRIM = 1 << 2, /*!< Trim whitespace from left of the data                                 */
-	M_BUF_TRANSFORM_RTRIM = 1 << 3, /*!< Trim whitespace from right of the data                                */
-	M_BUF_TRANSFORM_TRIM  = M_BUF_TRANSFORM_LTRIM|M_BUF_TRANSFORM_RTRIM /*!< Trim whitespace from left and right of data */
+    M_BUF_TRANSFORM_NONE  = 0,      /*!< Perform no transformation */
+    M_BUF_TRANSFORM_UPPER = 1 << 0, /*!< Transform into upper-case (cannot be used with M_BUF_TRANSFORM_LOWER) */
+    M_BUF_TRANSFORM_LOWER = 1 << 1, /*!< Transform into lower-case (cannot be used with M_BUF_TRANSFORM_UPPER) */
+    M_BUF_TRANSFORM_LTRIM = 1 << 2, /*!< Trim whitespace from left of the data                                 */
+    M_BUF_TRANSFORM_RTRIM = 1 << 3, /*!< Trim whitespace from right of the data                                */
+    M_BUF_TRANSFORM_TRIM  = M_BUF_TRANSFORM_LTRIM|M_BUF_TRANSFORM_RTRIM /*!< Trim whitespace from left and right of data */
 };
 
 
@@ -364,7 +364,7 @@ M_API void M_buf_add_str_hex(M_buf_t *buf, const void *bytes, size_t len);
  * \return                   number of lines added to buffer (zero if the input string was empty or there's an error).
  */
 M_API size_t M_buf_add_str_lines(M_buf_t *buf, const char *str, size_t max_lines, size_t max_chars, M_bool truncate,
-	const char *newline);
+    const char *newline);
 
 
 /*! Append a C string (zero or more bytes terminated with a NUL) to a buffer, transform
@@ -879,7 +879,7 @@ M_API M_bool M_buf_add_decimal_just(M_buf_t *buf, const M_decimal_t *decimal, M_
  * \return                   M_TRUE on success, M_FALSE on error
  */
 M_API M_bool M_buf_add_bytes_replace(M_buf_t *dest_buf, const M_uint8 *src, size_t src_len,
-	const M_uint8 *search_bytes, size_t search_len, const M_uint8 *replace_bytes, size_t replace_len);
+    const M_uint8 *search_bytes, size_t search_len, const M_uint8 *replace_bytes, size_t replace_len);
 
 
 /*! Add given string to destination buffer, replace all instances of a string during the add.
@@ -893,7 +893,7 @@ M_API M_bool M_buf_add_bytes_replace(M_buf_t *dest_buf, const M_uint8 *src, size
  * \return                 M_TRUE on success, M_FALSE on error
  */
 M_API M_bool M_buf_add_str_replace(M_buf_t *dest_buf, const char *src_str,
-	const char *search_str, const char *replace_str);
+    const char *search_str, const char *replace_str);
 
 
 /*! Add the given string to the buffer, quoting if necessary.

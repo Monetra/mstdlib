@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -44,40 +44,40 @@ __BEGIN_DECLS
  *
  *  Here is an example of the system using the loopback io back end to simulate
  *  a network connection to a remote server.
- * 
+ *
  * \code{.c}
  *      #include <mstdlib/mstdlib.h>
  *      #include <mstdlib/mstdlib_io.h>
- *      
+ *
  *      int main(int argc, char *argv)
  *      {
  *          M_io_t     *io = NULL;
  *          M_buf_t    *buf;
  *          M_parser_t *parser;
  *          char       *out;
- *      
+ *
  *          buf    = M_buf_create();
  *          parser = M_parser_create(M_PARSER_FLAG_NONE);
  *          M_io_loopback_create(&io);
- *      
+ *
  *          M_io_block_connect(io);
- *      
+ *
  *          M_buf_add_str(buf, "TEST 123");
  *          M_io_block_write_from_buf(io, buf, M_TIMEOUT_INF);
- *      
+ *
  *          M_io_block_read_into_parser(io, parser, M_TIMEOUT_INF);
  *          out = M_parser_read_strdup(parser, M_parser_len(parser));
  *          M_printf("%s\n", out);
  *          M_free(out);
- *      
+ *
  *          M_buf_add_str(buf, "abc 456");
  *          M_io_block_write_from_buf(io, buf, M_TIMEOUT_INF);
- *      
+ *
  *          M_io_block_read_into_parser(io, parser, M_TIMEOUT_INF);
  *          out = M_parser_read_strdup(parser, M_parser_len(parser));
  *          M_printf("%s\n", out);
  *          M_free(out);
- *      
+ *
  *          M_parser_destroy(parser);
  *          M_buf_cancel(buf);
  *          M_io_block_disconnect(io);

@@ -30,16 +30,16 @@
 #include <IOBluetooth/IOBluetooth.h>
 
 struct M_io_handle {
-	M_io_state_t     state;      /*!< Current state of connection */
+    M_io_state_t     state;      /*!< Current state of connection */
 
-	CFTypeRef        conn;       /*!< Rfcomm interface (__bridge_retained) */
-	M_buf_t         *readbuf;    /*!< Reads are transferred via a buffer */
-	M_buf_t         *writebuf;   /*!< Write data is buffered because only uint16 max bytes can be sent at a time. */
-	size_t           wrote_len;  /*!< Amount of data buffered for writing. */
-	M_io_t          *io;         /*!< Pointer to IO object */
-	M_event_timer_t *timer;      /*!< Timer to handle connection timeouts */
-	char             error[256]; /*!< Error string */
-	M_bool           can_write;  /*!< Wether data can be written. Will be false if a write operation is processing. */
+    CFTypeRef        conn;       /*!< Rfcomm interface (__bridge_retained) */
+    M_buf_t         *readbuf;    /*!< Reads are transferred via a buffer */
+    M_buf_t         *writebuf;   /*!< Write data is buffered because only uint16 max bytes can be sent at a time. */
+    size_t           wrote_len;  /*!< Amount of data buffered for writing. */
+    M_io_t          *io;         /*!< Pointer to IO object */
+    M_event_timer_t *timer;      /*!< Timer to handle connection timeouts */
+    char             error[256]; /*!< Error string */
+    M_bool           can_write;  /*!< Wether data can be written. Will be false if a write operation is processing. */
 };
 
 M_bool M_io_bluetooth_mac_uuid_to_str(IOBluetoothSDPUUID *u, char *uuid, size_t uuid_len);

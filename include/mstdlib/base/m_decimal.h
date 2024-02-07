@@ -76,26 +76,26 @@ __BEGIN_DECLS
  * This structure should never be touched directly. It is only made public to reduce the overhead of using this
  * datatype (no malloc needed). */
 typedef struct {
-	M_int64 num;     /*!< Number represented. */
-	M_uint8 num_dec; /*!< How many implied decimal places. */
+    M_int64 num;     /*!< Number represented. */
+    M_uint8 num_dec; /*!< How many implied decimal places. */
 } M_decimal_t;
 
 
 /*! Result/Error codes for M_decimal functions. */
 enum M_DECIMAL_RETVAL {
-	M_DECIMAL_SUCCESS    = 0, /*!< Operation successful. */
-	M_DECIMAL_OVERFLOW   = 1, /*!< An overflow occurred in the operation. */
-	M_DECIMAL_TRUNCATION = 2, /*!< The result was truncated/rounded in order
-	                               to approximate the best result. This is
-	                               true on most divide operations. */
-	M_DECIMAL_INVALID    = 3  /*!< Invalid data. */
+    M_DECIMAL_SUCCESS    = 0, /*!< Operation successful. */
+    M_DECIMAL_OVERFLOW   = 1, /*!< An overflow occurred in the operation. */
+    M_DECIMAL_TRUNCATION = 2, /*!< The result was truncated/rounded in order
+                                   to approximate the best result. This is
+                                   true on most divide operations. */
+    M_DECIMAL_INVALID    = 3  /*!< Invalid data. */
 };
 
 /*! Rounding formula */
 typedef enum {
-	M_DECIMAL_ROUND_NONE        = 0, /*!< Truncate */
-	M_DECIMAL_ROUND_TRADITIONAL = 1, /*!< Traditional, aka Round Half away from Zero. */
-	M_DECIMAL_ROUND_BANKERS     = 2, /*!< Bankers, aka Round Half to Even */
+    M_DECIMAL_ROUND_NONE        = 0, /*!< Truncate */
+    M_DECIMAL_ROUND_TRADITIONAL = 1, /*!< Traditional, aka Round Half away from Zero. */
+    M_DECIMAL_ROUND_BANKERS     = 2, /*!< Bankers, aka Round Half to Even */
 } M_decimal_round_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

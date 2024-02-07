@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -48,7 +48,7 @@ __BEGIN_DECLS
  * The internal array holding the data elements is a void pointer which means
  * the compar function has a reference to the index of the array (void **). That
  * means you may need to dereference more time than you think if base is an array
- * of pointer. E.g: 
+ * of pointer. E.g:
  *
  *     Array: my_type_t **data;
  *     Deref: my_type_t *t1 = *((my_type_t * const *)arg1);
@@ -64,7 +64,7 @@ __BEGIN_DECLS
  *     data[0].v2 = "b";
  *     ...
  *     Deref: const my_type_t *t1 = arg1;
- * 
+ *
  *
  *     M_uint64 *data = { 1, 2, 3 };
  *     Deref: M_uint64 i1 = *((M_uint64 const *)arg1);
@@ -149,13 +149,13 @@ M_API void M_sort_mergesort(void *base, size_t nmemb, size_t esize, M_sort_compa
 /*! qsort style string comparison in ascending order.
  *
  * Base must be an array of pointers to values.
- * 
+ *
  *     const char **array;
  *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
  * \param[in] thunk Additional data to use for comparison.
- * 
+ *
  * \return -1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2.
  *
  * \see M_sort_compar_t
@@ -166,13 +166,13 @@ M_API int M_sort_compar_str(const void *arg1, const void *arg2, void *thunk);
 /*! qsort style string comparison in descending order.
  *
  * Base must be an array of pointers to values.
- * 
+ *
  *     const char **array;
  *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
  * \param[in] thunk Additional data to use for comparison.
- * 
+ *
  * \return -1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2.
  *
  * \see M_sort_compar_t
@@ -183,13 +183,13 @@ M_API int M_sort_compar_str_desc(const void *arg1, const void *arg2, void *thunk
 /*! qsort style string comparison in ascending order case insensitive.
  *
  * Base must be an array of pointers to values.
- * 
+ *
  *     const char **array;
  *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
  * \param[in] thunk Additional data to use for comparison.
- * 
+ *
  * \return -1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2.
  *
  * \see M_sort_compar_t
@@ -200,13 +200,13 @@ M_API int M_sort_compar_str_casecmp(const void *arg1, const void *arg2, void *th
 /*! qsort style string comparison in descending order case insensitive.
  *
  * Base must be an array of pointers to values.
- * 
+ *
  *     const char **array;
  *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
  * \param[in] thunk Additional data to use for comparison.
- * 
+ *
  * \return -1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2.
  *
  * \see M_sort_compar_t
@@ -226,7 +226,7 @@ M_API int M_sort_compar_str_casecmp_desc(const void *arg1, const void *arg2, voi
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
  * \param[in] thunk Additional data to use for comparison.
- * 
+ *
  * \return -1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2.
  *
  * \see M_sort_compar_t
@@ -243,7 +243,7 @@ M_API int M_sort_compar_u64(const void *arg1, const void *arg2, void *thunk);
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
  * \param[in] thunk Additional data to use for comparison.
- * 
+ *
  * \return -1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2.
  *
  * \see M_sort_compar_t
@@ -265,7 +265,7 @@ M_API int M_sort_compar_u64_desc(const void *arg1, const void *arg2, void *thunk
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
  * \param[in] thunk Additional data to use for comparison.
- * 
+ *
  * \return -1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2.
  *
  * \see M_sort_compar_t
@@ -289,7 +289,7 @@ M_API int M_sort_compar_binwraped(const void *arg1, const void *arg2, void *thun
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
  * \param[in] thunk Additional data to use for comparison.
- * 
+ *
  * \return -1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2.
  *
  * \see M_sort_compar_t
@@ -308,7 +308,7 @@ M_API int M_sort_compar_vp(const void *arg1, const void *arg2, void *thunk);
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
  * \param[in] thunk Additional data to use for comparison.
- * 
+ *
  * \return -1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2.
  *
  * \see M_sort_compar_t

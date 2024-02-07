@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -40,20 +40,20 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #ifdef _WIN32
-	 typedef  unsigned __int64     M_uint64;
-	 typedef           __int64     M_int64;
+     typedef  unsigned __int64     M_uint64;
+     typedef           __int64     M_int64;
 #  ifdef _WIN64
-	 typedef  unsigned __int64     M_uintptr;
-	 typedef           __int64     M_intptr;
+     typedef  unsigned __int64     M_uintptr;
+     typedef           __int64     M_intptr;
 #  else
-	 typedef  unsigned long        M_uintptr;
-	 typedef           long        M_intptr;
+     typedef  unsigned long        M_uintptr;
+     typedef           long        M_intptr;
 #  endif
 #else /* ! _WIN32 */
-	typedef  unsigned long        M_uintptr;
-	typedef           long        M_intptr;
-	typedef  unsigned long long   M_uint64;
-	typedef           long long   M_int64;
+    typedef  unsigned long        M_uintptr;
+    typedef           long        M_intptr;
+    typedef  unsigned long long   M_uint64;
+    typedef           long long   M_int64;
 #endif
 
 typedef  unsigned int         M_uint32;
@@ -64,7 +64,7 @@ typedef  unsigned char        M_uint8;
 typedef  signed   char        M_int8;
 
 #ifdef _MSC_VER
-	typedef  M_intptr ssize_t;
+    typedef  M_intptr ssize_t;
 #endif
 
 #define  M_INT8_MAX    127

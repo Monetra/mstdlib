@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -41,55 +41,55 @@
 __BEGIN_DECLS
 
 struct M_io_callbacks {
-	/*! Attach to event subsystem.  If the base layer, start the connection sequence if not already connected */
-	M_bool         (*cb_init)(M_io_layer_t *layer);
+    /*! Attach to event subsystem.  If the base layer, start the connection sequence if not already connected */
+    M_bool         (*cb_init)(M_io_layer_t *layer);
 
-	/*! Accept a connection from a remote client */
-	M_io_error_t   (*cb_accept)(M_io_t *new_comm, M_io_layer_t *orig_layer);
+    /*! Accept a connection from a remote client */
+    M_io_error_t   (*cb_accept)(M_io_t *new_comm, M_io_layer_t *orig_layer);
 
-	/*! Attempt to read from the layer */
-	M_io_error_t   (*cb_read)(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta);
+    /*! Attempt to read from the layer */
+    M_io_error_t   (*cb_read)(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta);
 
-	/*! Attempt to write to the layer */
-	M_io_error_t   (*cb_write)(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta);
+    /*! Attempt to write to the layer */
+    M_io_error_t   (*cb_write)(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta);
 
-	/*! Process an event delivered to the layer */
-	M_bool         (*cb_process_event)(M_io_layer_t *layer, M_event_type_t *type);
+    /*! Process an event delivered to the layer */
+    M_bool         (*cb_process_event)(M_io_layer_t *layer, M_event_type_t *type);
 
-	/*! Unregister from event subsystem */
-	void           (*cb_unregister)(M_io_layer_t *layer);
+    /*! Unregister from event subsystem */
+    void           (*cb_unregister)(M_io_layer_t *layer);
 
-	/*! Initiate a graceful disconnect. Return M_TRUE to continue to the next layer (e.g. immediately disconnected), M_FALSE if pending */
-	M_bool         (*cb_disconnect)(M_io_layer_t *layer);
+    /*! Initiate a graceful disconnect. Return M_TRUE to continue to the next layer (e.g. immediately disconnected), M_FALSE if pending */
+    M_bool         (*cb_disconnect)(M_io_layer_t *layer);
 
-	/*! Reset the layer to an uninitialized state so that cb_init() can be called again. Will also be called prior to cb_destroy(). */
-	M_bool         (*cb_reset)(M_io_layer_t *layer);
+    /*! Reset the layer to an uninitialized state so that cb_init() can be called again. Will also be called prior to cb_destroy(). */
+    M_bool         (*cb_reset)(M_io_layer_t *layer);
 
-	/*! Destroy the layer */
-	void           (*cb_destroy)(M_io_layer_t *layer);
+    /*! Destroy the layer */
+    void           (*cb_destroy)(M_io_layer_t *layer);
 
-	/*! Determine the current state of the layer (INIT, LISTENING, CONNECTING, CONNECTED, DISCONNECTING, DISCONNECTED, ERROR) */
-	M_io_state_t   (*cb_state)(M_io_layer_t *layer);
-	
-	/*! Generate a layer-specific error message.  If this is registered, cb_state must also be registered.  This will only
-	 *  be called if cb_state() returns M_IO_STATE_ERROR.  Returns false if cannot generate an error string. */
-	M_bool         (*cb_errormsg)(M_io_layer_t *layer, char *error, size_t err_len);
+    /*! Determine the current state of the layer (INIT, LISTENING, CONNECTING, CONNECTED, DISCONNECTING, DISCONNECTED, ERROR) */
+    M_io_state_t   (*cb_state)(M_io_layer_t *layer);
 
-	/* 
-	 * Append brief technical details about the layer (e.g. IP address/port IPv4 vs IPv6, SSL Ciphers/Protocol, BW Limitations):
-	 * void         (*cb_describe)(M_io_layer_t *layer, M_buf_t *buf);
-	 * 
-	 * Get an alternate connection address (e.g. for use by proxy implementations):
-	 * M_bool       (*cb_altaddress)(M_io_layer_t *layer, const char *address_in, M_uint16 port_in, char **address_out, M_uint16 *port_out);
-	 */
+    /*! Generate a layer-specific error message.  If this is registered, cb_state must also be registered.  This will only
+     *  be called if cb_state() returns M_IO_STATE_ERROR.  Returns false if cannot generate an error string. */
+    M_bool         (*cb_errormsg)(M_io_layer_t *layer, char *error, size_t err_len);
+
+    /*
+     * Append brief technical details about the layer (e.g. IP address/port IPv4 vs IPv6, SSL Ciphers/Protocol, BW Limitations):
+     * void         (*cb_describe)(M_io_layer_t *layer, M_buf_t *buf);
+     *
+     * Get an alternate connection address (e.g. for use by proxy implementations):
+     * M_bool       (*cb_altaddress)(M_io_layer_t *layer, const char *address_in, M_uint16 port_in, char **address_out, M_uint16 *port_out);
+     */
 };
 
 struct M_io_layer {
-	M_io_t             *comm;       /*!< Reference to parent */
-	size_t              idx;        /*!< Index of self in layers */
-	char               *name;       /*!< Name of layer */
-	M_io_handle_t      *handle;     /*!< Private handle (metadata, etc) of layer */
-	M_io_callbacks_t    cb;         /*!< Callbacks */
+    M_io_t             *comm;       /*!< Reference to parent */
+    size_t              idx;        /*!< Index of self in layers */
+    char               *name;       /*!< Name of layer */
+    M_io_handle_t      *handle;     /*!< Private handle (metadata, etc) of layer */
+    M_io_callbacks_t    cb;         /*!< Callbacks */
 };
 
 struct M_io_block_data;
@@ -97,26 +97,26 @@ typedef struct M_io_block_data M_io_block_data_t;
 
 /*! State flags for io object */
 typedef enum {
-	M_IO_FLAG_NONE            = 0,      /*!< no flags */
-	M_IO_FLAG_USER_DISCONNECT = 1 << 0, /*!< User requested disconnect.  Will persist until user receives disconnect or error event. */
-	M_IO_FLAG_USER_DESTROY    = 1 << 1  /*!< User requested destroy. This marks the object as effectively destroyed so nothing else
-	                                     *   Can take place on the object (no events, etc).  This is used mostly for cross-eventloop
-	                                     *   destroys, where the owning event loop should perform the actual destruction to prevent
-	                                     *   any sort of thread syncronization issues */
+    M_IO_FLAG_NONE            = 0,      /*!< no flags */
+    M_IO_FLAG_USER_DISCONNECT = 1 << 0, /*!< User requested disconnect.  Will persist until user receives disconnect or error event. */
+    M_IO_FLAG_USER_DESTROY    = 1 << 1  /*!< User requested destroy. This marks the object as effectively destroyed so nothing else
+                                         *   Can take place on the object (no events, etc).  This is used mostly for cross-eventloop
+                                         *   destroys, where the owning event loop should perform the actual destruction to prevent
+                                         *   any sort of thread syncronization issues */
 } M_io_flags_t;
 
 
 struct M_io {
-	M_io_type_t         type;            /*!< Type of comm object (stream, listener, event)               */
-	M_io_error_t        last_error;      /*!< Last error returned by a command (accept, read, write, etc) */
-	M_list_t           *layer;           /*!< List of M_io_layer_t's associated with the connection.
-	                                          The first entry is the base connection tied to the OS,
-	                                          every other entry is a wrapper layer (e.g. proxy, SSL, etc) */
-	M_event_t          *reg_event;       /*!< Registered event handler for this connection                */
+    M_io_type_t         type;            /*!< Type of comm object (stream, listener, event)               */
+    M_io_error_t        last_error;      /*!< Last error returned by a command (accept, read, write, etc) */
+    M_list_t           *layer;           /*!< List of M_io_layer_t's associated with the connection.
+                                              The first entry is the base connection tied to the OS,
+                                              every other entry is a wrapper layer (e.g. proxy, SSL, etc) */
+    M_event_t          *reg_event;       /*!< Registered event handler for this connection                */
 
-	M_bool              private_event;   /*!< Registered event handler is a private event handler         */
-	M_io_block_data_t  *sync_data;       /*!< Data handle for tracking M_io_block_*() calls               */
-	M_io_flags_t        flags;           /*!< State-related flags                                         */
+    M_bool              private_event;   /*!< Registered event handler is a private event handler         */
+    M_io_block_data_t  *sync_data;       /*!< Data handle for tracking M_io_block_*() calls               */
+    M_io_flags_t        flags;           /*!< State-related flags                                         */
 };
 
 void M_io_lock(M_io_t *io);

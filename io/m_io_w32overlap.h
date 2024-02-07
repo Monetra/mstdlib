@@ -36,38 +36,38 @@ struct M_io_handle_w32;
 typedef struct M_io_handle_w32 M_io_handle_w32_t;
 
 enum M_io_w32overlap_busyemu {
-	M_IO_W32OVERLAP_BUSYEMU_STATE_STOPPED        = 0,
-	M_IO_W32OVERLAP_BUSYEMU_STATE_RUNNING        = 1,
-	M_IO_W32OVERLAP_BUSYEMU_STATE_REQ_DISCONNECT = 2
+    M_IO_W32OVERLAP_BUSYEMU_STATE_STOPPED        = 0,
+    M_IO_W32OVERLAP_BUSYEMU_STATE_RUNNING        = 1,
+    M_IO_W32OVERLAP_BUSYEMU_STATE_REQ_DISCONNECT = 2
 };
 
 typedef enum M_io_w32overlap_busyemu M_io_w32overlap_busyemu_t;
 
 struct M_io_handle {
-	DWORD              last_error_sys;
+    DWORD              last_error_sys;
 
-	/* Read state */
-	HANDLE             rhandle;
-	M_bool             rwaiting;
-	M_buf_t           *rbuf;
-	M_bool             rbuffull; /*!< Whether last read was a full buffer read or not */
-	OVERLAPPED         roverlapped;
+    /* Read state */
+    HANDLE             rhandle;
+    M_bool             rwaiting;
+    M_buf_t           *rbuf;
+    M_bool             rbuffull; /*!< Whether last read was a full buffer read or not */
+    OVERLAPPED         roverlapped;
 
-	/* Write state */
-	HANDLE             whandle;
-	M_bool             wwaiting;
-	M_buf_t           *wbuf;
-	M_bool             wbuffull; /*!< Whether last write was a full buffer write or not */
-	OVERLAPPED         woverlapped;
+    /* Write state */
+    HANDLE             whandle;
+    M_bool             wwaiting;
+    M_buf_t           *wbuf;
+    M_bool             wbuffull; /*!< Whether last write was a full buffer write or not */
+    OVERLAPPED         woverlapped;
 
-	M_io_handle_w32_t *priv;
-	void             (*priv_cleanup)(M_io_handle_t *);
+    M_io_handle_w32_t *priv;
+    void             (*priv_cleanup)(M_io_handle_t *);
 
-	M_event_timer_t   *disconnect_timer;
+    M_event_timer_t   *disconnect_timer;
 
-	/* Used by BusyEmu only */
-	M_io_w32overlap_busyemu_t busyemu_state;
-	M_threadid_t              busyemu_thread;
+    /* Used by BusyEmu only */
+    M_io_w32overlap_busyemu_t busyemu_state;
+    M_threadid_t              busyemu_thread;
 };
 
 

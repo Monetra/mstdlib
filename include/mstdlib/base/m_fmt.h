@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -140,7 +140,7 @@ M_END_IGNORE_REDECLARATIONS
  * \<width\>.\<precision\>.
  *
  * The width is the minimum output size. Padding will be added if the output would be smaller
- * than the width. If the output size exceeds the width, the width is ignored and the full input 
+ * than the width. If the output size exceeds the width, the width is ignored and the full input
  * will be output.
  *
  * Precision for strings controls the length that should be output. If the value is larger than the length
@@ -164,7 +164,7 @@ M_END_IGNORE_REDECLARATIONS
  * hh       | Size of char. 8 bit.
  * h        | Size of short. 16 bit.
  * l        | Size of long. 8 or 16 bit (system dependant).
- * ll       | Size of long long. 64 bit. 
+ * ll       | Size of long long. 64 bit.
  * I, z     | size of size_t. Based on system size. 32 or 64 bit.
  * I64      | 64 bit.
  * I32      | 32 bit.

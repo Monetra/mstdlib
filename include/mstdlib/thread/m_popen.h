@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -57,49 +57,49 @@ __BEGIN_DECLS
  *     size_t            stdout_buf_len = 0;
  *     char             *stderr_buf     = NULL;
  *     size_t            stderr_buf_len = 0;
- *     
+ *
  *     mp = M_popen("curl <url>", &mperr);
  *     if (mp == NULL) {
  *         printf("m_popen failed: %s\n", M_popen_strerror(mperr));
  *         return M_FALSE;
  *     }
- *     
+ *
  *     M_printf("Process spawned....\n");
- *     
+ *
  *     retval = M_popen_write(mp, M_POPEN_FD_WRITE, data, M_str_len(data));
  *     if (retval <= 0) {
  *         M_printf("M_popen_write failed, retval = %d\n", retval);
  *         M_popen_close(mp, &mperr);
  *         return M_FALSE;
  *     }
- *     
+ *
  *     / * Close file descriptor to let process know we're done * /
  *     if (!M_popen_closefd(mp, M_POPEN_FD_WRITE)) {
  *         M_printf("M_popen_closefd() failed\n");
  *         M_popen_close(mp, &mperr);
  *         return M_FALSE;
  *     }
- *     
+ *
  *     M_printf("Wrote process stream....\n");
- *     
+ *
  *     while ((status=M_popen_check(mp)) == M_POPEN_STATUS_RUNNING) {
  *         M_thread_sleep(50000);
  *     }
- *     
+ *
  *     if (status == M_POPEN_STATUS_ERROR) {
  *         retval = M_popen_close(mp, &mperr);
  *         printf("Error during M_popen_check(): %d: %s\n", retval, M_popen_strerror(mperr));
  *         return M_FALSE;
  *     }
- *     
+ *
  *     M_printf("Process done...\n");
- *     
+ *
  *     retval = M_popen_close_ex(mp, &stdout_buf, &stdout_buf_len, &stderr_buf, &stderr_buf_len, &mperr, 0);
  *     if (retval < 0) {
  *         M_printf("error: %s\n", M_popen_strerror(mperr));
  *         return M_FALSE;
  *     }
- *     
+ *
  *     M_printf("stdout: %d:\n%s\n", (int)stdout_buf_len, stdout_buf);
  *     M_printf("stderr: %d:\n%s\n", (int)stderr_buf_len, stderr_buf);
  *     M_free(stdout_buf);
@@ -117,36 +117,36 @@ typedef struct M_popen_handle M_popen_handle_t;
 
 /*! Types of file descriptors that can be retrieved and used */
 typedef enum {
-	M_POPEN_FD_READ = 0,
-	M_POPEN_FD_WRITE,
-	M_POPEN_FD_ERR
+    M_POPEN_FD_READ = 0,
+    M_POPEN_FD_WRITE,
+    M_POPEN_FD_ERR
 } M_popen_fd_t;
 
 /*! Possible error reason codes */
 typedef enum {
-	M_POPEN_ERR_NONE = 0,
-	M_POPEN_ERR_INVALIDUSE,  /*!< invalid API usage                         */
-	M_POPEN_ERR_CMDNOTFOUND, /*!< command not found                         */
-	M_POPEN_ERR_PERM,        /*!< permission denied                         */
-	M_POPEN_ERR_NOEXEC,      /*!< file not executable                       */
-	M_POPEN_ERR_KILLSIGNAL,  /*!< killed by signal                          */
-	M_POPEN_ERR_PIPE,        /*!< pipe creation failed                      */
-	M_POPEN_ERR_WAIT,        /*!< attempting to check process status failed */
-	M_POPEN_ERR_SPAWN        /*!< fork failed                               */
+    M_POPEN_ERR_NONE = 0,
+    M_POPEN_ERR_INVALIDUSE,  /*!< invalid API usage                         */
+    M_POPEN_ERR_CMDNOTFOUND, /*!< command not found                         */
+    M_POPEN_ERR_PERM,        /*!< permission denied                         */
+    M_POPEN_ERR_NOEXEC,      /*!< file not executable                       */
+    M_POPEN_ERR_KILLSIGNAL,  /*!< killed by signal                          */
+    M_POPEN_ERR_PIPE,        /*!< pipe creation failed                      */
+    M_POPEN_ERR_WAIT,        /*!< attempting to check process status failed */
+    M_POPEN_ERR_SPAWN        /*!< fork failed                               */
 } M_popen_err_t;
 
 /*! Status codes for command being executed */
 typedef enum {
-	M_POPEN_STATUS_RUNNING = 0,
-	M_POPEN_STATUS_ERROR,
-	M_POPEN_STATUS_DONE
+    M_POPEN_STATUS_RUNNING = 0,
+    M_POPEN_STATUS_ERROR,
+    M_POPEN_STATUS_DONE
 } M_popen_status_t;
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Start the specified command and open stdin (write), stdout (read), and
- * stderr (read) file descriptors for communication. 
+ * stderr (read) file descriptors for communication.
  *
  * Must call M_popen_close() to clean up the returned handle.
  *

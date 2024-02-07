@@ -6,7 +6,7 @@
  * \code{.c}
  * #include <mstdlib/mstdlib_text.h>
  * \endcode
- * 
+ *
  */
 
 #include <mstdlib/text/m_re.h>

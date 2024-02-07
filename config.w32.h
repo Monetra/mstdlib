@@ -29,4 +29,4 @@
 
 /* Note: As of Visual Studio 2013 (v12)
  * va_copy is supported. Change to HAVE_VA_COPY */
-#define VA_LIST_IS_ARRAY_TYPE                                                                                                                                                                             
+#define VA_LIST_IS_ARRAY_TYPE

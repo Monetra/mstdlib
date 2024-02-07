@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,7 +36,7 @@ __BEGIN_DECLS
 
 /*! \defgroup m_cache_strvp Cache - String/Void Pointer
  *  \ingroup m_cache
- * 
+ *
  * Hot cache meant for storing string keys and void pointer values.
  *
  * @{
@@ -48,8 +48,8 @@ typedef struct M_cache_strvp M_cache_strvp_t;
 
 /*! Flags for controlling the behavior of the hash */
 typedef enum {
-	M_CACHE_STRVP_NONE    = 0,      /*!< Default. */
-	M_CACHE_STRVP_CASECMP = 1 << 0, /*!< Compare keys case insensitive. */
+    M_CACHE_STRVP_NONE    = 0,      /*!< Default. */
+    M_CACHE_STRVP_CASECMP = 1 << 0, /*!< Compare keys case insensitive. */
 } M_cache_strvp_flags_t;
 
 
@@ -99,7 +99,7 @@ M_API M_bool M_cache_strvp_insert(M_cache_strvp_t *c, const char *key, const voi
 M_API M_bool M_cache_strvp_remove(M_cache_strvp_t *c, const char *key);
 
 
-/*! Retrieve the value for a key from the cache. 
+/*! Retrieve the value for a key from the cache.
  *
  * \param[in]  c      Cache being referenced.
  * \param[in]  key    Key for value.

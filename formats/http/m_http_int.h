@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2018 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -43,48 +43,48 @@ typedef struct M_http M_http_t;
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 typedef struct {
-	M_buf_t       *body;
-	M_hash_dict_t *extensions;
-	size_t         body_len;
-	size_t         body_len_seen;
+    M_buf_t       *body;
+    M_hash_dict_t *extensions;
+    size_t         body_len;
+    size_t         body_len_seen;
 } M_http_chunk_t;
 
 struct M_http {
-	M_http_message_type_t  type;
-	M_http_version_t       version;
-	M_uint32               status_code;
-	char                  *reason_phrase;
-	M_http_method_t        method;
+    M_http_message_type_t  type;
+    M_http_version_t       version;
+    M_uint32               status_code;
+    char                  *reason_phrase;
+    M_http_method_t        method;
 
-	char                  *uri;
-	char                  *host;
-	M_uint16               port;
-	char                  *path;
-	char                  *query_string;
-	M_hash_dict_t         *query_args;
+    char                  *uri;
+    char                  *host;
+    M_uint16               port;
+    char                  *path;
+    char                  *query_string;
+    M_hash_dict_t         *query_args;
 
-	M_bool                 is_chunked;
+    M_bool                 is_chunked;
 
-	M_hash_strvp_t        *headers;
-	char                  *content_type;
-	char                  *charset;
-	M_textcodec_codec_t    codec;
-	M_bool                 body_is_form_data;
-	M_list_str_t          *set_cookies;
-	M_hash_strvp_t        *trailers;
+    M_hash_strvp_t        *headers;
+    char                  *content_type;
+    char                  *charset;
+    M_textcodec_codec_t    codec;
+    M_bool                 body_is_form_data;
+    M_list_str_t          *set_cookies;
+    M_hash_strvp_t        *trailers;
 
-	M_buf_t               *body;
-	M_bool                 have_body_len;
-	size_t                 body_len;
-	size_t                 body_len_seen;
+    M_buf_t               *body;
+    M_bool                 have_body_len;
+    size_t                 body_len;
+    size_t                 body_len_seen;
 
-	M_list_t              *chunks; /* M_http_chunk_t */
+    M_list_t              *chunks; /* M_http_chunk_t */
 };
 
 struct M_http_simple_read {
-	M_http_t                   *http;
-	M_http_simple_read_flags_t  rflags;
-	M_hash_dict_t              *body_form_data;
+    M_http_t                   *http;
+    M_http_simple_read_flags_t  rflags;
+    M_hash_dict_t              *body_form_data;
 };
 
 
@@ -401,7 +401,7 @@ void M_http_set_cookie_insert(M_http_t *http, const char *val);
 
 
 /*! Update the character encoding of it has changed.
- * 
+ *
  * \param[in] http  HTTP object.
  * \param[in] codec Text encoding.
  */
@@ -504,7 +504,7 @@ M_bool M_http_body_length(M_http_t *http, size_t *len);
  *
  * \param[in] http HTTP object.
  *
- * \return Length. 
+ * \return Length.
  *
  * \see M_http_body_length_buffered
  */
@@ -515,7 +515,7 @@ size_t M_http_body_length_seen(M_http_t *http);
  *
  * \param[in] http HTTP object.
  *
- * \return Length. 
+ * \return Length.
  */
 size_t M_http_body_length_buffered(M_http_t *http);
 
@@ -588,7 +588,7 @@ void M_http_chunk_remove(M_http_t *http, size_t num);
  *
  * \param[in] http HTTP object.
  *
- * \return Number of chunks. 
+ * \return Number of chunks.
  */
 size_t M_http_chunk_count(const M_http_t *http);
 
@@ -616,7 +616,7 @@ size_t M_http_chunk_data_length(const M_http_t *http, size_t num);
  * \param[in] http HTTP object.
  * \param[in] num  Chunk number.
  *
- * \return Length. 
+ * \return Length.
  *
  * \see M_http_chunk_data_length_buffered
  */
@@ -628,7 +628,7 @@ size_t M_http_chunk_data_length_seen(const M_http_t *http, size_t num);
  * \param[in] http HTTP object.
  * \param[in] num  Chunk number.
  *
- * \return Length. 
+ * \return Length.
  */
 size_t M_http_chunk_data_length_buffered(const M_http_t *http, size_t num);
 
@@ -712,7 +712,7 @@ void M_http_set_chunk_extensions(M_http_t *http, size_t num, const M_hash_dict_t
  * \param[in] http HTTP object.
  * \param[in] num  Chunk number.
  * \param[in] str  String.
- */ 
+ */
 M_bool M_http_set_chunk_extensions_string(M_http_t *http, size_t num, const char *str);
 
 

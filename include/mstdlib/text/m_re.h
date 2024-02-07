@@ -172,11 +172,11 @@ typedef struct M_ret_match M_re_match_t;
 
 /*! Pattern  modifier options. */
 typedef enum {
-	M_RE_NONE      = 0,      /*!< No modifiers applied. */
-	M_RE_CASECMP   = 1 << 0, /*!< Matching should be case insensitive. */
-	M_RE_MULTILINE = 1 << 1, /*!< ^ and $ match start and end of lines instead of start and end of string. */
-	M_RE_DOTALL    = 1 << 2, /*!< Dot matches all characters including new line. */
-	M_RE_UNGREEDY  = 1 << 3  /*!< Invert behavior of greedy qualifiers. E.g. ? acts like ?? and ?? acts like ?. */
+    M_RE_NONE      = 0,      /*!< No modifiers applied. */
+    M_RE_CASECMP   = 1 << 0, /*!< Matching should be case insensitive. */
+    M_RE_MULTILINE = 1 << 1, /*!< ^ and $ match start and end of lines instead of start and end of string. */
+    M_RE_DOTALL    = 1 << 2, /*!< Dot matches all characters including new line. */
+    M_RE_UNGREEDY  = 1 << 3  /*!< Invert behavior of greedy qualifiers. E.g. ? acts like ?? and ?? acts like ?. */
 } M_re_flags_t;
 
 

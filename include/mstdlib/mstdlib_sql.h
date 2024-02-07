@@ -2,7 +2,7 @@
 #define __MSTDLIB_SQL_H__
 
 /*! \defgroup m_sql SQL Subsystem
- * 
+ *
  * \code{.c}
  * #include <mstdlib/mstdlib_sql.h>
  * \endcode

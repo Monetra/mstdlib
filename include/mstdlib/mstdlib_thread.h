@@ -4,11 +4,11 @@
 #include <mstdlib/mstdlib.h>
 
 /*! \defgroup m_thread Threading Support
- * 
+ *
  * \code{.c}
  * #include <mstdlib/mstdlib_thread.h>
  * \endcode
- * 
+ *
  *  Threading Support
  *
  */

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2018 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -51,26 +51,26 @@ typedef struct M_table M_table_t;
 
 /*! Flags controlling behavior of insert by column name operations. */
 typedef enum {
-	M_TABLE_INSERT_NONE      = 0,      /*!< Fail the insert if the header, or index does not exist. */
-	M_TABLE_INSERT_COLADD    = 1 << 0, /*!< Add a named column if it does not exist. */
-	M_TABLE_INSERT_COLIGNORE = 1 << 1  /*!< Ignore names if a corresponding named header does not exist. */
+    M_TABLE_INSERT_NONE      = 0,      /*!< Fail the insert if the header, or index does not exist. */
+    M_TABLE_INSERT_COLADD    = 1 << 0, /*!< Add a named column if it does not exist. */
+    M_TABLE_INSERT_COLIGNORE = 1 << 1  /*!< Ignore names if a corresponding named header does not exist. */
 } M_table_insert_flags_t;
 
 
 /*! Flags controlling table construction. */
 typedef enum {
-	M_TABLE_NONE            = 0,     /*!< Default operation. */
-	M_TABLE_COLNAME_CASECMP = 1 << 0 /*!< Compare column names case insensitive. */
+    M_TABLE_NONE            = 0,     /*!< Default operation. */
+    M_TABLE_COLNAME_CASECMP = 1 << 0 /*!< Compare column names case insensitive. */
 } M_table_flags_t;
 
 
 /*! Flags controlling behavior of Markdown output. */
 typedef enum {
-	M_TABLE_MARKDOWN_NONE = 0,             /*!< No special formatting. */
-	M_TABLE_MARKDOWN_PRETTYPRINT = 1 << 0, /*!< Pretty print output. */
-	M_TABLE_MARKDOWN_OUTERPIPE   = 1 << 1, /*!< Write outer pipes around rows, framing characters. */
-	M_TABLE_MARKDOWN_LINEEND_UNX = 1 << 2, /*!< Use Unix line endings (\\n). */
-	M_TABLE_MARKDOWN_LINEEND_WIN = 1 << 3  /*!< Use Windows line endings (\\r\\n). */
+    M_TABLE_MARKDOWN_NONE = 0,             /*!< No special formatting. */
+    M_TABLE_MARKDOWN_PRETTYPRINT = 1 << 0, /*!< Pretty print output. */
+    M_TABLE_MARKDOWN_OUTERPIPE   = 1 << 1, /*!< Write outer pipes around rows, framing characters. */
+    M_TABLE_MARKDOWN_LINEEND_UNX = 1 << 2, /*!< Use Unix line endings (\\n). */
+    M_TABLE_MARKDOWN_LINEEND_WIN = 1 << 3  /*!< Use Windows line endings (\\r\\n). */
 } M_table_markdown_flags_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -239,7 +239,7 @@ M_API size_t M_table_row_insert(M_table_t *table);
  *
  * \param[in] table Table.
  * \param[in] idx   Index to insert at. Cannot be larger than the number of rows (last idx+1).
- * 
+ *
  * \return M_TRUE if the row was inserted. Otherwise, M_FALSE.
  */
 M_API M_bool M_table_row_insert_at(M_table_t *table, size_t idx);
@@ -417,7 +417,7 @@ M_API M_bool M_table_merge(M_table_t **dest, M_table_t *src) M_FREE(2);
 /*! Duplicate a table.
  *
  * \param[in] table Table.
- * 
+ *
  * \return Duplicated table.
  */
 M_API M_table_t *M_table_duplicate(const M_table_t *table) M_MALLOC;

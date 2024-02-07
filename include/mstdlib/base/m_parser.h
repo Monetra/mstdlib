@@ -57,48 +57,48 @@ typedef M_bool (*M_parser_predicate_func)(unsigned char c);
 
 /*! Flags controlling behavior of the parser. */
 enum M_PARSER_FLAGS {
-	M_PARSER_FLAG_NONE       = 0,      /*!< No Flags. */
-	M_PARSER_FLAG_TRACKLINES = 1 << 0  /*!< Track lines and columns. This should
-	                                        only be enabled if needed as it will
-	                                        cause an additional data scan. */
+    M_PARSER_FLAG_NONE       = 0,      /*!< No Flags. */
+    M_PARSER_FLAG_TRACKLINES = 1 << 0  /*!< Track lines and columns. This should
+                                            only be enabled if needed as it will
+                                            cause an additional data scan. */
 };
 
 /*! Flags controlling what constitutes whitespace. */
 enum M_PARSER_WHITESPACE_FLAGS {
-	M_PARSER_WHITESPACE_NONE       = 0,      /*!< Consumes all whitespace */
-	M_PARSER_WHITESPACE_TO_NEWLINE = 1 << 0, /*!< Only consume whitespace up to and including the next new line. */
-	M_PARSER_WHITESPACE_SPACEONLY  = 1 << 1  /*!< Only consume space 0x20 characters. */
+    M_PARSER_WHITESPACE_NONE       = 0,      /*!< Consumes all whitespace */
+    M_PARSER_WHITESPACE_TO_NEWLINE = 1 << 0, /*!< Only consume whitespace up to and including the next new line. */
+    M_PARSER_WHITESPACE_SPACEONLY  = 1 << 1  /*!< Only consume space 0x20 characters. */
 };
 
 /*! Integer binary format. */
 enum M_PARSER_INTEGER_TYPE {
-	M_PARSER_INTEGER_ASCII        = 0, /*!< Integer represented in ASCII form. */
-	M_PARSER_INTEGER_BIGENDIAN    = 1, /*!< Integer represented in Big Endian form. */
-	M_PARSER_INTEGER_LITTLEENDIAN = 2  /*!< Integer represented in Little Endian form. */
+    M_PARSER_INTEGER_ASCII        = 0, /*!< Integer represented in ASCII form. */
+    M_PARSER_INTEGER_BIGENDIAN    = 1, /*!< Integer represented in Big Endian form. */
+    M_PARSER_INTEGER_LITTLEENDIAN = 2  /*!< Integer represented in Little Endian form. */
 };
 
 /*! Splitting flags. */
 typedef enum {
-	M_PARSER_SPLIT_FLAG_NONE           = 0,      /*!< No flags, standard behavior */
-	M_PARSER_SPLIT_FLAG_NODELIM_ERROR  = 1 << 0, /*!< Return an error if the specified delimiter is not found, otherwise all the data is put in a single parser object */
-	M_PARSER_SPLIT_FLAG_DONT_TRIM_LAST = 1 << 1, /*!< Don't trim the last section if it is empty.  The default is to not return it as a section */
+    M_PARSER_SPLIT_FLAG_NONE           = 0,      /*!< No flags, standard behavior */
+    M_PARSER_SPLIT_FLAG_NODELIM_ERROR  = 1 << 0, /*!< Return an error if the specified delimiter is not found, otherwise all the data is put in a single parser object */
+    M_PARSER_SPLIT_FLAG_DONT_TRIM_LAST = 1 << 1, /*!< Don't trim the last section if it is empty.  The default is to not return it as a section */
 } M_PARSER_SPLIT_FLAGS;
 
 /*! Framing characters. */
 typedef enum {
-	M_PARSER_FRAME_NONE = 0,      /*!< No framing characters. */
-	M_PARSER_FRAME_STX  = 1 << 0, /*!< STX (0x02) */
-	M_PARSER_FRAME_ETX  = 1 << 1  /*!< ETX (0x03) */
+    M_PARSER_FRAME_NONE = 0,      /*!< No framing characters. */
+    M_PARSER_FRAME_STX  = 1 << 0, /*!< STX (0x02) */
+    M_PARSER_FRAME_ETX  = 1 << 1  /*!< ETX (0x03) */
 } M_PARSER_FRAME_BYES;
 
 /*! STX, ETX, LRC unwrapping responses. */
 typedef enum {
-	M_PARSER_FRAME_ERROR_SUCCESS = 0,    /*!< Success. */
-	M_PARSER_FRAME_ERROR_INVALID,        /*!< Invalid input. */
-	M_PARSER_FRAME_ERROR_NO_STX,         /*!< Data does not start with STX. */
-	M_PARSER_FRAME_ERROR_NO_ETX,         /*!< ETX not found. */
-	M_PARSER_FRAME_ERROR_NO_LRC,         /*!< Not enough data for LRC. */
-	M_PARSER_FRAME_ERROR_LRC_CALC_FAILED /*!< LRC calculation failed. */
+    M_PARSER_FRAME_ERROR_SUCCESS = 0,    /*!< Success. */
+    M_PARSER_FRAME_ERROR_INVALID,        /*!< Invalid input. */
+    M_PARSER_FRAME_ERROR_NO_STX,         /*!< Data does not start with STX. */
+    M_PARSER_FRAME_ERROR_NO_ETX,         /*!< ETX not found. */
+    M_PARSER_FRAME_ERROR_NO_LRC,         /*!< Not enough data for LRC. */
+    M_PARSER_FRAME_ERROR_LRC_CALC_FAILED /*!< LRC calculation failed. */
 } M_PARSER_FRAME_ERROR;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

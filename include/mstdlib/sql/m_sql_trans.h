@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -51,12 +51,12 @@ typedef struct M_sql_trans M_sql_trans_t;
 
 /*! Transaction isolation levels */
 typedef enum {
-	M_SQL_ISOLATION_UNKNOWN         = 0, /*!< Unknown, used for error conditions, never set */
-	M_SQL_ISOLATION_READUNCOMMITTED = 1, /*!< Read Uncommitted */
-	M_SQL_ISOLATION_READCOMMITTED   = 2, /*!< Read Committed */
-	M_SQL_ISOLATION_REPEATABLEREAD  = 3, /*!< Repeatable Read */
-	M_SQL_ISOLATION_SNAPSHOT        = 4, /*!< Snapshot */
-	M_SQL_ISOLATION_SERIALIZABLE    = 5  /*!< Serializable */
+    M_SQL_ISOLATION_UNKNOWN         = 0, /*!< Unknown, used for error conditions, never set */
+    M_SQL_ISOLATION_READUNCOMMITTED = 1, /*!< Read Uncommitted */
+    M_SQL_ISOLATION_READCOMMITTED   = 2, /*!< Read Committed */
+    M_SQL_ISOLATION_REPEATABLEREAD  = 3, /*!< Repeatable Read */
+    M_SQL_ISOLATION_SNAPSHOT        = 4, /*!< Snapshot */
+    M_SQL_ISOLATION_SERIALIZABLE    = 5  /*!< Serializable */
 } M_sql_isolation_t;
 
 
@@ -70,7 +70,7 @@ typedef enum {
  *
  *  In order to clean up the returned transaction handle, a caller must call
  *  either M_sql_trans_commit() or M_sql_trans_rollback() as appropriate.
- * 
+ *
  *  \note It is recommended to use the M_sql_trans_process() helper rather than calling
  *        M_sql_trans_begin(), M_sql_trans_rollback() or M_sql_trans_commit() yourself.
  *
@@ -88,14 +88,14 @@ M_API M_sql_error_t M_sql_trans_begin(M_sql_trans_t **trans, M_sql_connpool_t *p
  *
  *  This function should be called if the caller needs to cancel the transaction, or must be
  *  called to clean up the #M_sql_trans_t handle when an unrecoverable error has occurred such
- *  as a server disconnect or deadlock. 
+ *  as a server disconnect or deadlock.
  *
  *  The passed in trans handle will be destroyed regardless if this function returns success
  *  or fail.
  *
  *  \note It is recommended to use the M_sql_trans_process() helper rather than calling
  *        M_sql_trans_begin(), M_sql_trans_rollback() or M_sql_trans_commit() yourself.
- * 
+ *
  *  \param[in]  trans      Initialized transaction handle that will be used to rollback the
  *                         pending transaction, and will be will be destroyed automatically
  *                         upon return of this function.
@@ -144,7 +144,7 @@ M_API M_sql_error_t M_sql_trans_commit(M_sql_trans_t *trans, char *error, size_t
 M_API M_sql_error_t M_sql_trans_execute(M_sql_trans_t *trans, M_sql_stmt_t *stmt);
 
 
-/*! Function prototype called by M_sql_trans_process(). 
+/*! Function prototype called by M_sql_trans_process().
  *
  *  Inside the function created, the integrator should perform each step of the SQL
  *  transaction, and if an error occurs, return the appropriate error condition, whether
@@ -194,7 +194,7 @@ typedef M_sql_error_t (*M_sql_trans_commands_t)(M_sql_trans_t *trans, void *arg,
  *    M_sql_error_t          err;
  *    M_int64                curr_val = 0;
  *    M_buf_t               *query;
- * 
+ *
  *    M_mem_set(error, 0, error_size);
  *
  *    // Retrieve current value for id - don't forget to use update locks!

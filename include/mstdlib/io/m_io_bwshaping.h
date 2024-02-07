@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,7 +33,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_io_bwshaping Addon for bandwidth shaping
  *  \ingroup m_eventio_base_addon
- * 
+ *
  * Bandwidth Shaping Addon
  *
  * Allows tracking and altering data flow though an io object.
@@ -50,20 +50,20 @@ __BEGIN_DECLS
 
 /*! Method of shaping. */
 enum M_io_bwshaping_mode {
-	M_IO_BWSHAPING_MODE_BURST   = 1, /*!< Allow bursting of data for each throttle period */
-	M_IO_BWSHAPING_MODE_TRICKLE = 2  /*!< Enforce data to be more evenly distributed across the throttle period */
+    M_IO_BWSHAPING_MODE_BURST   = 1, /*!< Allow bursting of data for each throttle period */
+    M_IO_BWSHAPING_MODE_TRICKLE = 2  /*!< Enforce data to be more evenly distributed across the throttle period */
 };
 typedef enum M_io_bwshaping_mode M_io_bwshaping_mode_t;
 
 
 /*! Shaping direction. */
 enum M_io_bwshaping_direction {
-	M_IO_BWSHAPING_DIRECTION_IN  = 1,
-	M_IO_BWSHAPING_DIRECTION_OUT = 2
+    M_IO_BWSHAPING_DIRECTION_IN  = 1,
+    M_IO_BWSHAPING_DIRECTION_OUT = 2
 };
 typedef enum M_io_bwshaping_direction M_io_bwshaping_direction_t;
 
-/*! Add a BWShaping layer. 
+/*! Add a BWShaping layer.
  *
  * Adding a layer without any settings will track bandwidth utilization
  *

@@ -344,8 +344,8 @@ typedef char *(*M_sql_driver_cb_rewrite_indexname_t)(M_sql_connpool_t *pool, con
 
 /*! Flags advertised by SQL database (could be based on db version etc) */
 typedef enum {
-	M_SQL_DRIVER_FLAG_NONE                      = 0,       /*!< No flags */
-	M_SQL_DRIVER_FLAG_UNIQUEINDEX_NOTNULL_WHERE = 1 << 0   /*!< A unique index needs a WHERE clause to allow multiple NULL values */
+    M_SQL_DRIVER_FLAG_NONE                      = 0,       /*!< No flags */
+    M_SQL_DRIVER_FLAG_UNIQUEINDEX_NOTNULL_WHERE = 1 << 0   /*!< A unique index needs a WHERE clause to allow multiple NULL values */
 } M_sql_driver_flags_t;
 
 /*! Fetch current flags from driver for connection based
@@ -358,59 +358,59 @@ typedef M_sql_driver_flags_t (*M_sql_driver_cb_flags_t)(M_sql_conn_t *conn);
 
 /*! Structure to be implemented by SQL drivers with information about the database in use */
 typedef struct  {
-	M_uint16                      driver_sys_version; /*!< Driver/Module subsystem version, use M_SQL_DRIVER_VERSION */
-	const char                   *name;               /*!< Short name of module */
-	const char                   *display_name;       /*!< Display name of module */
-	const char                   *version;            /*!< Internal module version */
+    M_uint16                      driver_sys_version; /*!< Driver/Module subsystem version, use M_SQL_DRIVER_VERSION */
+    const char                   *name;               /*!< Short name of module */
+    const char                   *display_name;       /*!< Display name of module */
+    const char                   *version;            /*!< Internal module version */
 
-	/* NOTE: All callbacks are required to be registered by all drivers */
-	M_sql_driver_cb_flags_t              cb_flags;              /*!< Optional. Callback used to get db flags */
-	M_sql_driver_cb_init_t               cb_init;               /*!< Required. Callback used for module initialization. */
-	M_sql_driver_cb_destroy_t            cb_destroy;            /*!< Required. Callback used for module destruction/unloading. */
-	M_sql_driver_cb_createpool_t         cb_createpool;         /*!< Required. Callback used for pool creation */
-	M_sql_driver_cb_destroypool_t        cb_destroypool;        /*!< Required. Callback used for pool destruction */
-	M_sql_driver_cb_connect_t            cb_connect;            /*!< Required. Callback used for connecting to the db */
-	M_sql_driver_cb_serverversion_t      cb_serverversion;      /*!< Required. Callback used to get the server name/version string */
-	M_sql_driver_cb_connect_runonce_t    cb_connect_runonce;    /*!< Optional. Callback used after connection is established, but before first query to set run-once options. */
-	M_sql_driver_cb_disconnect_t         cb_disconnect;         /*!< Required. Callback used to disconnect from the db */
-	M_sql_driver_cb_queryformat_t        cb_queryformat;        /*!< Required. Callback used for reformatting a query to the sql db requirements */
-	M_sql_driver_cb_queryrowcnt_t        cb_queryrowcnt;        /*!< Required. Callback used for determining how many rows will be processed by the current execution (chunking rows) */
-	M_sql_driver_cb_prepare_t            cb_prepare;            /*!< Required. Callback used for preparing a query for execution */
-	M_sql_driver_cb_prepare_destroy_t    cb_prepare_destroy;    /*!< Required. Callback used to destroy the driver-specific prepared statement handle */
-	M_sql_driver_cb_execute_t            cb_execute;            /*!< Required. Callback used for executing a prepared query */
-	M_sql_driver_cb_fetch_t              cb_fetch;              /*!< Required. Callback used to fetch result data/rows from server */
-	M_sql_driver_cb_begin_t              cb_begin;              /*!< Required. Callback used to begin a transaction */
-	M_sql_driver_cb_rollback_t           cb_rollback;           /*!< Required. Callback used to rollback a transaction */
-	M_sql_driver_cb_commit_t             cb_commit;             /*!< Required. Callback used to commit a transaction */
-	M_sql_driver_cb_datatype_t           cb_datatype;           /*!< Required. Callback used to convert to data type for server */
-	M_sql_driver_cb_createtable_suffix_t cb_createtable_suffix; /*!< Optional. Callback used to append additional data to the Create Table query string */
-	M_sql_driver_cb_append_updlock_t     cb_append_updlock;     /*!< Optional. Callback used to append row-level locking data */
-	M_sql_driver_cb_append_bitop_t       cb_append_bitop;       /*!< Required. Callback used to append a bit operation */
-	M_sql_driver_cb_rewrite_indexname_t  cb_rewrite_indexname;  /*!< Optional. Callback used to rewrite an index name to comply with DB requirements */
-	M_module_handle_t                    handle;                /*!< Handle for loaded driver - must be initialized to NULL in the driver structure */
+    /* NOTE: All callbacks are required to be registered by all drivers */
+    M_sql_driver_cb_flags_t              cb_flags;              /*!< Optional. Callback used to get db flags */
+    M_sql_driver_cb_init_t               cb_init;               /*!< Required. Callback used for module initialization. */
+    M_sql_driver_cb_destroy_t            cb_destroy;            /*!< Required. Callback used for module destruction/unloading. */
+    M_sql_driver_cb_createpool_t         cb_createpool;         /*!< Required. Callback used for pool creation */
+    M_sql_driver_cb_destroypool_t        cb_destroypool;        /*!< Required. Callback used for pool destruction */
+    M_sql_driver_cb_connect_t            cb_connect;            /*!< Required. Callback used for connecting to the db */
+    M_sql_driver_cb_serverversion_t      cb_serverversion;      /*!< Required. Callback used to get the server name/version string */
+    M_sql_driver_cb_connect_runonce_t    cb_connect_runonce;    /*!< Optional. Callback used after connection is established, but before first query to set run-once options. */
+    M_sql_driver_cb_disconnect_t         cb_disconnect;         /*!< Required. Callback used to disconnect from the db */
+    M_sql_driver_cb_queryformat_t        cb_queryformat;        /*!< Required. Callback used for reformatting a query to the sql db requirements */
+    M_sql_driver_cb_queryrowcnt_t        cb_queryrowcnt;        /*!< Required. Callback used for determining how many rows will be processed by the current execution (chunking rows) */
+    M_sql_driver_cb_prepare_t            cb_prepare;            /*!< Required. Callback used for preparing a query for execution */
+    M_sql_driver_cb_prepare_destroy_t    cb_prepare_destroy;    /*!< Required. Callback used to destroy the driver-specific prepared statement handle */
+    M_sql_driver_cb_execute_t            cb_execute;            /*!< Required. Callback used for executing a prepared query */
+    M_sql_driver_cb_fetch_t              cb_fetch;              /*!< Required. Callback used to fetch result data/rows from server */
+    M_sql_driver_cb_begin_t              cb_begin;              /*!< Required. Callback used to begin a transaction */
+    M_sql_driver_cb_rollback_t           cb_rollback;           /*!< Required. Callback used to rollback a transaction */
+    M_sql_driver_cb_commit_t             cb_commit;             /*!< Required. Callback used to commit a transaction */
+    M_sql_driver_cb_datatype_t           cb_datatype;           /*!< Required. Callback used to convert to data type for server */
+    M_sql_driver_cb_createtable_suffix_t cb_createtable_suffix; /*!< Optional. Callback used to append additional data to the Create Table query string */
+    M_sql_driver_cb_append_updlock_t     cb_append_updlock;     /*!< Optional. Callback used to append row-level locking data */
+    M_sql_driver_cb_append_bitop_t       cb_append_bitop;       /*!< Required. Callback used to append a bit operation */
+    M_sql_driver_cb_rewrite_indexname_t  cb_rewrite_indexname;  /*!< Optional. Callback used to rewrite an index name to comply with DB requirements */
+    M_module_handle_t                    handle;                /*!< Handle for loaded driver - must be initialized to NULL in the driver structure */
 } M_sql_driver_t;
 
 
 /*! Flags for the helper query string format rewrite function M_sql_driver_queryformat() */
 typedef enum {
-	M_SQL_DRIVER_QUERYFORMAT_NORMAL                      = 0,      /*!< Normal, strips any query terminator otherwise unmodified */
-	M_SQL_DRIVER_QUERYFORMAT_TERMINATOR                  = 1 << 0, /*!< Query terminator (;) is required */
-	M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_DOLLAR            = 1 << 1, /*!< Instead of using ? for each bound parameter, parameters
-	                                                                    take the form of $1, $2, ... $N  (used by PostgreSQL) */
-	M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_COLON             = 1 << 2, /*!< Instead of using ? for each bound parameter, parameters
-	                                                                    take the form of :1, :2, ... :N  (used by Oracle) */
-	M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD         = 1 << 3, /*!< Multiple-value/row insertions are not sent to the server using
-	                                                                    rows of bound parameters, but instead by comma-delimiting the
-	                                                                    values in the insert statement.  This will rewrite an INSERT
-	                                                                    statement from "INSERT INTO foo VALUES (?, ?, ?)"  into something
-	                                                                    like "INSERT INTO foo VALUES (?, ?, ?), (?, ?, ?), ..., (?, ?, ?)" */
-	M_SQL_DRIVER_QUERYFORMAT_INSERT_ONCONFLICT_DONOTHING = 1 << 4, /*!< Some databases may choose to abort the entire transaction on a 
-	                                                                *   conflict, but there are times we explicitly want to take action
-	                                                                *   on such a case without rolling back.  This clause will cause it to
-	                                                                *   skip the insert of that record.  PostgreSQL is known to behave this
-	                                                                *   way.  However, this means the result will not return said conflict
-	                                                                *   so we must check to see if the return count is expected, and if
-	                                                                *   not, rewrite the code to assume it is a conflict */
+    M_SQL_DRIVER_QUERYFORMAT_NORMAL                      = 0,      /*!< Normal, strips any query terminator otherwise unmodified */
+    M_SQL_DRIVER_QUERYFORMAT_TERMINATOR                  = 1 << 0, /*!< Query terminator (;) is required */
+    M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_DOLLAR            = 1 << 1, /*!< Instead of using ? for each bound parameter, parameters
+                                                                        take the form of $1, $2, ... $N  (used by PostgreSQL) */
+    M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_COLON             = 1 << 2, /*!< Instead of using ? for each bound parameter, parameters
+                                                                        take the form of :1, :2, ... :N  (used by Oracle) */
+    M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD         = 1 << 3, /*!< Multiple-value/row insertions are not sent to the server using
+                                                                        rows of bound parameters, but instead by comma-delimiting the
+                                                                        values in the insert statement.  This will rewrite an INSERT
+                                                                        statement from "INSERT INTO foo VALUES (?, ?, ?)"  into something
+                                                                        like "INSERT INTO foo VALUES (?, ?, ?), (?, ?, ?), ..., (?, ?, ?)" */
+    M_SQL_DRIVER_QUERYFORMAT_INSERT_ONCONFLICT_DONOTHING = 1 << 4, /*!< Some databases may choose to abort the entire transaction on a
+                                                                    *   conflict, but there are times we explicitly want to take action
+                                                                    *   on such a case without rolling back.  This clause will cause it to
+                                                                    *   skip the insert of that record.  PostgreSQL is known to behave this
+                                                                    *   way.  However, this means the result will not return said conflict
+                                                                    *   so we must check to see if the return count is expected, and if
+                                                                    *   not, rewrite the code to assume it is a conflict */
 } M_sql_driver_queryformat_flags_t;
 
 
@@ -434,22 +434,22 @@ M_API char *M_sql_driver_queryformat(const char *query, M_uint32 flags, size_t n
 
 /*! Connection string argument value allowed */
 typedef enum {
-	M_SQL_CONNSTR_TYPE_BOOL     = 1,
-	M_SQL_CONNSTR_TYPE_NUM      = 2,
-	M_SQL_CONNSTR_TYPE_ALPHA    = 3,
-	M_SQL_CONNSTR_TYPE_ALPHANUM = 4,
-	M_SQL_CONNSTR_TYPE_ANY      = 5
+    M_SQL_CONNSTR_TYPE_BOOL     = 1,
+    M_SQL_CONNSTR_TYPE_NUM      = 2,
+    M_SQL_CONNSTR_TYPE_ALPHA    = 3,
+    M_SQL_CONNSTR_TYPE_ALPHANUM = 4,
+    M_SQL_CONNSTR_TYPE_ANY      = 5
 } M_sql_connstr_type_t;
 
 
 /*! Structure defining possible connection string parameters to be passed to
  *  M_sql_driver_validate_connstr() to notify callers of possible typos */
 struct M_sql_connstr_params {
-	const char          *name;      /*!< Parameter name (case-insensitive) */
-	M_sql_connstr_type_t type;      /*!< Data type of parameter */
-	M_bool               required;  /*!< Whether or not the parameter is required */
-	size_t               min_len;   /*!< Minimum length of parameter when present */
-	size_t               max_len;   /*!< Maximum length of parameter when present */
+    const char          *name;      /*!< Parameter name (case-insensitive) */
+    M_sql_connstr_type_t type;      /*!< Data type of parameter */
+    M_bool               required;  /*!< Whether or not the parameter is required */
+    size_t               min_len;   /*!< Minimum length of parameter when present */
+    size_t               max_len;   /*!< Maximum length of parameter when present */
 };
 
 /*! Typedef for struct M_sql_connstr_params */
@@ -457,16 +457,16 @@ typedef struct M_sql_connstr_params M_sql_connstr_params_t;
 
 /*! Host/port used with M_sql_driver_parse_hostport() */
 typedef struct {
-	char     host[256];
-	M_uint16 port;
+    char     host[256];
+    M_uint16 port;
 } M_sql_hostport_t;
 
 
 /*! Connection state tracking */
 typedef enum {
-	M_SQL_CONN_STATE_OK       = 1, /*!< Connection state is good */
-	M_SQL_CONN_STATE_ROLLBACK = 2, /*!< A rollback condition has been hit, must be returned to the pool to be cleared */
-	M_SQL_CONN_STATE_FAILED   = 3  /*!< The connection has failed, must be destroyed (return to the pool will do this) */
+    M_SQL_CONN_STATE_OK       = 1, /*!< Connection state is good */
+    M_SQL_CONN_STATE_ROLLBACK = 2, /*!< A rollback condition has been hit, must be returned to the pool to be cleared */
+    M_SQL_CONN_STATE_FAILED   = 3  /*!< The connection has failed, must be destroyed (return to the pool will do this) */
 } M_sql_conn_state_t;
 
 /*! Get the current connection state.
@@ -681,10 +681,10 @@ M_API M_bool M_sql_driver_stmt_result_row_finish(M_sql_stmt_t *stmt);
 
 /*! Capabilities driver can use for M_sql_driver_append_updlock() helper */
 typedef enum {
-	M_SQL_DRIVER_UPDLOCK_CAP_NONE        = 0, /*!< No row-level locks supported */
-	M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATE   = 1, /*!< FOR UPDATE style locks */
-	M_SQL_DRIVER_UPDLOCK_CAP_MSSQL       = 2, /*!< Microsoft SQL Server style locks */
-	M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATEOF = 3 /*!< FOR UPDATE, and FOR UPDATE OF (PostgreSQL) style locks */
+    M_SQL_DRIVER_UPDLOCK_CAP_NONE        = 0, /*!< No row-level locks supported */
+    M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATE   = 1, /*!< FOR UPDATE style locks */
+    M_SQL_DRIVER_UPDLOCK_CAP_MSSQL       = 2, /*!< Microsoft SQL Server style locks */
+    M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATEOF = 3 /*!< FOR UPDATE, and FOR UPDATE OF (PostgreSQL) style locks */
 } M_sql_driver_updlock_caps_t;
 
 
@@ -700,9 +700,9 @@ M_API void M_sql_driver_append_updlock(M_sql_driver_updlock_caps_t caps, M_buf_t
 
 /*! Bit Operations capabilities/type used by SQL server */
 typedef enum {
-	M_SQL_DRIVER_BITOP_CAP_OP               = 1, /*!< SQL server supports direct operators */
-	M_SQL_DRIVER_BITOP_CAP_FUNC             = 2, /*!< SQL server supports BITOR and BITAND functions */
-	M_SQL_DRIVER_BITOP_CAP_OP_CAST_BIGINT   = 3  /*!< SQL server supports direct operators, but needs exp2 input cast as BIGINT */
+    M_SQL_DRIVER_BITOP_CAP_OP               = 1, /*!< SQL server supports direct operators */
+    M_SQL_DRIVER_BITOP_CAP_FUNC             = 2, /*!< SQL server supports BITOR and BITAND functions */
+    M_SQL_DRIVER_BITOP_CAP_OP_CAST_BIGINT   = 3  /*!< SQL server supports direct operators, but needs exp2 input cast as BIGINT */
 } M_sql_driver_bitop_caps_t;
 
 
@@ -746,11 +746,11 @@ M_API void M_sql_driver_trace_message(M_bool is_debug, M_sql_connpool_t *pool, M
  *  \param[in] name is the name of the module, a M_sql_driver_t structure
  *             must be defined named  M_sql_[name]  */
 #define M_SQL_DRIVER(name) \
-	M_SQL_API M_sql_driver_t *M_sql_get_driver_##name(void); \
-	M_sql_driver_t *M_sql_get_driver_##name(void)        \
-	{                                                    \
-		return &M_sql_##name;                            \
-	}
+    M_SQL_API M_sql_driver_t *M_sql_get_driver_##name(void); \
+    M_sql_driver_t *M_sql_get_driver_##name(void)        \
+    {                                                    \
+        return &M_sql_##name;                            \
+    }
 
 /*! @} */
 

@@ -548,7 +548,7 @@ __BEGIN_DECLS
  *
  *     do {
  *         len = sizeof(buf);
- *         err = M_io_layer_read(io, M_io_layer_get_index(layer)-1, buf, &len, NULL); 
+ *         err = M_io_layer_read(io, M_io_layer_get_index(layer)-1, buf, &len, NULL);
  *
  *         if (err == M_IO_ERROR_SUCCESS) {
  *             M_parser_append(handle->readparser, buf, len);
@@ -850,7 +850,7 @@ __BEGIN_DECLS
  *         case M_EVENT_TYPE_CONNECTED:
  *             // If the device uses secure bonded/paired connections and a device is not paired, pairing takes place
  *              // when a secure characteristic is first written. At which point the device will show a PIN
- *             // and system (iOS, macOS...) will show a prompt to enter the PIN. We'll delay sending the 
+ *             // and system (iOS, macOS...) will show a prompt to enter the PIN. We'll delay sending the
  *             // connected event until we get a response to a basic message that we use internally
  *             // to verify or initiate the pairing.
  *             //

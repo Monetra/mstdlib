@@ -99,79 +99,79 @@ typedef struct M_json_node M_json_node_t;
 
 /*! Types of JSON nodes. */
 typedef enum {
-	M_JSON_TYPE_UNKNOWN = 0, /*!< An invalid node type. */
-	M_JSON_TYPE_OBJECT,      /*!< Object (hashtable). */
-	M_JSON_TYPE_ARRAY,       /*!< Array (list). */
-	M_JSON_TYPE_STRING,      /*!< String. */
-	M_JSON_TYPE_INTEGER,     /*!< Number. */
-	M_JSON_TYPE_DECIMAL,     /*!< Floating point number. */
-	M_JSON_TYPE_BOOL,        /*!< Boolean. */
-	M_JSON_TYPE_NULL         /*!< JSON null type. */
+    M_JSON_TYPE_UNKNOWN = 0, /*!< An invalid node type. */
+    M_JSON_TYPE_OBJECT,      /*!< Object (hashtable). */
+    M_JSON_TYPE_ARRAY,       /*!< Array (list). */
+    M_JSON_TYPE_STRING,      /*!< String. */
+    M_JSON_TYPE_INTEGER,     /*!< Number. */
+    M_JSON_TYPE_DECIMAL,     /*!< Floating point number. */
+    M_JSON_TYPE_BOOL,        /*!< Boolean. */
+    M_JSON_TYPE_NULL         /*!< JSON null type. */
 } M_json_type_t;
 
 
 /*! Flags to control the behavior of the JSON reader. */
 typedef enum {
-	M_JSON_READER_NONE                     = 0,      /*!< Normal operation. Treat decimal truncation as error and
-	                                                      ignore comments. */
-	M_JSON_READER_ALLOW_DECIMAL_TRUNCATION = 1 << 0, /*!< Allow decimal truncation. A decimal read and truncated will
-	                                                      not be treated as an error. */
-	M_JSON_READER_DISALLOW_COMMENTS        = 1 << 1, /*!< Treat comments as an error. */
-	M_JSON_READER_OBJECT_UNIQUE_KEYS       = 1 << 2, /*!< Return a parse error when an object has repeating keys. By
-	                                                      default the later key in the object will be the one used and
-	                                                      earlier keys ignored. This requires all keys in the object to
-	                                                      be unique. */
-	M_JSON_READER_DONT_DECODE_UNICODE      = 1 << 3, /*!< By default unicode escapes will be decoded into their utf-8
-	                                                      byte sequence. Use this with care because "\u" will be put
-	                                                      in the string. Writing will produce "\\u" because the writer
-	                                                      will not understand this is a non-decoded unicode escape. */
-	M_JSON_READER_REPLACE_BAD_CHARS        = 1 << 4  /*!< Replace bad characters (invalid utf-8 sequences with "?"). */
+    M_JSON_READER_NONE                     = 0,      /*!< Normal operation. Treat decimal truncation as error and
+                                                          ignore comments. */
+    M_JSON_READER_ALLOW_DECIMAL_TRUNCATION = 1 << 0, /*!< Allow decimal truncation. A decimal read and truncated will
+                                                          not be treated as an error. */
+    M_JSON_READER_DISALLOW_COMMENTS        = 1 << 1, /*!< Treat comments as an error. */
+    M_JSON_READER_OBJECT_UNIQUE_KEYS       = 1 << 2, /*!< Return a parse error when an object has repeating keys. By
+                                                          default the later key in the object will be the one used and
+                                                          earlier keys ignored. This requires all keys in the object to
+                                                          be unique. */
+    M_JSON_READER_DONT_DECODE_UNICODE      = 1 << 3, /*!< By default unicode escapes will be decoded into their utf-8
+                                                          byte sequence. Use this with care because "\u" will be put
+                                                          in the string. Writing will produce "\\u" because the writer
+                                                          will not understand this is a non-decoded unicode escape. */
+    M_JSON_READER_REPLACE_BAD_CHARS        = 1 << 4  /*!< Replace bad characters (invalid utf-8 sequences with "?"). */
 } M_json_reader_flags_t;
 
 
 /*! Flags to control the behavior of the JSON writer. */
 typedef enum {
-	M_JSON_WRITER_NONE                   = 0,      /*!< No indent. All data on a single line. */
-	M_JSON_WRITER_PRETTYPRINT_SPACE      = 1 << 0, /*!< 2 space indent. */
-	M_JSON_WRITER_PRETTYPRINT_TAB        = 1 << 1, /*!< Tab indent. */
-	M_JSON_WRITER_PRETTYPRINT_WINLINEEND = 1 << 2, /*!< Windows line ending "\r\n" instead of Unix line ending "\n".
-	                                                    Requires space or tab pretty printing. */
-	M_JSON_WRITER_DONT_ENCODE_UNICODE    = 1 << 3, /*!< By default utf-8 characters will be enocded into unicode
-	                                                    escapes. */
-	M_JSON_WRITER_REPLACE_BAD_CHARS      = 1 << 4, /*!< Replace bad characters (invalid utf-8 sequences with "?"). */
-	M_JSON_WRITER_NUMBER_NOCOMPAT        = 1 << 5  /*!< Write numbers as they are instead of limiting to Java Script
-	                                                    minimum and maximum sizes. */
+    M_JSON_WRITER_NONE                   = 0,      /*!< No indent. All data on a single line. */
+    M_JSON_WRITER_PRETTYPRINT_SPACE      = 1 << 0, /*!< 2 space indent. */
+    M_JSON_WRITER_PRETTYPRINT_TAB        = 1 << 1, /*!< Tab indent. */
+    M_JSON_WRITER_PRETTYPRINT_WINLINEEND = 1 << 2, /*!< Windows line ending "\r\n" instead of Unix line ending "\n".
+                                                        Requires space or tab pretty printing. */
+    M_JSON_WRITER_DONT_ENCODE_UNICODE    = 1 << 3, /*!< By default utf-8 characters will be enocded into unicode
+                                                        escapes. */
+    M_JSON_WRITER_REPLACE_BAD_CHARS      = 1 << 4, /*!< Replace bad characters (invalid utf-8 sequences with "?"). */
+    M_JSON_WRITER_NUMBER_NOCOMPAT        = 1 << 5  /*!< Write numbers as they are instead of limiting to Java Script
+                                                        minimum and maximum sizes. */
 } M_json_writer_flags_t;
 
 
 /*! Error codes. */
 typedef enum {
-	M_JSON_ERROR_SUCCESS = 0,              /*!< success */
-	M_JSON_ERROR_GENERIC,                  /*!< generic error */
-	M_JSON_ERROR_MISUSE,                   /*!< API missuse */
-	M_JSON_ERROR_INVALID_START,            /*!< expected Object or Array to start */
-	M_JSON_ERROR_EXPECTED_END,             /*!< expected end but more data found */
-	M_JSON_ERROR_MISSING_COMMENT_CLOSE,    /*!< close comment not found */
-	M_JSON_ERROR_UNEXPECTED_COMMENT_START, /*!< unexpected / */
-	M_JSON_ERROR_INVALID_PAIR_START,       /*!< expected string as first half of pair */
-	M_JSON_ERROR_DUPLICATE_KEY,            /*!< duplicate key */
-	M_JSON_ERROR_MISSING_PAIR_SEPARATOR,   /*!< expected ':' separator in pair */
-	M_JSON_ERROR_OBJECT_UNEXPECTED_CHAR,   /*!< unexpected character in object */
-	M_JSON_ERROR_EXPECTED_VALUE,           /*!< expected value after ',' */
-	M_JSON_ERROR_UNCLOSED_OBJECT,          /*!< expected '}' to close object */
-	M_JSON_ERROR_ARRAY_UNEXPECTED_CHAR,    /*!< unexpected character in array */
-	M_JSON_ERROR_UNCLOSED_ARRAY,           /*!< expected ']' to close array */
-	M_JSON_ERROR_UNEXPECTED_NEWLINE,       /*!< unexpected newline */
-	M_JSON_ERROR_UNEXPECTED_CONTROL_CHAR,  /*!< unexpected control character */
-	M_JSON_ERROR_INVALID_UNICODE_ESACPE,   /*!< invalid unicode escape */
-	M_JSON_ERROR_UNEXPECTED_ESCAPE,        /*!< unexpected escape */
-	M_JSON_ERROR_UNCLOSED_STRING,          /*!< unclosed string */
-	M_JSON_ERROR_INVALID_BOOL,             /*!< invalid bool value */
-	M_JSON_ERROR_INVALID_NULL,             /*!< invalid null value */
-	M_JSON_ERROR_INVALID_NUMBER,           /*!< invalid number value */
-	M_JSON_ERROR_UNEXPECTED_TERMINATION,   /*!< unexpected termination of string data. \0 in data. */
-	M_JSON_ERROR_INVALID_IDENTIFIER,       /*!< invalid identifier */
-	M_JSON_ERROR_UNEXPECTED_END            /*!< unexpected end of data */
+    M_JSON_ERROR_SUCCESS = 0,              /*!< success */
+    M_JSON_ERROR_GENERIC,                  /*!< generic error */
+    M_JSON_ERROR_MISUSE,                   /*!< API missuse */
+    M_JSON_ERROR_INVALID_START,            /*!< expected Object or Array to start */
+    M_JSON_ERROR_EXPECTED_END,             /*!< expected end but more data found */
+    M_JSON_ERROR_MISSING_COMMENT_CLOSE,    /*!< close comment not found */
+    M_JSON_ERROR_UNEXPECTED_COMMENT_START, /*!< unexpected / */
+    M_JSON_ERROR_INVALID_PAIR_START,       /*!< expected string as first half of pair */
+    M_JSON_ERROR_DUPLICATE_KEY,            /*!< duplicate key */
+    M_JSON_ERROR_MISSING_PAIR_SEPARATOR,   /*!< expected ':' separator in pair */
+    M_JSON_ERROR_OBJECT_UNEXPECTED_CHAR,   /*!< unexpected character in object */
+    M_JSON_ERROR_EXPECTED_VALUE,           /*!< expected value after ',' */
+    M_JSON_ERROR_UNCLOSED_OBJECT,          /*!< expected '}' to close object */
+    M_JSON_ERROR_ARRAY_UNEXPECTED_CHAR,    /*!< unexpected character in array */
+    M_JSON_ERROR_UNCLOSED_ARRAY,           /*!< expected ']' to close array */
+    M_JSON_ERROR_UNEXPECTED_NEWLINE,       /*!< unexpected newline */
+    M_JSON_ERROR_UNEXPECTED_CONTROL_CHAR,  /*!< unexpected control character */
+    M_JSON_ERROR_INVALID_UNICODE_ESACPE,   /*!< invalid unicode escape */
+    M_JSON_ERROR_UNEXPECTED_ESCAPE,        /*!< unexpected escape */
+    M_JSON_ERROR_UNCLOSED_STRING,          /*!< unclosed string */
+    M_JSON_ERROR_INVALID_BOOL,             /*!< invalid bool value */
+    M_JSON_ERROR_INVALID_NULL,             /*!< invalid null value */
+    M_JSON_ERROR_INVALID_NUMBER,           /*!< invalid number value */
+    M_JSON_ERROR_UNEXPECTED_TERMINATION,   /*!< unexpected termination of string data. \0 in data. */
+    M_JSON_ERROR_INVALID_IDENTIFIER,       /*!< invalid identifier */
+    M_JSON_ERROR_UNEXPECTED_END            /*!< unexpected end of data */
 } M_json_error_t;
 
 

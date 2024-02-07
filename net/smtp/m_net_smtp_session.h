@@ -30,65 +30,65 @@
 #include <mstdlib/mstdlib_net.h>
 
 typedef enum {
-	M_NET_SMTP_TLS_NONE,
-	M_NET_SMTP_TLS_IMPLICIT,
-	M_NET_SMTP_TLS_STARTTLS,
-	M_NET_SMTP_TLS_STARTTLS_READY,
-	M_NET_SMTP_TLS_STARTTLS_ADDED,
-	M_NET_SMTP_TLS_CONNECTED,
+    M_NET_SMTP_TLS_NONE,
+    M_NET_SMTP_TLS_IMPLICIT,
+    M_NET_SMTP_TLS_STARTTLS,
+    M_NET_SMTP_TLS_STARTTLS_READY,
+    M_NET_SMTP_TLS_STARTTLS_ADDED,
+    M_NET_SMTP_TLS_CONNECTED,
 } M_net_smtp_tls_state_t;
 
 typedef enum {
-	M_NET_SMTP_AUTHTYPE_NONE,
-	M_NET_SMTP_AUTHTYPE_LOGIN,
-	M_NET_SMTP_AUTHTYPE_PLAIN,
-	M_NET_SMTP_AUTHTYPE_CRAM_MD5,
-	M_NET_SMTP_AUTHTYPE_DIGEST_MD5,
+    M_NET_SMTP_AUTHTYPE_NONE,
+    M_NET_SMTP_AUTHTYPE_LOGIN,
+    M_NET_SMTP_AUTHTYPE_PLAIN,
+    M_NET_SMTP_AUTHTYPE_CRAM_MD5,
+    M_NET_SMTP_AUTHTYPE_DIGEST_MD5,
 } M_net_smtp_authtype_t;
 
 typedef struct {
-	M_bool                       is_successfully_sent;
-	M_bool                       is_backout;
-	size_t                       retry_ms;
-	const M_net_smtp_t          *sp;
-	M_state_machine_t           *state_machine;
-	unsigned int                 connection_mask;
-	M_thread_mutex_t            *mutex;
-	char                        *msg;
-	M_io_t                      *io;
-	M_hash_dict_t               *headers;
-	M_email_t                   *email;
-	size_t                       number_of_tries;
-	const M_net_smtp_endpoint_t *ep;
-	M_buf_t                     *out_buf;
-	M_parser_t                  *in_parser;
-	M_event_timer_t             *event_timer;
-	char                         errmsg[256];
-	union {
-		struct {
-			M_bool                  is_starttls_capable;
-			M_bool                  is_connect_fail;
-			M_bool                  is_QUIT_enabled;
-			M_net_smtp_tls_state_t  tls_state;
-			M_net_error_t           net_error;
-			M_uint64                smtp_response_code;
-			M_list_str_t           *smtp_response;
-			M_net_smtp_authtype_t   smtp_authtype;
-			size_t                  auth_login_response_count;
-			char                   *ehlo_domain;
-			M_list_str_t           *rcpt_to;
-			size_t                  num_valid_addresses;
-		} tcp;
-		struct {
-			M_io_t                 *io_stdin;
-			M_io_t                 *io_stdout;
-			M_io_t                 *io_stderr;
-			int                     result_code;
-			size_t                  len;
-			const char             *msg_second_part;
-			M_bool                  is_done_waiting;
-		} process;
-	};
+    M_bool                       is_successfully_sent;
+    M_bool                       is_backout;
+    size_t                       retry_ms;
+    const M_net_smtp_t          *sp;
+    M_state_machine_t           *state_machine;
+    unsigned int                 connection_mask;
+    M_thread_mutex_t            *mutex;
+    char                        *msg;
+    M_io_t                      *io;
+    M_hash_dict_t               *headers;
+    M_email_t                   *email;
+    size_t                       number_of_tries;
+    const M_net_smtp_endpoint_t *ep;
+    M_buf_t                     *out_buf;
+    M_parser_t                  *in_parser;
+    M_event_timer_t             *event_timer;
+    char                         errmsg[256];
+    union {
+        struct {
+            M_bool                  is_starttls_capable;
+            M_bool                  is_connect_fail;
+            M_bool                  is_QUIT_enabled;
+            M_net_smtp_tls_state_t  tls_state;
+            M_net_error_t           net_error;
+            M_uint64                smtp_response_code;
+            M_list_str_t           *smtp_response;
+            M_net_smtp_authtype_t   smtp_authtype;
+            size_t                  auth_login_response_count;
+            char                   *ehlo_domain;
+            M_list_str_t           *rcpt_to;
+            size_t                  num_valid_addresses;
+        } tcp;
+        struct {
+            M_io_t                 *io_stdin;
+            M_io_t                 *io_stdout;
+            M_io_t                 *io_stderr;
+            int                     result_code;
+            size_t                  len;
+            const char             *msg_second_part;
+            M_bool                  is_done_waiting;
+        } process;
+    };
 } M_net_smtp_session_t;
 
 M_net_smtp_session_t * M_net_smtp_session_create(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t* ep);

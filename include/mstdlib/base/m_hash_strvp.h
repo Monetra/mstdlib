@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,7 +35,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_hash_strvp Hashtable - String/Void Pointer
  *  \ingroup m_hashtable
- * 
+ *
  * Hashtable, meant for storing string keys and void pointer values.
  *
  * References to the data will always be read-only.
@@ -59,27 +59,27 @@ typedef struct M_hash_strvp_enum M_hash_strvp_enum_t;
 
 /*! Flags for controlling the behavior of the hashtable. */
 typedef enum {
-	M_HASH_STRVP_NONE          = 0,      /*!< Case sensitive single value (new values replace). */
-	M_HASH_STRVP_CASECMP       = 1 << 0, /*!< Key compare is case insensitive. */
-	M_HASH_STRVP_KEYS_UPPER    = 1 << 1, /*!< Keys will be upper cased before being inserted. Should be used
-	                                          in conjunction with M_HASH_STRVP_CASECMP. */
-	M_HASH_STRVP_KEYS_LOWER    = 1 << 2, /*!< Keys will be lower cased before being inserted. Should be used
-	                                          in conjunction with M_HASH_STRVP_CASECMP. */
-	M_HASH_STRVP_KEYS_ORDERED  = 1 << 3, /*!< Keys should be ordered. Default is insertion order unless the
-	                                          sorted option is specified. */
-	M_HASH_STRVP_KEYS_SORTASC  = 1 << 4, /*!< When the keys are ordered sort them using the key_equality function. */
-	M_HASH_STRVP_KEYS_SORTDESC = 1 << 5, /*!< When the keys are ordered sort them using the key_equality function. */
-	M_HASH_STRVP_MULTI_VALUE   = 1 << 6, /*!< Allow keys to contain multiple values.
-	                                          Sorted in insertion order another sorting is specified. */
-	M_HASH_STRVP_MULTI_GETLAST = 1 << 7, /*!< When using get and get_direct function get the last value from the list
-	                                          when allowing multiple values. The default is to get the first value. */
-	M_HASH_STRVP_STATIC_SEED   = 1 << 8  /*!< Use a static seed for hash function initialization. This greatly reduces
-	                                           the security of the hashtable and removes collision attack protections.
-	                                           This should only be used as a performance optimization when creating
-	                                           millions of hashtables with static data specifically for quick look up.
-	                                           DO _NOT_ use this flag with any hashtable that could store user
-	                                           generated data! Be very careful about duplicating a hashtable that
-	                                           was created with this flag. All duplicates will use the static seed. */
+    M_HASH_STRVP_NONE          = 0,      /*!< Case sensitive single value (new values replace). */
+    M_HASH_STRVP_CASECMP       = 1 << 0, /*!< Key compare is case insensitive. */
+    M_HASH_STRVP_KEYS_UPPER    = 1 << 1, /*!< Keys will be upper cased before being inserted. Should be used
+                                              in conjunction with M_HASH_STRVP_CASECMP. */
+    M_HASH_STRVP_KEYS_LOWER    = 1 << 2, /*!< Keys will be lower cased before being inserted. Should be used
+                                              in conjunction with M_HASH_STRVP_CASECMP. */
+    M_HASH_STRVP_KEYS_ORDERED  = 1 << 3, /*!< Keys should be ordered. Default is insertion order unless the
+                                              sorted option is specified. */
+    M_HASH_STRVP_KEYS_SORTASC  = 1 << 4, /*!< When the keys are ordered sort them using the key_equality function. */
+    M_HASH_STRVP_KEYS_SORTDESC = 1 << 5, /*!< When the keys are ordered sort them using the key_equality function. */
+    M_HASH_STRVP_MULTI_VALUE   = 1 << 6, /*!< Allow keys to contain multiple values.
+                                              Sorted in insertion order another sorting is specified. */
+    M_HASH_STRVP_MULTI_GETLAST = 1 << 7, /*!< When using get and get_direct function get the last value from the list
+                                              when allowing multiple values. The default is to get the first value. */
+    M_HASH_STRVP_STATIC_SEED   = 1 << 8  /*!< Use a static seed for hash function initialization. This greatly reduces
+                                               the security of the hashtable and removes collision attack protections.
+                                               This should only be used as a performance optimization when creating
+                                               millions of hashtables with static data specifically for quick look up.
+                                               DO _NOT_ use this flag with any hashtable that could store user
+                                               generated data! Be very careful about duplicating a hashtable that
+                                               was created with this flag. All duplicates will use the static seed. */
 } M_hash_strvp_flags_t;
 
 
@@ -98,7 +98,7 @@ typedef enum {
  *                         0 is specified, the hashtable will never expand, otherwise the
  *                         value must be between 1 and 99 (recommended: 75).
  * \param[in] flags        M_hash_strvp_flags_t flags for modifying behavior.
- * \param[in] destroy_func The function to be called to destroy value when the hashtable 
+ * \param[in] destroy_func The function to be called to destroy value when the hashtable
  *                         itself is destroyed. Can be NULL.
  *
  * \return Allocated hashtable.
@@ -147,7 +147,7 @@ M_API M_bool M_hash_strvp_insert(M_hash_strvp_t *h, const char *key, void *value
 M_API M_bool M_hash_strvp_remove(M_hash_strvp_t *h, const char *key, M_bool destroy_vals);
 
 
-/*! Retrieve the value for a key from the hashtable. 
+/*! Retrieve the value for a key from the hashtable.
  *
  * \param[in] h      Hashtable being referenced.
  * \param[in] key    Key for value.
@@ -186,7 +186,7 @@ M_bool M_hash_strvp_is_multi(const M_hash_strvp_t *h);
 /*! Get the number of values for a given key.
  *
  * \param[in]  h   Hashtable being referenced.
- * \param[in]  key Key for value to retrieve. 
+ * \param[in]  key Key for value to retrieve.
  * \param[out] len The number of values.
  *
  * \return M_TRUE if length is retrieved, M_FALSE if key does not exist.

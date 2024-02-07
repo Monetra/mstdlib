@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,7 +36,7 @@ __BEGIN_DECLS
 
 /*! \defgroup m_list Lists (Dynamic Arrays)
  *  \ingroup m_datastructures
- * 
+ *
  *  List (Dynamic Arrays)
  */
 
@@ -103,44 +103,44 @@ typedef void (*M_list_free_func)(void *);
 /*! Structure of callbacks that can be registered to override default
  *  behavior for list implementation. */
 struct M_list_callbacks {
-	M_sort_compar_t        equality;          /*!< Callback to check if two items in the list are equal.
-	                                               If NULL unsorted list */
-	M_list_duplicate_func  duplicate_insert;  /*!< Callback to duplicate a value on insert.
-	                                               If NULL is pass-thru pointer */
-	M_list_duplicate_func  duplicate_copy;    /*!< Callback to duplicate a value on copy.
-	                                               If NULL is pass-thru pointer */
-	M_list_free_func       value_free;        /*!< Callback to free a value.
-  	                                               If NULL is pass-thru pointer */
+    M_sort_compar_t        equality;          /*!< Callback to check if two items in the list are equal.
+                                                   If NULL unsorted list */
+    M_list_duplicate_func  duplicate_insert;  /*!< Callback to duplicate a value on insert.
+                                                   If NULL is pass-thru pointer */
+    M_list_duplicate_func  duplicate_copy;    /*!< Callback to duplicate a value on copy.
+                                                   If NULL is pass-thru pointer */
+    M_list_free_func       value_free;        /*!< Callback to free a value.
+                                                   If NULL is pass-thru pointer */
 };
 
 
 /*! Flags for controlling the behavior of the list. */
 typedef enum {
-	M_LIST_NONE        = 0,      /*!< List (array) mode. Default unless M_LIST_STACK is specified. */
-	M_LIST_SORTED      = 1 << 0, /*!< Whether the data in the list should be kept in sorted order. callbacks cannot
-	                                  be NULL and the equality function must be set if this is M_TRUE.
-	                                  Sorting cannot be combined with M_LIST_STACK. */
-	M_LIST_STABLE      = 1 << 1, /*!< Make insert, search and sort stable. */
-	M_LIST_STACK       = 1 << 2, /*!< Last in First out mode. */
-	M_LIST_SET_VAL     = 1 << 3, /*!< All elements are unique based on their value.
-	                                  Insert is increased by an additional O(n) operation (on top of the insert
-	                                  itself) in order to determine if a value is a duplicate for unsorted.
-	                                  Insert is increased by an additional O(log(n)) operation (on top of the insert
-	                                  itself) in order to determine if a value is a duplicate for sorted. */
-	M_LIST_SET_PTR     = 1 << 4, /*!< All elements are unique based on their pointer.
-	                                  Insert is increased by an additional O(n) operation (on top of the insert
-	                                  itself) in order to determine if a value is a duplicate for unsorted.
-	                                  Insert is increased by an additional O(log(n)) operation (on top of the insert
-	                                  itself) in order to determine if a value is a duplicate for sorted. */
-	M_LIST_NEVERSHRINK = 1 << 5  /*!< Never allow the list to shrink. */
+    M_LIST_NONE        = 0,      /*!< List (array) mode. Default unless M_LIST_STACK is specified. */
+    M_LIST_SORTED      = 1 << 0, /*!< Whether the data in the list should be kept in sorted order. callbacks cannot
+                                      be NULL and the equality function must be set if this is M_TRUE.
+                                      Sorting cannot be combined with M_LIST_STACK. */
+    M_LIST_STABLE      = 1 << 1, /*!< Make insert, search and sort stable. */
+    M_LIST_STACK       = 1 << 2, /*!< Last in First out mode. */
+    M_LIST_SET_VAL     = 1 << 3, /*!< All elements are unique based on their value.
+                                      Insert is increased by an additional O(n) operation (on top of the insert
+                                      itself) in order to determine if a value is a duplicate for unsorted.
+                                      Insert is increased by an additional O(log(n)) operation (on top of the insert
+                                      itself) in order to determine if a value is a duplicate for sorted. */
+    M_LIST_SET_PTR     = 1 << 4, /*!< All elements are unique based on their pointer.
+                                      Insert is increased by an additional O(n) operation (on top of the insert
+                                      itself) in order to determine if a value is a duplicate for unsorted.
+                                      Insert is increased by an additional O(log(n)) operation (on top of the insert
+                                      itself) in order to determine if a value is a duplicate for sorted. */
+    M_LIST_NEVERSHRINK = 1 << 5  /*!< Never allow the list to shrink. */
 } M_list_flags_t;
 
 
 /*! Type of matching that should be used when searching/modifying a value in the list. */
 typedef enum {
-	M_LIST_MATCH_VAL = 0,      /*!< Match based on the value (equality function). */
-	M_LIST_MATCH_PTR = 1 << 0, /*!< Math the pointer itself. */
-	M_LIST_MATCH_ALL = 1 << 1  /*!< Include all instances. */
+    M_LIST_MATCH_VAL = 0,      /*!< Match based on the value (equality function). */
+    M_LIST_MATCH_PTR = 1 << 0, /*!< Math the pointer itself. */
+    M_LIST_MATCH_ALL = 1 << 1  /*!< Include all instances. */
 } M_list_match_type_t;
 
 
