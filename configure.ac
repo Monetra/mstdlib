@@ -368,7 +368,7 @@ Darwin)
 	AX_APPEND_COMPILE_FLAGS([-D_XOPEN_SOURCE=500 -D_DARWIN_C_SOURCE=1], [CPPFLAGS], [-Werror])
 	;;
 *)
-	AX_APPEND_COMPILE_FLAGS([-std=c99], [CFLAGS], [-Werror])
+	AX_APPEND_COMPILE_FLAGS([-std=c23], [CFLAGS], [-Werror])
 	;;
 esac
 
